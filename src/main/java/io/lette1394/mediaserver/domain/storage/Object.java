@@ -1,7 +1,5 @@
 package io.lette1394.mediaserver.domain.storage;
 
-import static io.lette1394.mediaserver.domain.storage.Tags.tags;
-
 import io.lette1394.mediaserver.common.PositiveLong;
 import java.time.OffsetDateTime;
 import lombok.AccessLevel;

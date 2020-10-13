@@ -5,11 +5,11 @@ import lombok.Value;
 
 @Value
 public class Identifier {
-    NonBlankString area;
-    NonBlankString key;
+  NonBlankString area;
+  NonBlankString key;
 
-    public Identifier(String area, String key) {
-        this.area = NonBlankString.nonBlankString(area);
-        this.key = NonBlankString.nonBlankString(key);
-    }
+  public Identifier(String area, String key) {
+    this.area = NonBlankString.nonBlankString(area);
+    this.key = NonBlankString.nonBlankString(key);
+  }
 }

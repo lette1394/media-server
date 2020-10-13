@@ -1,8 +1,10 @@
 package io.lette1394.mediaserver.common;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
+@Value
 @RequiredArgsConstructor(staticName = "positiveLong")
-public final class PositiveLong {
-    private final long value;
+public class PositiveLong {
+  long value;
 }

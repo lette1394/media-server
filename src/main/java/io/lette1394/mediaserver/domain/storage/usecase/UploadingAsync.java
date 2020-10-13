@@ -8,19 +8,19 @@ import lombok.Value;
 @Value
 public class UploadingAsync {
 
-    @Value
-    public static class Command {
-        String area;
-        String key;
-        AsyncDataProvider dataProvider;
-    }
+  @Value
+  public static class Command {
+    String area;
+    String key;
+    AsyncDataSupplier dataProvider;
+  }
 
-    AsyncStorage storage;
+  AsyncStorage storage;
 
-    public CompletableFuture<Result> upload(Command command) {
+  public CompletableFuture<Result> upload(Command command) {
 
-        final Object object = Object.create("1", "3");
-        final CompletableFuture<Result> save = storage.uploadAsync(object);
-        return null;
-    }
+    final Object object = Object.create("1", "3");
+    final CompletableFuture<Result> save = storage.uploadAsync(object);
+    return null;
+  }
 }

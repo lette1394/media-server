@@ -4,12 +4,13 @@ import io.lette1394.mediaserver.domain.storage.Identifier;
 import io.lette1394.mediaserver.domain.storage.Object;
 import java.util.concurrent.CompletableFuture;
 
+@FunctionalInterface
 public interface AsyncFinder extends Finder {
 
-    CompletableFuture<Object> findAsync(Identifier identifier);
+  CompletableFuture<Object> findAsync(Identifier identifier);
 
-    @Override
-    default Object find(Identifier identifier) throws ObjectNotFoundException {
-        return findAsync(identifier).join();
-    }
+  @Override
+  default Object find(Identifier identifier) throws ObjectNotFoundException {
+    return findAsync(identifier).join();
+  }
 }

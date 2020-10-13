@@ -6,17 +6,17 @@ import lombok.Value;
 
 @Value
 public class Uploading {
-    @Value
-    public static class Command {
-        String area;
-        String key;
-        DataProvider dataProvider;
-    }
+  @Value
+  public static class Command {
+    String area;
+    String key;
+    DataSupplier dataSupplier;
+  }
 
-    public Result upload(Command command) {
-        final Object object = Object.create("1", "2");
+  public Result upload(Command command) {
+    final Object object = Object.create("1", "2");
 
-        final Storage storage = StorageFactory.create(command.dataProvider);
-        return storage.upload(object);
-    }
+    final Storage storage = StorageFactory.create(command.dataSupplier);
+    return storage.upload(object);
+  }
 }

@@ -8,11 +8,11 @@ import lombok.Value;
 @Value
 @Builder
 class Attributes {
-    Type type;
-    PositiveLong size;
+  Type type;
+  PositiveLong size;
 
-    Tags tags;
+  Tags tags;
 
-    OffsetDateTime created;
-    OffsetDateTime updated;
+  OffsetDateTime created;
+  OffsetDateTime updated;
 }

@@ -7,14 +7,14 @@ import lombok.Value;
 @Value
 public class Downloading {
 
-    @Value
-    public static class Command {
-        Identifier identifier;
-    }
+  @Value
+  public static class Command {
+    Identifier identifier;
+  }
 
-    Storage storage;
+  Storage storage;
 
-    public Object download(Command command) throws ObjectNotFoundException {
-        return storage.find(command.identifier);
-    }
+  public Object download(Command command) throws ObjectNotFoundException {
+    return storage.find(command.identifier);
+  }
 }

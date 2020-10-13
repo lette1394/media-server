@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 
@@ -20,7 +21,7 @@ class StorageFactory {
     return storage;
   }
 
-  static Storage create(DataProvider dataProvider) {
+  static Storage create(DataSupplier dataSupplier) {
     return storage;
   }
 
@@ -47,50 +48,57 @@ class StorageFactory {
     }
 
     @Override
-    public DataProvider download(Object object) {
+    public DataSupplier download(Object object) {
       final InputStream inputStream =
           new ByteArrayInputStream(binaryHolder.get(object.getIdentifier()));
-      return new DataProvider() {
-        @Override
-        public int read() throws IOException {
-          return inputStream.read();
-        }
-      };
+
+      return () ->
+          new InputStream() {
+            @Override
+            public int read() throws IOException {
+              return inputStream.read();
+            }
+          };
     }
 
     @Override
-    public AsyncDataProvider downloadAsync(Object object) {
+    public AsyncDataSupplier downloadAsync(Object object) {
       final byte[] bytes = binaryHolder.get(object.getIdentifier());
 
-      return new AsyncDataProvider() {
-        Subscriber<? super ByteBuffer> subscriber;
-        boolean isCanceled = false;
-
-        Subscription subscription =
-            new Subscription() {
-              @Override
-              public void request(long n) {
-                handler.run();
-              }
-
-              @Override
-              public void cancel() {
-                isCanceled = true;
-              }
-            };
-
-        Runnable handler =
-            () -> {
-              for (int i = 0; i < bytes.length && !isCanceled; i++) {
-                subscriber.onNext(ByteBuffer.wrap(bytes, i, 1));
-              }
-              subscriber.onComplete();
-            };
-
+      return new AsyncDataSupplier() {
         @Override
-        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-          this.subscriber = subscriber;
-          subscriber.onSubscribe(subscription);
+        public Publisher<ByteBuffer> getAsync() {
+          return new Publisher<>() {
+            Subscriber<? super ByteBuffer> subscriber;
+            boolean isCanceled = false;
+
+            Subscription subscription =
+                new Subscription() {
+                  @Override
+                  public void request(long n) {
+                    handler.run();
+                  }
+
+                  @Override
+                  public void cancel() {
+                    isCanceled = true;
+                  }
+                };
+
+            Runnable handler =
+                () -> {
+                  for (int i = 0; i < bytes.length && !isCanceled; i++) {
+                    subscriber.onNext(ByteBuffer.wrap(bytes, i, 1));
+                  }
+                  subscriber.onComplete();
+                };
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+              this.subscriber = subscriber;
+              subscriber.onSubscribe(subscription);
+            }
+          };
         }
       };
     }

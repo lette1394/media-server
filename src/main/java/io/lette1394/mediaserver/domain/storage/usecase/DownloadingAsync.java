@@ -8,14 +8,14 @@ import lombok.Value;
 @Value
 public class DownloadingAsync {
 
-    @Value
-    public static class Command {
-        Identifier identifier;
-    }
+  @Value
+  public static class Command {
+    Identifier identifier;
+  }
 
-    AsyncStorage storage;
+  AsyncStorage storage;
 
-    public CompletableFuture<Object> download(Command command) {
-        return storage.findAsync(command.identifier);
-    }
+  public CompletableFuture<Object> download(Command command) {
+    return storage.findAsync(command.identifier);
+  }
 }

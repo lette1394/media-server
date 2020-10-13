@@ -2,6 +2,7 @@ package io.lette1394.mediaserver.domain.storage.usecase;
 
 import io.lette1394.mediaserver.domain.storage.Object;
 
+@FunctionalInterface
 interface Downloader {
-    DataProvider download(Object object);
+  DataSupplier download(Object object);
 }
