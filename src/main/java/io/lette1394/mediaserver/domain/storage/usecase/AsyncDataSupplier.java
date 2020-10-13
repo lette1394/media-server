@@ -18,7 +18,10 @@ interface AsyncDataSupplier extends DataSupplier {
     return new SingleThreadedAsyncToSync(getAsync());
   }
 
+  // TODO: 기본 구현체 밖으로 빼내기 (테스트 용도로만 제공 되어야 함)
   class SingleThreadedAsyncToSync extends InputStream {
+    private static final long REQUEST_COUNT = 5;
+
     private final BlockingQueue<ByteBuffer> queue;
 
     private ByteBuffer lastItem;
@@ -38,7 +41,7 @@ interface AsyncDataSupplier extends DataSupplier {
       return new Subscriber<>() {
         @Override
         public void onSubscribe(Subscription subscription) {
-          subscription.request(1);
+          subscription.request(REQUEST_COUNT);
         }
 
         @Override

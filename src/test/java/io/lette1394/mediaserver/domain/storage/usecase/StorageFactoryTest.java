@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 
 import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.Object;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +25,13 @@ class StorageFactoryTest {
   @Test
   @SneakyThrows
   void test1() {
-    final AsyncStorage asyncStorage = StorageFactory.create();
+
+    final byte[] testBinary = {
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+    };
+    final AsyncStorage asyncStorage =
+        new InMemoryStorage(() -> new ByteArrayInputStream(testBinary), 5);
 
     final Object object = Object.create("1", "2");
     final Result upload = asyncStorage.upload(object);
@@ -34,6 +42,8 @@ class StorageFactoryTest {
 
     final AsyncDataSupplier dataProvider = asyncStorage.downloadAsync(object);
 
+    AtomicInteger atomicInteger = new AtomicInteger();
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
     CountDownLatch latch = new CountDownLatch(1);
     dataProvider
         .getAsync()
@@ -41,44 +51,51 @@ class StorageFactoryTest {
             new Subscriber<>() {
               @Override
               public void onSubscribe(Subscription subscription) {
-                System.out.println("start!!" + subscription.toString());
                 StorageFactoryTest.this.subscription = subscription;
               }
 
               @Override
               public void onNext(ByteBuffer item) {
-                final byte b = item.get();
-                System.out.println("on next!! " + b);
+                byte[] bytes = new byte[item.remaining()];
+                item.get(bytes);
+                out.writeBytes(bytes);
+
+                subscription.request(1);
+                System.out.println("-" + atomicInteger.get());
+                atomicInteger.incrementAndGet();
               }
 
               @Override
-              public void onError(Throwable throwable) {
-                System.out.println("error!!" + throwable);
-              }
+              public void onError(Throwable throwable) {}
 
               @Override
               public void onComplete() {
-                System.out.println("completed!!");
                 latch.countDown();
               }
             });
 
-    subscription.request(1);
-    latch.await(1, TimeUnit.SECONDS);
+    subscription.request(10);
+    latch.await(10, TimeUnit.SECONDS);
+
+    assertThat(out.toByteArray(), is(testBinary));
   }
 
   @Test
   void test2() {
-    final AsyncStorage asyncStorage = StorageFactory.create();
+    final byte[] testBinary = {
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+    };
+    final Storage storage = new InMemoryStorage(() -> new ByteArrayInputStream(testBinary), 50);
 
     final Object object = Object.create("1", "2");
-    final Result upload = asyncStorage.upload(object);
+    final Result upload = storage.upload(object);
     assertThat(upload.isSucceed(), is(true));
 
-    final Object object1 = asyncStorage.find(object.getIdentifier());
+    final Object object1 = storage.find(object.getIdentifier());
     assertThat(object.getIdentifier(), is(equalTo(object1.getIdentifier())));
 
-    final AsyncDataSupplier dataProvider = asyncStorage.downloadAsync(object);
+    final DataSupplier dataProvider = storage.download(object);
     final InputStream inputStream = dataProvider.get();
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -95,8 +112,6 @@ class StorageFactoryTest {
     }
 
     final byte[] bytes = out.toString().getBytes();
-    for (byte aByte : bytes) {
-      System.out.println(aByte);
-    }
+    assertThat(bytes, is(testBinary));
   }
 }
