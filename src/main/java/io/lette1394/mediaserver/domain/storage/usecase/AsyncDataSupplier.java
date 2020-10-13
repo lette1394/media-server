@@ -15,19 +15,20 @@ interface AsyncDataSupplier extends DataSupplier {
 
   @Override
   default InputStream get() {
-    return new AsyncToSync(getAsync());
+    return new SingleThreadedAsyncToSync(getAsync());
   }
 
-  class AsyncToSync extends InputStream {
+  class SingleThreadedAsyncToSync extends InputStream {
     private final BlockingQueue<ByteBuffer> queue;
 
     private ByteBuffer lastItem;
 
     private boolean isCompleted = false;
+
     private boolean isFailed = false;
     private Throwable failureReason = null;
 
-    public AsyncToSync(Publisher<ByteBuffer> publisher) {
+    public SingleThreadedAsyncToSync(Publisher<ByteBuffer> publisher) {
       this.queue = new LinkedBlockingQueue<>();
 
       publisher.subscribe(createSubscriber());
