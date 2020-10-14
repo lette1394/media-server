@@ -61,7 +61,6 @@ class StorageFactoryTest {
                 out.writeBytes(bytes);
 
                 subscription.request(1);
-                System.out.println("-" + atomicInteger.get());
                 atomicInteger.incrementAndGet();
               }
 
