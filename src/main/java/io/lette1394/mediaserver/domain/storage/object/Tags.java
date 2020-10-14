@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage;
+package io.lette1394.mediaserver.domain.storage.object;
 
 import java.util.Collections;
 import java.util.List;

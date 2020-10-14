@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.domain.storage.usecase;
 
-import io.lette1394.mediaserver.domain.storage.Identifier;
-import io.lette1394.mediaserver.domain.storage.Object;
+import io.lette1394.mediaserver.domain.storage.object.Identifier;
+import io.lette1394.mediaserver.domain.storage.object.Object;
 import lombok.Value;
 
 @Value
@@ -15,6 +15,7 @@ public class Downloading {
   Storage storage;
 
   public Object download(Command command) throws ObjectNotFoundException {
-    return storage.find(command.identifier);
+    final StorageResult<Object> objectStorageResult = storage.find(command.identifier);
+    return null;
   }
 }

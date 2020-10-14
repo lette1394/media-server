@@ -5,21 +5,26 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class InputStreamPublisher implements Publisher<ByteBuffer> {
+class SingleThreadInputStreamPublisher implements Publisher<ByteBuffer> {
+  final ExecutorService executor = Executors.newFixedThreadPool(1);
+
   private static final int END_OF_FILE = -1;
 
   private final InputStream inputStream;
-  private final long chunkSizeInByte;
+  private final long chunkSize;
 
   boolean isCanceled = false;
   boolean isCompleted = false;
   Subscriber<? super ByteBuffer> subscriber;
+
 
   @Override
   public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
@@ -31,7 +36,7 @@ class InputStreamPublisher implements Publisher<ByteBuffer> {
     return new Subscription() {
       @Override
       public void request(long n) {
-        read(n);
+        executor.submit(() -> read(n));
       }
 
       @Override
@@ -60,7 +65,7 @@ class InputStreamPublisher implements Publisher<ByteBuffer> {
 
     try {
       while (remaining > 0) {
-        final int chunk = (int)Math.min(remaining, chunkSizeInByte);
+        final int chunk = (int)Math.min(remaining, chunkSize);
         final byte[] bytes = new byte[chunk];
         final int signalOrLength = inputStream.read(bytes, 0, chunk);
 
@@ -71,7 +76,7 @@ class InputStreamPublisher implements Publisher<ByteBuffer> {
 
         onNext(bytes, signalOrLength);
 
-        remaining -= chunkSizeInByte;
+        remaining -= chunkSize;
       }
     } catch (IOException e) {
       onError(e);
@@ -87,7 +92,7 @@ class InputStreamPublisher implements Publisher<ByteBuffer> {
   }
 
   private void onNext(byte[] bytes, int length) {
-    subscriber.onNext((ByteBuffer.wrap(bytes, 0, length)));
+    subscriber.onNext(ByteBuffer.wrap(bytes, 0, length));
   }
 
   private void onComplete() {

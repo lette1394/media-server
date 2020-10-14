@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage;
+package io.lette1394.mediaserver.domain.storage.object;
 
 import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 
