@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 @AbstractionBoundary
 public interface Storage {
+
   CompletableFuture<Boolean> isExist(Identifier identifier) throws ObjectNotFoundException;
 
   CompletableFuture<Object> find(Identifier identifier) throws ObjectNotFoundException;

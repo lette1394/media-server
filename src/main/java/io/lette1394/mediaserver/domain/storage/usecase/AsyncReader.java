@@ -25,6 +25,7 @@ public abstract class AsyncReader<FROM, TO> {
 
   @RequiredArgsConstructor
   private static class AutoByteBufferSubscriber<FROM, TO> implements Subscriber<FROM> {
+
     private final AsyncReader<FROM, TO> reader;
 
     private Subscription subscription;

@@ -8,16 +8,15 @@ import lombok.Value;
 
 @Value
 public class DownloadingAsync {
-
-  @Value
-  public static class Command {
-    Identifier identifier;
-  }
-
   Storage storage;
 
   public CompletableFuture<Object> download(Command command) {
     storage.find(command.identifier);
     return null;
+  }
+
+  @Value
+  public static class Command {
+    Identifier identifier;
   }
 }

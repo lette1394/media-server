@@ -8,11 +8,11 @@ import lombok.Value;
 class Tags {
   List<Tag> tags;
 
-  public List<Tag> getTags() {
-    return Collections.unmodifiableList(tags);
-  }
-
   public static Tags tags(Tag... tags) {
     return new Tags(List.of(tags));
+  }
+
+  public List<Tag> getTags() {
+    return Collections.unmodifiableList(tags);
   }
 }

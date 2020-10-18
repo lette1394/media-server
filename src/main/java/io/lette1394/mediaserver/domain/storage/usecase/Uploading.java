@@ -9,13 +9,6 @@ import lombok.Value;
 
 @Value
 public class Uploading {
-  @Value
-  public static class Command {
-    String area;
-    String key;
-    BinarySupplier binarySupplier;
-  }
-
   Storage storage;
 
   public CompletableFuture<Void> upload(Command command) {
@@ -23,5 +16,12 @@ public class Uploading {
     final Object object = factory.create("1", "2");
 
     return storage.append(object, command.binarySupplier);
+  }
+
+  @Value
+  public static class Command {
+    String area;
+    String key;
+    BinarySupplier binarySupplier;
   }
 }
