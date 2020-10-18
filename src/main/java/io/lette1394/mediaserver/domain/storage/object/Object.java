@@ -12,19 +12,25 @@ public class Object {
   private final Attributes attributes;
 
   private final Storage storage;
+  private final ObjectUploadPolicy objectUploadPolicy;
 
   @Builder(access = AccessLevel.PACKAGE)
-  public Object(Identifier identifier, Attributes attributes, Storage storage) {
+  public Object(
+      Identifier identifier, Attributes attributes, Storage storage, ObjectUploadPolicy objectUploadPolicy) {
     this.identifier = identifier;
     this.attributes = attributes;
     this.storage = storage;
+    this.objectUploadPolicy = objectUploadPolicy;
   }
 
   public StorageResult<Void> upload(BinarySupplier binarySupplier) {
-    return storage.upload(this, binarySupplier);
+    if (objectUploadPolicy.test(this)) {
+      return storage.create(this, binarySupplier);
+    }
+    return StorageResult.failed(new RuntimeException());
   }
 
   public StorageResult<BinarySupplier> download() {
-    return storage.download(this);
+    return storage.findBinary(this);
   }
 }

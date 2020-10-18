@@ -37,7 +37,7 @@ class InMemoryStorage implements Storage {
   }
 
   @Override
-  public StorageResult<Void> upload(Object object, BinarySupplier binarySupplier) {
+  public StorageResult<Void> create(Object object, BinarySupplier binarySupplier) {
     if (binarySupplier.isSyncSupported()) {
       return uploadSync(object, binarySupplier);
     }
@@ -48,7 +48,12 @@ class InMemoryStorage implements Storage {
   }
 
   @Override
-  public StorageResult<BinarySupplier> download(Object object) {
+  public StorageResult<Void> append(Object object, BinarySupplier binarySupplier) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public StorageResult<BinarySupplier> findBinary(Object object) {
     return storageResult(
       CompletableFuture.completedFuture(
         new BinarySupplier() {

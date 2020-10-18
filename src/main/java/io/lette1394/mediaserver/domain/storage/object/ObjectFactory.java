@@ -20,6 +20,7 @@ public class ObjectFactory {
                 .created(OffsetDateTime.now())
                 .updated(OffsetDateTime.now())
                 .build())
+        .objectUploadPolicy(object -> true)
         .build();
   }
 }

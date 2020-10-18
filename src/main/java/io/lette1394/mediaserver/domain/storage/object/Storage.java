@@ -8,7 +8,9 @@ import io.lette1394.mediaserver.domain.storage.usecase.StorageResult;
 public interface Storage {
   StorageResult<Object> find(Identifier identifier) throws ObjectNotFoundException;
 
-  StorageResult<Void> upload(Object object, BinarySupplier binarySupplier);
+  StorageResult<BinarySupplier> findBinary(Object object);
 
-  StorageResult<BinarySupplier> download(Object object);
+  StorageResult<Void> create(Object object, BinarySupplier binarySupplier);
+
+  StorageResult<Void> append(Object object, BinarySupplier binarySupplier);
 }
