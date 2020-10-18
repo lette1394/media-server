@@ -8,7 +8,6 @@ import lombok.Value;
 @Value
 @Builder
 class Attributes {
-  Type type;
   PositiveLong size;
 
   Tags tags;

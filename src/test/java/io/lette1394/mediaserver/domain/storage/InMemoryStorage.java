@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage.usecase;
+package io.lette1394.mediaserver.domain.storage;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -8,6 +8,8 @@ import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
+import io.lette1394.mediaserver.domain.storage.usecase.ByteBufferToByteArrayAsyncReader;
+import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,11 +22,15 @@ import java.util.concurrent.Flow.Publisher;
 import lombok.Value;
 
 @Value
-class InMemoryStorage implements Storage {
+public class InMemoryStorage implements Storage {
   static Map<Identifier, Object> objectHolder = new ConcurrentHashMap<>();
   static Map<Identifier, byte[]> binaryHolder = new ConcurrentHashMap<>();
 
   int chunkSize;
+
+  public InMemoryStorage() {
+    this(1000);
+  }
 
   @Override
   public CompletableFuture<Boolean> isExist(Identifier identifier) throws ObjectNotFoundException {
@@ -56,7 +62,7 @@ class InMemoryStorage implements Storage {
 
   @Override
   public CompletableFuture<Void> append(Object object, BinarySupplier binarySupplier) {
-    final byte[] bytes = binaryHolder.get(object.getIdentifier());
+    final byte[] bytes = binaryHolder.get(object.identifier);
     final InputStream input = binarySupplier.getSync();
 
     try {
@@ -85,12 +91,12 @@ class InMemoryStorage implements Storage {
 
           @Override
           public InputStream getSync() {
-            return new ByteArrayInputStream(binaryHolder.get(object.getIdentifier()));
+            return new ByteArrayInputStream(binaryHolder.get(object.identifier));
           }
 
           @Override
           public Publisher<ByteBuffer> getAsync() {
-            final byte[] bytes = binaryHolder.get(object.getIdentifier());
+            final byte[] bytes = binaryHolder.get(object.identifier);
             return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(bytes), chunkSize);
           }
         });
@@ -99,8 +105,8 @@ class InMemoryStorage implements Storage {
   private CompletableFuture<Void> uploadSync(Object object, BinarySupplier binarySupplier) {
     try {
       final byte[] bytes = readAll(binarySupplier.getSync());
-      objectHolder.put(object.getIdentifier(), object);
-      binaryHolder.put(object.getIdentifier(), bytes);
+      objectHolder.put(object.identifier, object);
+      binaryHolder.put(object.identifier, bytes);
 
       return completedFuture(null);
     } catch (IOException e) {
@@ -113,8 +119,8 @@ class InMemoryStorage implements Storage {
         .read(binarySupplier.getAsync())
         .thenAccept(
             bytes -> {
-              objectHolder.put(object.getIdentifier(), object);
-              binaryHolder.put(object.getIdentifier(), bytes);
+              objectHolder.put(object.identifier, object);
+              binaryHolder.put(object.identifier, bytes);
             });
 
     // or just using SingleThreadedAsyncToSync

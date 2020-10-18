@@ -1,47 +1,57 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
+import static io.lette1394.mediaserver.domain.storage.object.Policies.allowIfPassed;
+
 import java.util.concurrent.CompletableFuture;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.EqualsAndHashCode;
 
 // TODO: entity 표현
-public class Object {
-  // TODO: getter를 없앨 수는 없나?
-  @Getter
-  private final Identifier identifier;
+@EqualsAndHashCode(of = "identifier")
+public abstract class Object {
+  public final Identifier identifier;
   private final Attributes attributes;
 
-  private final Storage storage;
   private final ObjectUploadPolicy objectUploadPolicy;
+  private final ObjectDownloadPolicy objectDownloadPolicy;
 
-  @Builder(access = AccessLevel.PACKAGE)
-  public Object(
+  protected final Storage storage;
+
+  protected Object(
     Identifier identifier,
     Attributes attributes,
     Storage storage,
-    ObjectUploadPolicy objectUploadPolicy) {
+    ObjectUploadPolicy objectUploadPolicy,
+    ObjectDownloadPolicy objectDownloadPolicy) {
+
     this.identifier = identifier;
     this.attributes = attributes;
     this.storage = storage;
     this.objectUploadPolicy = objectUploadPolicy;
+    this.objectDownloadPolicy = objectDownloadPolicy;
   }
 
   public CompletableFuture<Void> upload(BinarySupplier binarySupplier) {
-    if (objectUploadPolicy.test(this, storage)) {
-      return storage
-        .isExist(this.identifier)
-        .thenCompose(isExist -> {
-          if (isExist) {
-            return storage.append(this, binarySupplier);
-          }
-          return storage.create(this, binarySupplier);
-        });
-    }
-    return CompletableFuture.failedFuture(new RuntimeException());
+    return objectUploadPolicy.test(this, storage)
+      .thenAccept(allowIfPassed())
+      .thenCompose(__ -> upload0(binarySupplier));
   }
 
+  // TODO: rename
+  public abstract CompletableFuture<Void> upload0(BinarySupplier binarySupplier);
+
   public CompletableFuture<BinarySupplier> download() {
-    return storage.findBinary(this);
+    return objectDownloadPolicy.test(this)
+      .thenAccept(allowIfPassed())
+      .thenCompose(__ -> storage.findBinary(this));
+  }
+
+  public abstract boolean isInitial();
+
+  public abstract boolean isPending();
+
+  public abstract boolean isFulfilled();
+
+  public long getSize() {
+    return attributes.getSize().getValue();
   }
 }

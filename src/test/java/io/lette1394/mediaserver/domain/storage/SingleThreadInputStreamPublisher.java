@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage.usecase;
+package io.lette1394.mediaserver.domain.storage;
 
 import static java.lang.String.format;
 

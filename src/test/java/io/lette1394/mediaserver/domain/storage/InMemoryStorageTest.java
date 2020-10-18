@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage.usecase;
+package io.lette1394.mediaserver.domain.storage;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
+import io.lette1394.mediaserver.domain.storage.usecase.ByteBufferToByteArrayAsyncReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
