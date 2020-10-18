@@ -1,10 +1,11 @@
 package io.lette1394.mediaserver.domain.storage.usecase;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
+import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -12,7 +13,7 @@ import java.util.concurrent.Flow.Publisher;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 
-class StorageFactoryTest {
+class InMemoryStorageTest {
   private final static int CHUNK_SIZE = 20;
   private final static int ITEM_LENGTH = 100;
 
@@ -20,28 +21,39 @@ class StorageFactoryTest {
 
   @Test
   void sync() {
-    run(new InMemoryStorage(syncSupplier(), CHUNK_SIZE));
+    runSync(new ObjectFactory(new InMemoryStorage(CHUNK_SIZE)));
   }
 
   @Test
   void async() {
-    run(new InMemoryStorage(asyncSupplier(), CHUNK_SIZE));
+    runAsync(new ObjectFactory(new InMemoryStorage(CHUNK_SIZE)));
   }
 
-  private void run(Storage storage) {
-    final Object object = Object.create("1", "2");
-    final StorageResult<Void> upload = storage.upload(object);
+  private void runSync(ObjectFactory factory) {
+    final Object object = factory.create("1", "2");
+    final StorageResult<Void> upload = object.upload(syncSupplier());
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
 
-    final StorageResult<Object> find = storage.find(object.getIdentifier());
-    assertThat(object.getIdentifier(), is(equalTo(find.join().getIdentifier())));
-
-    final StorageResult<BinarySupplier> download = storage.download(object);
+    final StorageResult<BinarySupplier> download = object.download();
 
     final byte[] downloadedBinary =
         new ByteBufferToByteArrayAsyncReader(ITEM_LENGTH).read(download.join().getAsync()).join();
+    assertThat(downloadedBinary, is(testBinary));
+  }
+
+  private void runAsync(ObjectFactory factory) {
+    final Object object = factory.create("1", "2");
+    final StorageResult<Void> upload = object.upload(asyncSupplier());
+    upload.join();
+    assertThat(upload.isDone(), is(true));
+    assertThat(upload.isCompletedExceptionally(), is(false));
+
+    final StorageResult<BinarySupplier> download = object.download();
+
+    final byte[] downloadedBinary =
+      new ByteBufferToByteArrayAsyncReader(ITEM_LENGTH).read(download.join().getAsync()).join();
     assertThat(downloadedBinary, is(testBinary));
   }
 

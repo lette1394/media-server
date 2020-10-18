@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Value;
 
 @Value(staticConstructor = "tags")
-public class Tags {
+class Tags {
   List<Tag> tags;
 
   public List<Tag> getTags() {

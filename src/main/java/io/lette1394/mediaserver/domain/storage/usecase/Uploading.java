@@ -1,6 +1,9 @@
 package io.lette1394.mediaserver.domain.storage.usecase;
 
+import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
+import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
+import io.lette1394.mediaserver.domain.storage.object.Storage;
 import lombok.Value;
 
 @Value
@@ -12,11 +15,12 @@ public class Uploading {
     BinarySupplier binarySupplier;
   }
 
-  public StorageResult<BinarySupplier> upload(Command command) {
-    final Object object = Object.create("1", "2");
+  Storage storage;
 
-    final Storage storage = StorageFactory.create(command.binarySupplier);
+  public StorageResult<Void> upload(Command command) {
+    final ObjectFactory factory = new ObjectFactory(storage);
+    final Object object = factory.create("1", "2");
 
-    return storage.download(object);
+    return storage.upload(object, command.binarySupplier);
   }
 }

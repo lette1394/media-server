@@ -6,7 +6,7 @@ import io.lette1394.mediaserver.common.NonBlankString;
 import lombok.Value;
 
 @Value
-public class Tag {
+class Tag {
   NonBlankString key;
   NonBlankString value;
 

@@ -1,29 +1,30 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
-import io.lette1394.mediaserver.common.PositiveLong;
-import java.time.OffsetDateTime;
+import io.lette1394.mediaserver.domain.storage.usecase.StorageResult;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@Builder(access = AccessLevel.PRIVATE)
-@RequiredArgsConstructor
+// TODO: entity 표현
 public class Object {
+  // TODO: getter를 없앨 수는 없나?
   @Getter private final Identifier identifier;
   private final Attributes attributes;
 
-  public static Object create(String area, String key) {
-    return builder()
-        .identifier(new Identifier(area, key))
-        .attributes(
-            Attributes.builder()
-                .tags(Tags.tags(Tag.tag("k1", "v1"), Tag.tag("k2", "v2")))
-                .size(PositiveLong.positiveLong(123))
-                .type(Type.FILE)
-                .created(OffsetDateTime.now())
-                .updated(OffsetDateTime.now())
-                .build())
-        .build();
+  private final Storage storage;
+
+  @Builder(access = AccessLevel.PACKAGE)
+  public Object(Identifier identifier, Attributes attributes, Storage storage) {
+    this.identifier = identifier;
+    this.attributes = attributes;
+    this.storage = storage;
+  }
+
+  public StorageResult<Void> upload(BinarySupplier binarySupplier) {
+    return storage.upload(this, binarySupplier);
+  }
+
+  public StorageResult<BinarySupplier> download() {
+    return storage.download(this);
   }
 }

@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
-public enum Type {
+enum Type {
   IMAGE,
   VIDEO,
   AUDIO,

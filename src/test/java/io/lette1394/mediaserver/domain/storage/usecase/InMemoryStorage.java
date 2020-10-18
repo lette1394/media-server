@@ -5,8 +5,10 @@ import static io.lette1394.mediaserver.domain.storage.usecase.StorageResult.fail
 import static io.lette1394.mediaserver.domain.storage.usecase.StorageResult.storageResult;
 import static java.lang.String.format;
 
+import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
+import io.lette1394.mediaserver.domain.storage.object.Storage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,7 +25,6 @@ class InMemoryStorage implements Storage {
   static Map<Identifier, Object> objectHolder = new ConcurrentHashMap<>();
   static Map<Identifier, byte[]> binaryHolder = new ConcurrentHashMap<>();
 
-  BinarySupplier binarySupplier;
   int chunkSize;
 
   @Override
@@ -36,12 +37,12 @@ class InMemoryStorage implements Storage {
   }
 
   @Override
-  public StorageResult<Void> upload(Object object) {
+  public StorageResult<Void> upload(Object object, BinarySupplier binarySupplier) {
     if (binarySupplier.isSyncSupported()) {
-      return uploadSync(object);
+      return uploadSync(object, binarySupplier);
     }
     if (binarySupplier.isAsyncSupported()) {
-      return uploadAsync(object);
+      return uploadAsync(object, binarySupplier);
     }
     throw new IllegalStateException("BinarySupplier supports nothing");
   }
@@ -75,7 +76,7 @@ class InMemoryStorage implements Storage {
         }));
   }
 
-  private StorageResult<Void> uploadSync(Object object) {
+  private StorageResult<Void> uploadSync(Object object, BinarySupplier binarySupplier) {
     try {
       final byte[] bytes = readAll(binarySupplier.getSync());
       objectHolder.put(object.getIdentifier(), object);
@@ -87,7 +88,7 @@ class InMemoryStorage implements Storage {
     }
   }
 
-  private StorageResult<Void> uploadAsync(Object object) {
+  private StorageResult<Void> uploadAsync(Object object, BinarySupplier binarySupplier) {
     return storageResult(
       new ByteBufferToByteArrayAsyncReader(500)
         .read(binarySupplier.getAsync())
