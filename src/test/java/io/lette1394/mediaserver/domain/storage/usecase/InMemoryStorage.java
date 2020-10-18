@@ -1,9 +1,8 @@
 package io.lette1394.mediaserver.domain.storage.usecase;
 
-import static io.lette1394.mediaserver.domain.storage.usecase.StorageResult.completed;
-import static io.lette1394.mediaserver.domain.storage.usecase.StorageResult.failed;
-import static io.lette1394.mediaserver.domain.storage.usecase.StorageResult.storageResult;
 import static java.lang.String.format;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
@@ -28,16 +27,24 @@ class InMemoryStorage implements Storage {
   int chunkSize;
 
   @Override
-  public StorageResult<Object> find(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Boolean> isExist(Identifier identifier) throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
-      return completed(objectHolder.get(identifier));
+      return completedFuture(true);
     }
-    return failed(
+    return completedFuture(false);
+  }
+
+  @Override
+  public CompletableFuture<Object> find(Identifier identifier) throws ObjectNotFoundException {
+    if (objectHolder.containsKey(identifier)) {
+      return completedFuture(objectHolder.get(identifier));
+    }
+    return failedFuture(
         new ObjectNotFoundException(format("Cannot found object with identifier: %s", identifier)));
   }
 
   @Override
-  public StorageResult<Void> create(Object object, BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> create(Object object, BinarySupplier binarySupplier) {
     if (binarySupplier.isSyncSupported()) {
       return uploadSync(object, binarySupplier);
     }
@@ -48,14 +55,23 @@ class InMemoryStorage implements Storage {
   }
 
   @Override
-  public StorageResult<Void> append(Object object, BinarySupplier binarySupplier) {
-    throw new UnsupportedOperationException();
+  public CompletableFuture<Void> append(Object object, BinarySupplier binarySupplier) {
+    final byte[] bytes = binaryHolder.get(object.getIdentifier());
+    final InputStream input = binarySupplier.getSync();
+
+    try {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      out.writeBytes(bytes);
+      out.writeBytes(readAll(input));
+    } catch (IOException e) {
+      return failedFuture(e);
+    }
+    return completedFuture(null);
   }
 
   @Override
-  public StorageResult<BinarySupplier> findBinary(Object object) {
-    return storageResult(
-      CompletableFuture.completedFuture(
+  public CompletableFuture<BinarySupplier> findBinary(Object object) {
+    return completedFuture(
         new BinarySupplier() {
           @Override
           public boolean isSyncSupported() {
@@ -75,32 +91,31 @@ class InMemoryStorage implements Storage {
           @Override
           public Publisher<ByteBuffer> getAsync() {
             final byte[] bytes = binaryHolder.get(object.getIdentifier());
-            return new SingleThreadInputStreamPublisher(
-              new ByteArrayInputStream(bytes), chunkSize);
+            return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(bytes), chunkSize);
           }
-        }));
+        });
   }
 
-  private StorageResult<Void> uploadSync(Object object, BinarySupplier binarySupplier) {
+  private CompletableFuture<Void> uploadSync(Object object, BinarySupplier binarySupplier) {
     try {
       final byte[] bytes = readAll(binarySupplier.getSync());
       objectHolder.put(object.getIdentifier(), object);
       binaryHolder.put(object.getIdentifier(), bytes);
 
-      return completed();
+      return completedFuture(null);
     } catch (IOException e) {
-      return failed(e);
+      return failedFuture(e);
     }
   }
 
-  private StorageResult<Void> uploadAsync(Object object, BinarySupplier binarySupplier) {
-    return storageResult(
-      new ByteBufferToByteArrayAsyncReader(500)
+  private CompletableFuture<Void> uploadAsync(Object object, BinarySupplier binarySupplier) {
+    return new ByteBufferToByteArrayAsyncReader(500)
         .read(binarySupplier.getAsync())
-        .thenAccept(bytes -> {
-          objectHolder.put(object.getIdentifier(), object);
-          binaryHolder.put(object.getIdentifier(), bytes);
-        }));
+        .thenAccept(
+            bytes -> {
+              objectHolder.put(object.getIdentifier(), object);
+              binaryHolder.put(object.getIdentifier(), bytes);
+            });
 
     // or just using SingleThreadedAsyncToSync
   }

@@ -16,7 +16,7 @@ public class Downloading {
   Storage storage;
 
   public Object download(Command command) throws ObjectNotFoundException {
-    final StorageResult<Object> objectStorageResult = storage.find(command.identifier);
+     storage.find(command.identifier);
     return null;
   }
 }

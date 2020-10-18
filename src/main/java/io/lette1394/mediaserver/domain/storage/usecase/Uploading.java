@@ -4,6 +4,7 @@ import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
+import java.util.concurrent.CompletableFuture;
 import lombok.Value;
 
 @Value
@@ -17,7 +18,7 @@ public class Uploading {
 
   Storage storage;
 
-  public StorageResult<Void> upload(Command command) {
+  public CompletableFuture<Void> upload(Command command) {
     final ObjectFactory factory = new ObjectFactory(storage);
     final Object object = factory.create("1", "2");
 

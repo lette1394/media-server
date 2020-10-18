@@ -17,7 +17,7 @@ public class DownloadingAsync {
   Storage storage;
 
   public CompletableFuture<Object> download(Command command) {
-    final StorageResult<Object> objectStorageResult = storage.find(command.identifier);
+    storage.find(command.identifier);
     return null;
   }
 }

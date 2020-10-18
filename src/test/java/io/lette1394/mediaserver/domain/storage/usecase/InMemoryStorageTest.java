@@ -9,6 +9,7 @@ import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow.Publisher;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
@@ -31,12 +32,12 @@ class InMemoryStorageTest {
 
   private void runSync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final StorageResult<Void> upload = object.upload(syncSupplier());
+    final CompletableFuture<Void> upload = object.upload(syncSupplier());
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
 
-    final StorageResult<BinarySupplier> download = object.download();
+    final CompletableFuture<BinarySupplier> download = object.download();
 
     final byte[] downloadedBinary =
         new ByteBufferToByteArrayAsyncReader(ITEM_LENGTH).read(download.join().getAsync()).join();
@@ -45,12 +46,12 @@ class InMemoryStorageTest {
 
   private void runAsync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final StorageResult<Void> upload = object.upload(asyncSupplier());
+    final CompletableFuture<Void> upload = object.upload(asyncSupplier());
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
 
-    final StorageResult<BinarySupplier> download = object.download();
+    final CompletableFuture<BinarySupplier> download = object.download();
 
     final byte[] downloadedBinary =
       new ByteBufferToByteArrayAsyncReader(ITEM_LENGTH).read(download.join().getAsync()).join();
@@ -95,7 +96,7 @@ class InMemoryStorageTest {
 
       @Override
       public InputStream getSync() {
-        throw new UnsupportedOperationException();
+        return new ByteArrayInputStream(testBinary);
       }
 
       @Override

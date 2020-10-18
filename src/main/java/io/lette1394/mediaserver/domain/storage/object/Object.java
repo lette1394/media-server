@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
-import io.lette1394.mediaserver.domain.storage.usecase.StorageResult;
+import java.util.concurrent.CompletableFuture;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,21 +16,32 @@ public class Object {
 
   @Builder(access = AccessLevel.PACKAGE)
   public Object(
-      Identifier identifier, Attributes attributes, Storage storage, ObjectUploadPolicy objectUploadPolicy) {
+      Identifier identifier,
+      Attributes attributes,
+      Storage storage,
+      ObjectUploadPolicy objectUploadPolicy) {
     this.identifier = identifier;
     this.attributes = attributes;
     this.storage = storage;
     this.objectUploadPolicy = objectUploadPolicy;
   }
 
-  public StorageResult<Void> upload(BinarySupplier binarySupplier) {
-    if (objectUploadPolicy.test(this)) {
-      return storage.create(this, binarySupplier);
+  public CompletableFuture<Void> upload(BinarySupplier binarySupplier) {
+    if (objectUploadPolicy.test(this, storage)) {
+      return storage
+          .isExist(this.identifier)
+          .thenCompose(
+              isExist -> {
+                if (isExist) {
+                  return storage.append(this, binarySupplier);
+                }
+                return storage.create(this, binarySupplier);
+              });
     }
-    return StorageResult.failed(new RuntimeException());
+    return CompletableFuture.failedFuture(new RuntimeException());
   }
 
-  public StorageResult<BinarySupplier> download() {
+  public CompletableFuture<BinarySupplier> download() {
     return storage.findBinary(this);
   }
 }

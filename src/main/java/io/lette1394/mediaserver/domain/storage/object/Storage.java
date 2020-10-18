@@ -2,15 +2,17 @@ package io.lette1394.mediaserver.domain.storage.object;
 
 import io.lette1394.mediaserver.common.AbstractionBoundary;
 import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
-import io.lette1394.mediaserver.domain.storage.usecase.StorageResult;
+import java.util.concurrent.CompletableFuture;
 
 @AbstractionBoundary
 public interface Storage {
-  StorageResult<Object> find(Identifier identifier) throws ObjectNotFoundException;
+  CompletableFuture<Boolean> isExist(Identifier identifier) throws ObjectNotFoundException;
 
-  StorageResult<BinarySupplier> findBinary(Object object);
+  CompletableFuture<Object> find(Identifier identifier) throws ObjectNotFoundException;
 
-  StorageResult<Void> create(Object object, BinarySupplier binarySupplier);
+  CompletableFuture<BinarySupplier> findBinary(Object object);
 
-  StorageResult<Void> append(Object object, BinarySupplier binarySupplier);
+  CompletableFuture<Void> create(Object object, BinarySupplier binarySupplier);
+
+  CompletableFuture<Void> append(Object object, BinarySupplier binarySupplier);
 }
