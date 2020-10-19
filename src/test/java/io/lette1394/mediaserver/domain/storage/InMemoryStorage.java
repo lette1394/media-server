@@ -28,12 +28,16 @@ public class InMemoryStorage implements Storage {
 
   int chunkSize;
 
+  public InMemoryStorage(int chunkSize) {
+    this.chunkSize = chunkSize;
+  }
+
   public InMemoryStorage() {
     this(1000);
   }
 
   @Override
-  public CompletableFuture<Boolean> doesObjectExist(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Boolean> objectExists(Identifier identifier) throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(true);
     }

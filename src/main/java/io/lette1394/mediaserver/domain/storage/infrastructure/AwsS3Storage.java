@@ -11,7 +11,7 @@ public class AwsS3Storage implements Storage {
 
 
   @Override
-  public CompletableFuture<Boolean> doesObjectExist(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Boolean> objectExists(Identifier identifier) throws ObjectNotFoundException {
     return null;
   }
 

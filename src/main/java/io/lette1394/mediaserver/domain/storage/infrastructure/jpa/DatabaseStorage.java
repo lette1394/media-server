@@ -6,7 +6,6 @@ import io.lette1394.mediaserver.domain.storage.infrastructure.jpa.DatabaseStorag
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
 import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +18,7 @@ class DatabaseStorage implements Storage {
   private final DatabaseObjectEntityRepository repository;
 
   @Override
-  public CompletableFuture<Boolean> doesObjectExist(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Boolean> objectExists(Identifier identifier) throws ObjectNotFoundException {
     return completedFuture(repository.existsById(new ObjectId(identifier)));
   }
 
