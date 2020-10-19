@@ -36,6 +36,7 @@ public abstract class AsyncReader<FROM, TO> {
       subscription.request(reader.itemLength);
     }
 
+    // TODO: error handling
     @Override
     public void onNext(FROM item) {
       reader.translateNext(item);
@@ -48,6 +49,7 @@ public abstract class AsyncReader<FROM, TO> {
       reader.future.completeExceptionally(reason);
     }
 
+    // TODO: error handling
     @Override
     public void onComplete() {
       reader.future.complete(reader.translateCompleted());

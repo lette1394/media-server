@@ -11,7 +11,6 @@ import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.ObjectDownloadPolicy;
 import io.lette1394.mediaserver.domain.storage.object.ObjectUploadPolicy;
 import io.lette1394.mediaserver.domain.storage.object.PendingObject;
-import io.lette1394.mediaserver.domain.storage.object.Storage;
 import io.lette1394.mediaserver.domain.storage.object.Tag;
 import io.lette1394.mediaserver.domain.storage.object.Tags;
 import java.io.Serializable;

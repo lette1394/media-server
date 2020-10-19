@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage;
+package io.lette1394.mediaserver.domain.storage.infrastructure;
 
 import static java.lang.String.format;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.Flow.Subscription;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class SingleThreadInputStreamPublisher implements Publisher<ByteBuffer> {
+public class SingleThreadInputStreamPublisher implements Publisher<ByteBuffer> {
   final ExecutorService executor = Executors.newFixedThreadPool(1);
 
   private static final int END_OF_FILE = -1;
