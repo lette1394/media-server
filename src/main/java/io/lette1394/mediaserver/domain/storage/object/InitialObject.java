@@ -17,7 +17,7 @@ public class InitialObject extends Object {
 
   @Override
   public CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
-    return storage.create(this, binarySupplier);
+    return storage.createBinary(this, binarySupplier);
   }
 
   @Override

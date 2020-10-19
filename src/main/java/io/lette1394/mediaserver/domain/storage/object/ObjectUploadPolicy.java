@@ -9,7 +9,7 @@ import lombok.Value;
 public interface ObjectUploadPolicy {
 
   ObjectUploadPolicy ALLOW_RESUME_UPLOAD = (object, storage) -> storage
-    .isExist(object.identifier)
+    .doesObjectExist(object.identifier)
     .thenApply(isExist -> isExist ? Result.succeed()
       : Result.fail("", new ObjectPolicyViolationException()));
 

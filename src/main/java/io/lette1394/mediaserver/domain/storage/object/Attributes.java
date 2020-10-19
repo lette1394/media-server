@@ -7,7 +7,7 @@ import lombok.Value;
 
 @Value
 @Builder
-class Attributes {
+public class Attributes {
   PositiveLong size;
 
   Tags tags;

@@ -10,7 +10,7 @@ public class Downloading {
   Storage storage;
 
   public Object download(Command command) throws ObjectNotFoundException {
-    storage.find(command.identifier);
+    storage.findObject(command.identifier);
     return null;
   }
 

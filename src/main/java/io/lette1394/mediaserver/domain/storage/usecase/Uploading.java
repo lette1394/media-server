@@ -15,7 +15,7 @@ public class Uploading {
     final ObjectFactory factory = new ObjectFactory(storage);
     final Object object = factory.create("1", "2");
 
-    return storage.append(object, command.binarySupplier);
+    return storage.appendBinary(object, command.binarySupplier);
   }
 
   @Value

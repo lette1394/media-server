@@ -33,7 +33,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Boolean> isExist(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Boolean> doesObjectExist(Identifier identifier) throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(true);
     }
@@ -41,7 +41,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Object> find(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Object> findObject(Identifier identifier) throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(objectHolder.get(identifier));
     }
@@ -50,7 +50,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Void> create(Object object, BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier) {
     if (binarySupplier.isSyncSupported()) {
       return uploadSync(object, binarySupplier);
     }
@@ -61,7 +61,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Void> append(Object object, BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> appendBinary(Object object, BinarySupplier binarySupplier) {
     final byte[] bytes = binaryHolder.get(object.identifier);
     final InputStream input = binarySupplier.getSync();
 
