@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ObjectFactory {
-  private final Storage storage;
+  private final BinaryRepository binaryRepository;
   private final ObjectUploadPolicy uploadPolicy = ObjectUploadPolicy.ALL;
   private final ObjectDownloadPolicy downloadPolicy = ObjectDownloadPolicy.ALL;
 
@@ -22,7 +22,7 @@ public class ObjectFactory {
       .build();
 
     return InitialObject.builder()
-      .storage(storage)
+      .binaryRepository(binaryRepository)
       .identifier(identifier)
       .objectUploadPolicy(uploadPolicy)
       .objectDownloadPolicy(downloadPolicy)

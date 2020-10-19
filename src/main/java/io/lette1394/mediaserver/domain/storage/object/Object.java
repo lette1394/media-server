@@ -14,24 +14,24 @@ public abstract class Object {
   private final ObjectUploadPolicy objectUploadPolicy;
   private final ObjectDownloadPolicy objectDownloadPolicy;
 
-  protected final Storage storage;
+  protected final BinaryRepository binaryRepository;
 
   protected Object(
     Identifier identifier,
     Attributes attributes,
-    Storage storage,
+    BinaryRepository binaryRepository,
     ObjectUploadPolicy objectUploadPolicy,
     ObjectDownloadPolicy objectDownloadPolicy) {
 
     this.identifier = identifier;
     this.attributes = attributes;
-    this.storage = storage;
+    this.binaryRepository = binaryRepository;
     this.objectUploadPolicy = objectUploadPolicy;
     this.objectDownloadPolicy = objectDownloadPolicy;
   }
 
   public CompletableFuture<Void> upload(BinarySupplier binarySupplier) {
-    return objectUploadPolicy.test(this, storage)
+    return objectUploadPolicy.test(this, binaryRepository)
       .thenAccept(allowIfPassed())
       .thenCompose(__ -> upload0(binarySupplier));
   }
@@ -42,7 +42,7 @@ public abstract class Object {
   public CompletableFuture<BinarySupplier> download() {
     return objectDownloadPolicy.test(this)
       .thenAccept(allowIfPassed())
-      .thenCompose(__ -> storage.findBinary(this));
+      .thenCompose(__ -> binaryRepository.findBinary(this));
   }
 
   public abstract boolean isInitial();

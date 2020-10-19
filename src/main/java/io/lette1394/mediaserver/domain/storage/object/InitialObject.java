@@ -6,18 +6,17 @@ import lombok.Builder;
 public class InitialObject extends Object {
 
   @Builder
-  public InitialObject(
-    Identifier identifier,
+  public InitialObject(Identifier identifier,
     Attributes attributes,
-    Storage storage,
+    BinaryRepository binaryRepository,
     ObjectUploadPolicy objectUploadPolicy,
     ObjectDownloadPolicy objectDownloadPolicy) {
-    super(identifier, attributes, storage, objectUploadPolicy, objectDownloadPolicy);
+    super(identifier, attributes, binaryRepository, objectUploadPolicy, objectDownloadPolicy);
   }
 
   @Override
   public CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
-    return storage.createBinary(this, binarySupplier);
+    return binaryRepository.createBinary(this, binarySupplier);
   }
 
   @Override

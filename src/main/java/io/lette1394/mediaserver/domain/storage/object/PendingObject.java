@@ -5,17 +5,19 @@ import lombok.Builder;
 
 
 public class PendingObject extends Object {
+
   @Builder
   public PendingObject(Identifier identifier,
-    Attributes attributes, Storage storage,
+    Attributes attributes,
+    BinaryRepository binaryRepository,
     ObjectUploadPolicy objectUploadPolicy,
     ObjectDownloadPolicy objectDownloadPolicy) {
-    super(identifier, attributes, storage, objectUploadPolicy, objectDownloadPolicy);
+    super(identifier, attributes, binaryRepository, objectUploadPolicy, objectDownloadPolicy);
   }
 
   @Override
   public CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
-    return storage.appendBinary(this, binarySupplier);
+    return binaryRepository.appendBinary(this, binarySupplier);
   }
 
   @Override

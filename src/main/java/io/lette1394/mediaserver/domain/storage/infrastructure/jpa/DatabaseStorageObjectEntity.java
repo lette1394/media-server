@@ -4,6 +4,7 @@ import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
 import io.lette1394.mediaserver.domain.storage.object.Attributes;
+import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
 import io.lette1394.mediaserver.domain.storage.object.FulfilledObject;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
@@ -41,21 +42,21 @@ class DatabaseStorageObjectEntity {
   OffsetDateTime created;
   OffsetDateTime updated;
 
-  Object toObject(Storage storage) {
+  Object toObject(BinaryRepository binaryRepository) {
     if (state == State.PENDING) {
-      return createPendingObject(storage);
+      return createPendingObject(binaryRepository);
     }
 
     if (state == State.FULFILLED) {
-      return createFulfilledObject(storage);
+      return createFulfilledObject(binaryRepository);
     }
 
     throw new IllegalStateException();
   }
 
-  private FulfilledObject createFulfilledObject(Storage storage) {
+  private FulfilledObject createFulfilledObject(BinaryRepository binaryRepository) {
     return FulfilledObject.builder()
-      .storage(storage)
+      .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
       .objectUploadPolicy(ObjectUploadPolicy.ALL)
       .objectDownloadPolicy(ObjectDownloadPolicy.ALL)
@@ -68,9 +69,9 @@ class DatabaseStorageObjectEntity {
       .build();
   }
 
-  private PendingObject createPendingObject(Storage storage) {
+  private PendingObject createPendingObject(BinaryRepository binaryRepository) {
     return PendingObject.builder()
-      .storage(storage)
+      .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
       .objectUploadPolicy(ObjectUploadPolicy.ALL)
       .objectDownloadPolicy(ObjectDownloadPolicy.ALL)
