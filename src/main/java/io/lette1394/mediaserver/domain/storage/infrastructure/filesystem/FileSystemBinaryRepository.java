@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Stream;
 import lombok.Value;
 
 @Value
@@ -39,7 +40,8 @@ public class FileSystemBinaryRepository implements BinaryRepository {
 
   @Override
   public CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier) {
-    return writeOp(object, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.READ);
+    return writeOp(object, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+      StandardOpenOption.READ);
   }
 
   @Override
@@ -47,10 +49,33 @@ public class FileSystemBinaryRepository implements BinaryRepository {
     return writeOp(object, binarySupplier, StandardOpenOption.APPEND);
   }
 
-  private CompletableFuture<Void> writeOp(Object object, BinarySupplier binarySupplier, OpenOption... openOption) {
+  @Override
+  public CompletableFuture<Void> deleteBinary(Object object) {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        final Path path = createPath(object);
+        final Path parent = path.getParent();
+
+        Files.delete(path);
+        if (isEmptyDirectory(parent)) {
+          parent.toFile().delete();
+        }
+        return null;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  private CompletableFuture<Void> writeOp(Object object, BinarySupplier binarySupplier,
+    OpenOption... openOption) {
     try {
       final Path path = createPath(object);
-      path.getParent().toFile().mkdirs();
+      final Path parent = path.getParent();
+      if (parent == null) {
+        return failedFuture(new RuntimeException("parent not exists"));
+      }
+      parent.toFile().mkdirs();
 
       final AsynchronousFileChannel channel = AsynchronousFileChannel.open(
         path,
@@ -110,5 +135,17 @@ public class FileSystemBinaryRepository implements BinaryRepository {
       baseDir,
       object.identifier.getArea().getValue(),
       object.identifier.getKey().getValue()).toAbsolutePath();
+  }
+
+  private static boolean isEmptyDirectory(Path path) throws IOException {
+    if (path == null) {
+      return false;
+    }
+    if (Files.isDirectory(path)) {
+      try (Stream<Path> entries = Files.list(path)) {
+        return entries.findFirst().isEmpty();
+      }
+    }
+    return false;
   }
 }

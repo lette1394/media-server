@@ -107,6 +107,11 @@ public class InMemoryStorage implements Storage {
         });
   }
 
+  @Override
+  public CompletableFuture<Void> deleteBinary(Object object) {
+    return null;
+  }
+
   private CompletableFuture<Void> uploadSync(Object object, BinarySupplier binarySupplier) {
     try {
       final byte[] bytes = readAll(binarySupplier.getSync());

@@ -1,65 +1,66 @@
 package io.lette1394.mediaserver.domain.storage.infrastructure.filesystem;
 
-import io.lette1394.mediaserver.domain.storage.infrastructure.SingleThreadInputStreamPublisher;
-import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
-import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
-import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.concurrent.Flow.Publisher;
-import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-class FileSystemBinaryRepositoryTest {
-  private final static int CHUNK_SIZE = 20;
+import io.lette1394.mediaserver.domain.storage.TestBinarySupplier;
+import io.lette1394.mediaserver.domain.storage.object.AutoClosableBinaryRepository;
+import io.lette1394.mediaserver.domain.storage.object.DeleteAllBinaryWhenClosedBinaryRepository;
+import io.lette1394.mediaserver.domain.storage.object.Object;
+import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-  private final static byte[] testBinary = "hello world! wow!!".getBytes();
+class FileSystemBinaryRepositoryTest {
+  private static final int EOF = -1;
+  private static final int CHUNK = 1024;
+  private static final String BASE_DIR = "out/binaries";
+
+  private AutoClosableBinaryRepository binaryRepository;
+
+  @BeforeEach
+  void beforeEach() {
+    binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository(
+      new FileSystemBinaryRepository(BASE_DIR));
+  }
+
+  @AfterEach
+  void afterEach() {
+    try {
+      binaryRepository.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   @Test
   @SneakyThrows
   void test1() {
-    final BinaryRepository binaryRepository = new FileSystemBinaryRepository("hello");
     final ObjectFactory factory = new ObjectFactory(binaryRepository);
     final Object object = factory.create("test", "001");
+    final byte[] binary = RandomStringUtils
+      .randomAlphanumeric(CHUNK)
+      .getBytes(StandardCharsets.UTF_8);
 
-    binaryRepository.createBinary(object, asyncSupplier()).join();
+    binaryRepository
+      .createBinary(object, new TestBinarySupplier(binary))
+      .join();
 
-    byte[] holder = new byte[200];
-    final int read = binaryRepository.findBinary(object).join()
-      .getSync().read(holder);
+    final byte[] holder = new byte[CHUNK];
+    final InputStream inputStream = binaryRepository
+      .findBinary(object)
+      .join()
+      .getSync();
+    final int readLength = inputStream.read(holder);
+    final int expectEOF = inputStream.read();
 
-    System.out.println(Arrays.toString(holder));
-  }
-
-  private BinarySupplier asyncSupplier() {
-    return new BinarySupplier() {
-      @Override
-      public boolean isSyncSupported() {
-        return false;
-      }
-
-      @Override
-      public boolean isAsyncSupported() {
-        return true;
-      }
-
-      @Override
-      public InputStream getSync() {
-        return new ByteArrayInputStream(testBinary);
-      }
-
-      @Override
-      public Publisher<ByteBuffer> getAsync() {
-        return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(testBinary), CHUNK_SIZE);
-      }
-    };
+    assertThat(readLength, is(CHUNK));
+    assertThat(expectEOF, is(EOF));
+    assertThat(holder, is(binary));
   }
 }

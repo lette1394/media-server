@@ -34,4 +34,9 @@ public class AwsS3Storage implements Storage {
   public CompletableFuture<Void> appendBinary(Object object, BinarySupplier binarySupplier) {
     return null;
   }
+
+  @Override
+  public CompletableFuture<Void> deleteBinary(Object object) {
+    return null;
+  }
 }

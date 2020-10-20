@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
 import io.lette1394.mediaserver.domain.storage.InMemoryStorage;
-import io.lette1394.mediaserver.domain.storage.SyncBinarySupplier;
+import io.lette1394.mediaserver.domain.storage.TestBinarySupplier;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class ObjectTest {
     final Object object = factory.create(AREA_NAME, OBJECT_KEY);
 
     object
-      .upload(new SyncBinarySupplier(testBinary))
+      .upload(new TestBinarySupplier(testBinary))
       .join();
   }
 

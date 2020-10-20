@@ -14,4 +14,6 @@ public interface BinaryRepository {
   CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier);
 
   CompletableFuture<Void> appendBinary(Object object, BinarySupplier binarySupplier);
+
+  CompletableFuture<Void> deleteBinary(Object object);
 }
