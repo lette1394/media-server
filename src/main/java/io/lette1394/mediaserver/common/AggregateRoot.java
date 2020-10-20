@@ -19,6 +19,7 @@ public class AggregateRoot {
     this.listeners.addAll(listeners);
   }
 
+  // TODO: 이거 필요한지 확인
   protected void addThenPublish(Event event) {
     addEvent(event);
     safePublish(event);

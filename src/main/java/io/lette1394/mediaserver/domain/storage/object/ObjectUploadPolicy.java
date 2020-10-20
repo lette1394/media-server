@@ -2,19 +2,13 @@ package io.lette1394.mediaserver.domain.storage.object;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
-import io.lette1394.mediaserver.common.Event;
 import io.lette1394.mediaserver.common.Result;
-import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.Uploaded;
-import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.UploadingTriggered;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;
 
 @FunctionalInterface
 public interface ObjectUploadPolicy {
-
-  CompletableFuture<Result> test(Object object, BinaryRepository binaryRepository);
-
 
   ObjectUploadPolicy REJECT_RESUME_UPLOAD = (object, binaryRepository) -> binaryRepository
     .binaryExists(object)
@@ -24,7 +18,6 @@ public interface ObjectUploadPolicy {
       }
       return Result.succeed();
     });
-
   ObjectUploadPolicy ALLOW_UNDER_10MB_SIZE = (object, storage) -> {
     if (object.getSize() > 1024 * 1024 * 10) {
       return completedFuture(Result.fail(new ObjectPolicyViolationException("Allow under 10MB")));
@@ -32,13 +25,7 @@ public interface ObjectUploadPolicy {
     return completedFuture(Result.succeed());
   };
 
-
-  Set<Event.Listener<?>> ALL_LISTENERS = Set.of(
-    (UploadingTriggered event) -> AllMatch.allMatch(REJECT_RESUME_UPLOAD).test(event.object, event.binaryRepository),
-    (Uploaded event)           -> AllMatch.allMatch(ALLOW_UNDER_10MB_SIZE).test(event.object, event.binaryRepository)
-  );
-
-
+  CompletableFuture<Result> test(Object object, BinaryRepository binaryRepository);
 
   @Value
   class AllMatch implements ObjectUploadPolicy {

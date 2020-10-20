@@ -16,4 +16,9 @@ public interface ObjectEvents {
     public final Object object;
     public final BinaryRepository binaryRepository;
   }
+
+  @RequiredArgsConstructor(staticName = "downloadingTriggered")
+  class DownloadingTriggered extends ContextBoundedEvent {
+    public final Object object;
+  }
 }

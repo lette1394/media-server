@@ -18,16 +18,15 @@ public interface ObjectDownloadPolicy {
     return completedFuture(Result.succeed());
   };
 
-  ObjectDownloadPolicy ALL = object -> new ObjectDownloadPolicy.AllMatch(
-    Set.of(
-      REJECT_PENDING_OBJECT
-    )).test(object);
-
   CompletableFuture<Result> test(Object object);
 
   @Value
   class AllMatch implements ObjectDownloadPolicy {
     Set<ObjectDownloadPolicy> policies;
+
+    public static AllMatch allMatch(ObjectDownloadPolicy... policies) {
+      return new AllMatch(Set.of(policies));
+    }
 
     @Override
     public CompletableFuture<Result> test(Object object) {
