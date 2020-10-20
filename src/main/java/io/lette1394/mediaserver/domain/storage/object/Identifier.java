@@ -12,4 +12,12 @@ public class Identifier {
     this.area = NonBlankString.nonBlankString(area);
     this.key = NonBlankString.nonBlankString(key);
   }
+
+  public String getArea() {
+    return area.getValue();
+  }
+
+  public String getKey() {
+    return key.getValue();
+  }
 }

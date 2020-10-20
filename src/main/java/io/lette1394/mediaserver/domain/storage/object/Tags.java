@@ -2,6 +2,8 @@ package io.lette1394.mediaserver.domain.storage.object;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Value;
 
 @Value(staticConstructor = "tags")
@@ -14,5 +16,13 @@ public class Tags {
 
   public List<Tag> getTags() {
     return Collections.unmodifiableList(tags);
+  }
+
+  public Map<String, String> toMap() {
+    return tags
+      .stream()
+      .collect(Collectors.toMap(
+        tag -> tag.getKey().getValue(),
+        tag -> tag.getValue().getValue()));
   }
 }

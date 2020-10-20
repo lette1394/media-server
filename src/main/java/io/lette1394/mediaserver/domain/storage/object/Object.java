@@ -2,38 +2,39 @@ package io.lette1394.mediaserver.domain.storage.object;
 
 import static io.lette1394.mediaserver.domain.storage.object.Policies.allowIfPassed;
 
+import io.lette1394.mediaserver.common.AggregateRoot;
+import io.lette1394.mediaserver.common.Event;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.EqualsAndHashCode;
 
-// TODO: entity 표현
-@EqualsAndHashCode(of = "identifier")
-public abstract class Object {
+@EqualsAndHashCode(of = "identifier", callSuper = false)
+public abstract class Object extends AggregateRoot {
   public final Identifier identifier;
-  private final Attributes attributes;
-
-  private final ObjectUploadPolicy objectUploadPolicy;
-  private final ObjectDownloadPolicy objectDownloadPolicy;
 
   protected final BinaryRepository binaryRepository;
+
+  private final Attributes attributes;
 
   protected Object(
     Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectUploadPolicy objectUploadPolicy,
-    ObjectDownloadPolicy objectDownloadPolicy) {
+    List<Event.Listener<Event>> listeners) {
 
     this.identifier = identifier;
     this.attributes = attributes;
     this.binaryRepository = binaryRepository;
-    this.objectUploadPolicy = objectUploadPolicy;
-    this.objectDownloadPolicy = objectDownloadPolicy;
+
+    addListeners(listeners);
   }
 
   public CompletableFuture<Void> upload(BinarySupplier binarySupplier) {
-    return objectUploadPolicy.test(this, binaryRepository)
-      .thenAccept(allowIfPassed())
-      .thenCompose(__ -> upload0(binarySupplier));
+    uploadingTriggered();
+
+    return
+      .thenCompose(__ -> upload0(binarySupplier))
+      .thenAccept(__ -> uploaded());
   }
 
   // TODO: rename
@@ -53,5 +54,21 @@ public abstract class Object {
 
   public long getSize() {
     return attributes.getSize().getValue();
+  }
+
+  private void uploadingTriggered() {
+    addThenPublish(ObjectEvents.UploadingTriggered
+      .uploadingTriggered(
+        identifier.getArea(),
+        identifier.getKey(),
+        attributes.getTags().toMap()));
+  }
+
+  private void uploaded() {
+    addThenPublish(ObjectEvents.Uploaded
+      .uploaded(
+        identifier.getArea(),
+        identifier.getKey(),
+        attributes.getTags().toMap()));
   }
 }

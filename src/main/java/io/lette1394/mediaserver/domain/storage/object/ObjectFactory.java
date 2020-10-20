@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ObjectFactory {
   private final BinaryRepository binaryRepository;
-  private final ObjectUploadPolicy uploadPolicy = ObjectUploadPolicy.ALL;
+  private final ObjectUploadPolicy uploadPolicy = ObjectUploadPolicy.ALL_MATCHED;
   private final ObjectDownloadPolicy downloadPolicy = ObjectDownloadPolicy.ALL;
 
   public Object create(String area, String key) {

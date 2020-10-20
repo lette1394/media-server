@@ -57,7 +57,7 @@ class DatabaseStorageObjectEntity {
     return FulfilledObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
-      .objectUploadPolicy(ObjectUploadPolicy.ALL)
+      .objectUploadPolicy(ObjectUploadPolicy.ALL_MATCHED)
       .objectDownloadPolicy(ObjectDownloadPolicy.ALL)
       .attributes(Attributes.builder()
         .size(positiveLong(sizeInByte))
@@ -72,7 +72,7 @@ class DatabaseStorageObjectEntity {
     return PendingObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
-      .objectUploadPolicy(ObjectUploadPolicy.ALL)
+      .objectUploadPolicy(ObjectUploadPolicy.ALL_MATCHED)
       .objectDownloadPolicy(ObjectDownloadPolicy.ALL)
       .attributes(Attributes.builder()
         .size(positiveLong(sizeInByte))
@@ -110,7 +110,7 @@ class DatabaseStorageObjectEntity {
     String key;
 
     public ObjectId(Identifier identifier) {
-      this(identifier.getArea().getValue(), identifier.getKey().getValue());
+      this(identifier.getArea(), identifier.getKey());
     }
   }
 }

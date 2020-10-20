@@ -2,7 +2,10 @@ package io.lette1394.mediaserver.domain.storage.object;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
+import io.lette1394.mediaserver.common.Event;
 import io.lette1394.mediaserver.common.Result;
+import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.Uploaded;
+import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.UploadingTriggered;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;
@@ -10,7 +13,10 @@ import lombok.Value;
 @FunctionalInterface
 public interface ObjectUploadPolicy {
 
-  ObjectUploadPolicy REJECT_RESUME_UPLOAD = (object, storage) -> storage
+  CompletableFuture<Result> test(Object object, BinaryRepository binaryRepository);
+
+
+  ObjectUploadPolicy REJECT_RESUME_UPLOAD = (object, binaryRepository) -> binaryRepository
     .binaryExists(object)
     .thenApply(isExist -> {
       if (isExist && object.isPending()) {
@@ -19,26 +25,28 @@ public interface ObjectUploadPolicy {
       return Result.succeed();
     });
 
-
   ObjectUploadPolicy ALLOW_UNDER_10MB_SIZE = (object, storage) -> {
-    // TODO: 음... 크기를 미리 알 수 있나?
     if (object.getSize() > 1024 * 1024 * 10) {
       return completedFuture(Result.fail(new ObjectPolicyViolationException("Allow under 10MB")));
     }
     return completedFuture(Result.succeed());
   };
 
-  ObjectUploadPolicy ALL = (object, storage) -> new AllMatch(
-    Set.of(
-      REJECT_RESUME_UPLOAD,
-      ALLOW_UNDER_10MB_SIZE
-    )).test(object, storage);
 
-  CompletableFuture<Result> test(Object object, BinaryRepository binaryRepository);
+  Set<Event.Listener<?>> ALL_LISTENERS = Set.of(
+    (UploadingTriggered event) -> AllMatch.allMatch(REJECT_RESUME_UPLOAD).test(event.object, event.binaryRepository),
+    (Uploaded event)           -> AllMatch.allMatch(ALLOW_UNDER_10MB_SIZE).test(event.object, event.binaryRepository)
+  );
+
+
 
   @Value
   class AllMatch implements ObjectUploadPolicy {
     Set<ObjectUploadPolicy> policies;
+
+    public static AllMatch allMatch(ObjectUploadPolicy... policies) {
+      return new AllMatch(Set.of(policies));
+    }
 
     @Override
     public CompletableFuture<Result> test(Object object, BinaryRepository binaryRepository) {

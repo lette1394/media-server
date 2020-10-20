@@ -133,8 +133,8 @@ public class FileSystemBinaryRepository implements BinaryRepository {
   private Path createPath(Object object) {
     return Paths.get(
       baseDir,
-      object.identifier.getArea().getValue(),
-      object.identifier.getKey().getValue()).toAbsolutePath();
+      object.identifier.getArea(),
+      object.identifier.getKey()).toAbsolutePath();
   }
 
   private static boolean isEmptyDirectory(Path path) throws IOException {

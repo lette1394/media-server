@@ -1,5 +1,8 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
+import io.lette1394.mediaserver.common.Event;
+import io.lette1394.mediaserver.common.Event.Listener;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
@@ -9,9 +12,8 @@ public class InitialObject extends Object {
   public InitialObject(Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectUploadPolicy objectUploadPolicy,
-    ObjectDownloadPolicy objectDownloadPolicy) {
-    super(identifier, attributes, binaryRepository, objectUploadPolicy, objectDownloadPolicy);
+    List<Listener<Event>> listeners) {
+    super(identifier, attributes, binaryRepository, listeners);
   }
 
   @Override
