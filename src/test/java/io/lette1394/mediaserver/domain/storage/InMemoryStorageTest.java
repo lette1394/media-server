@@ -30,7 +30,7 @@ class InMemoryStorageTest {
 
   private void runSync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Void> upload = object.upload(randomBinarySupplier(1000));
+    final CompletableFuture<Void> upload = object.upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
@@ -46,7 +46,7 @@ class InMemoryStorageTest {
 
   private void runAsync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Void> upload = object.upload(randomBinarySupplier(1000));
+    final CompletableFuture<Void> upload = object.upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));

@@ -16,9 +16,6 @@ class ObjectTest {
     final ObjectFactory factory = new ObjectFactory(new InMemoryStorage());
     final Object object = factory.create(AREA_NAME, OBJECT_KEY);
 
-    object
-      .upload(new TestBinarySupplier(testBinary))
-      .join();
   }
 
 }

@@ -1,11 +1,12 @@
 package io.lette1394.mediaserver.common;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class AggregateRoot {
-  private List<Event> events;
-  private List<Event.Listener<Event>> listeners;
+  private final List<Event> events = new ArrayList<>();
+  private final List<Event.Listener<Event>> listeners = new ArrayList<>();
 
   protected void addEvent(Event event) {
     events.add(event);
