@@ -3,31 +3,86 @@ package io.lette1394.mediaserver.domain.storage.infrastructure;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
+import io.lette1394.mediaserver.domain.storage.object.PendingObject;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
 import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
+import java.util.concurrent.Flow.Subscription;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class AwsS3Storage implements Storage {
-
-
   @Override
-  public CompletableFuture<Boolean> objectExists(Identifier identifier) throws ObjectNotFoundException {
-    return null;
+  public CompletableFuture<Boolean> objectExists(Identifier identifier)
+    throws ObjectNotFoundException {
+    return CompletableFuture.completedFuture(false);
   }
 
   @Override
-  public CompletableFuture<Object> findObject(Identifier identifier) throws ObjectNotFoundException {
-    return null;
+  public CompletableFuture<Object> findObject(Identifier identifier)
+    throws ObjectNotFoundException {
+
+    return CompletableFuture.completedFuture(PendingObject.builder().build());
   }
 
   @Override
   public CompletableFuture<BinarySupplier> findBinary(Object object) {
-    return null;
+    return CompletableFuture.failedFuture(new RuntimeException());
   }
 
   @Override
   public CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier) {
-    return null;
+    final Region region = Region.AP_NORTHEAST_2;
+
+    final S3AsyncClient client = S3AsyncClient.builder()
+      .region(region)
+      .build();
+
+    return client.putObject(PutObjectRequest.builder()
+      .bucket("a-media-server")
+      .key("wowgogo")
+      // TODO: content length를 꼭 받아야 하는구나... 이럴수가
+      //  이게 어쩔수 없는건가? stream 이라서 전체 길이를 모르니까? http chunk 방식은 끝에 뭐가 올지 아는데.. 음..
+      .contentLength(14L)
+      .build(), AsyncRequestBody
+      .fromPublisher(s -> binarySupplier.getAsync().subscribe(new Flow.Subscriber<>() {
+        @Override
+        public void onSubscribe(Subscription subscription) {
+          s.onSubscribe(new org.reactivestreams.Subscription() {
+            @Override
+            public void request(long n) {
+              subscription.request(n);
+            }
+
+            @Override
+            public void cancel() {
+              subscription.cancel();
+            }
+          });
+        }
+
+        @Override
+        public void onNext(ByteBuffer item) {
+          s.onNext(item);
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+          s.onError(throwable);
+        }
+
+        @Override
+        public void onComplete() {
+          s.onComplete();
+        }
+      })))
+      .thenAccept(ss -> {
+        System.out.println();
+      });
   }
 
   @Override

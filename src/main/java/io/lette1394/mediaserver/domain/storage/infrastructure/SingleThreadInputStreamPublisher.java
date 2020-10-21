@@ -19,7 +19,7 @@ public class SingleThreadInputStreamPublisher implements Publisher<ByteBuffer> {
   private static final int END_OF_FILE = -1;
 
   private final InputStream inputStream;
-  private final long chunkSize;
+  private final int chunkSize;
 
   boolean isCanceled = false;
   boolean isCompleted = false;
@@ -35,7 +35,7 @@ public class SingleThreadInputStreamPublisher implements Publisher<ByteBuffer> {
   private Subscription newSubscription() {
     return new Subscription() {
       @Override
-      public void request(long n) {
+      public void request(long n) { // TODO: n은 item의 개수지 byte수가 아니다!
         executor.submit(() -> read(n));
       }
 
@@ -65,18 +65,23 @@ public class SingleThreadInputStreamPublisher implements Publisher<ByteBuffer> {
 
     try {
       while (remaining > 0) {
-        final int chunk = (int)Math.min(remaining, chunkSize);
-        final byte[] bytes = new byte[chunk];
-        final int signalOrLength = inputStream.read(bytes, 0, chunk);
+        final byte[] bytes = new byte[chunkSize];
+        final int signalOrLength = inputStream.read(bytes, 0, chunkSize);
 
         if (signalOrLength == END_OF_FILE) {
           onComplete();
           return;
         }
+        // TODO: 여기 안에서도 cancle 조건을 체크해야 함
 
+        // TODO: 이거 제대로 된 테스트는 어떻게 하지?
+        //  spring flux 툴로 할 수 있을 거 같은데... 찾아보자
+        //  step verifier !!! https://www.baeldung.com/reactive-streams-step-verifier-test-publisher
+
+        // TODO: signalOrLength 고치기
         onNext(bytes, signalOrLength);
 
-        remaining -= chunkSize;
+        remaining -= 1;
       }
     } catch (IOException e) {
       onError(e);

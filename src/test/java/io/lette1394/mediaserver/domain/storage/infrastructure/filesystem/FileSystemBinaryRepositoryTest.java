@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,9 +44,7 @@ class FileSystemBinaryRepositoryTest {
   void test1() {
     final ObjectFactory factory = new ObjectFactory(binaryRepository);
     final Object object = factory.create("test", "001");
-    final byte[] binary = RandomStringUtils
-      .randomAlphanumeric(CHUNK)
-      .getBytes(StandardCharsets.UTF_8);
+    final byte[] binary = RandomUtils.nextBytes(CHUNK);
 
     binaryRepository
       .createBinary(object, new TestBinarySupplier(binary))

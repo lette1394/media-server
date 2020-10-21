@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.domain.storage;
 
-import static io.lette1394.mediaserver.domain.storage.TestBinarySupplier.randomBinarySupplier;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 

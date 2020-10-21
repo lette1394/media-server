@@ -7,7 +7,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Flow.Publisher;
 import lombok.Value;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+import reactor.test.StepVerifier;
 
 @Value
 public class TestBinarySupplier implements BinarySupplier {
@@ -15,11 +16,11 @@ public class TestBinarySupplier implements BinarySupplier {
   byte[] binary;
 
   public static BinarySupplier randomBinarySupplier(int size) {
-    return new TestBinarySupplier(RandomStringUtils.random(size).getBytes());
+    return new TestBinarySupplier(RandomUtils.nextBytes(size));
   }
 
   public static BinarySupplier randomBinarySupplier() {
-    return randomBinarySupplier(1000);
+    return randomBinarySupplier(1024);
   }
 
   @Override
