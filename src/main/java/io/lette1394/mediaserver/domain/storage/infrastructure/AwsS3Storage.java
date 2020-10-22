@@ -4,9 +4,7 @@ import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.object.PendingObject;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
-import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -36,7 +34,8 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Result<Void>> createBinary(Identifier identifier, BinarySupplier binarySupplier) {
+  public CompletableFuture<Result<Void>> createBinary(Identifier identifier,
+    BinarySupplier binarySupplier) {
     final Region region = Region.AP_NORTHEAST_2;
 
     final S3AsyncClient client = S3AsyncClient.builder()
@@ -58,7 +57,8 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier, BinarySupplier binarySupplier) {
+  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier,
+    BinarySupplier binarySupplier) {
     return null;
   }
 
