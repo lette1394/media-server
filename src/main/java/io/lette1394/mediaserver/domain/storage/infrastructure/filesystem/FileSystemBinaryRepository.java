@@ -132,6 +132,11 @@ public class FileSystemBinaryRepository implements BinaryRepository {
       }
 
       @Override
+      public long length() {
+        return objectPath.toFile().length();
+      }
+
+      @Override
       public InputStream getSync() {
         return inputStream;
       }

@@ -8,6 +8,8 @@ public interface BinarySupplier {
   boolean isSyncSupported();
   boolean isAsyncSupported();
 
+  long length();
+
   InputStream getSync();
   Publisher<ByteBuffer> getAsync();
 }

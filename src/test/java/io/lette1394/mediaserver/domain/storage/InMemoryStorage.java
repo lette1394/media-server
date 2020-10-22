@@ -84,6 +84,7 @@ public class InMemoryStorage implements Storage {
 
   @Override
   public CompletableFuture<BinarySupplier> findBinary(Object object) {
+    final byte[] binaries = binaryHolder.get(object.identifier);
     return completedFuture(
       new BinarySupplier() {
         @Override
@@ -97,14 +98,19 @@ public class InMemoryStorage implements Storage {
         }
 
         @Override
+        public long length() {
+          return binaries.length;
+        }
+
+        @Override
         public InputStream getSync() {
-          return new ByteArrayInputStream(binaryHolder.get(object.identifier));
+          return new ByteArrayInputStream(binaries);
         }
 
         @Override
         public Publisher<ByteBuffer> getAsync() {
-          final byte[] bytes = binaryHolder.get(object.identifier);
-          return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(bytes), chunkSize);
+          return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
+            chunkSize);
         }
       });
   }

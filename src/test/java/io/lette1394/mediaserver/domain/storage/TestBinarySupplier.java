@@ -33,6 +33,11 @@ public class TestBinarySupplier implements BinarySupplier {
   }
 
   @Override
+  public long length() {
+    return binary.length;
+  }
+
+  @Override
   public InputStream getSync() {
     return new ByteArrayInputStream(binary);
   }
