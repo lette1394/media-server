@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 class FileSystemBinaryRepositoryTest {
   private static final int EOF = -1;
-  private static final int CHUNK = 1024;
+  private static final int CHUNK = 10;
   private static final String BASE_DIR = "out/binaries";
 
   private AutoClosableBinaryRepository binaryRepository;

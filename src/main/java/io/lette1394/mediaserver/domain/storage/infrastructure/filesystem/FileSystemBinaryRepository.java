@@ -16,9 +16,11 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
@@ -81,38 +83,22 @@ public class FileSystemBinaryRepository implements BinaryRepository {
 
   private CompletableFuture<Void> writeOp(Object object, BinarySupplier binarySupplier,
     OpenOption... openOption) {
+    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    final Path path = createPath(object);
+    final Path parent = path.getParent();
+
     try {
-      final Path path = createPath(object);
-      final Path parent = path.getParent();
       if (parent == null) {
         return failedFuture(new RuntimeException("parent not exists"));
       }
       parent.toFile().mkdirs();
+      Files.copy(binarySupplier.getSync(), path, StandardCopyOption.REPLACE_EXISTING);
 
-      final AsynchronousFileChannel channel = AsynchronousFileChannel.open(
-        path,
-        Set.of(openOption),
-        Executors.newSingleThreadExecutor());
-
-      final LongAdder length = new LongAdder();
-      final AsyncAggregateReader<ByteBuffer, Void> asyncAggregateReader = new AsyncAggregateReader<>(
-        100) {
-        @Override
-        protected void aggregateNext(ByteBuffer item) {
-          final int remaining = item.remaining();
-          channel.write(item, length.longValue());
-          length.add(remaining);
-        }
-
-        @Override
-        protected Void aggregateCompleted() {
-          return null;
-        }
-      };
-
-      return asyncAggregateReader.read(binarySupplier.getAsync());
+      return completedFuture(null);
     } catch (IOException e) {
       return failedFuture(e);
+    } finally {
+      executorService.shutdownNow();
     }
   }
 

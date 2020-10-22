@@ -14,7 +14,7 @@ public class InitialObject extends Object {
   }
 
   @Override
-  public CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
+  protected CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
     return binaryRepository.createBinary(this, binarySupplier);
   }
 
@@ -31,5 +31,10 @@ public class InitialObject extends Object {
   @Override
   public boolean isFulfilled() {
     return false;
+  }
+
+  @Override
+  public long getSize() {
+    return 0;
   }
 }

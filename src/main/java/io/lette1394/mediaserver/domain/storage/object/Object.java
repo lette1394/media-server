@@ -14,8 +14,8 @@ public abstract class Object extends AggregateRoot {
   public final Identifier identifier;
 
   protected final BinaryRepository binaryRepository;
-  private final Attributes attributes;
-  private final ObjectLifecyclePolicy objectLifecyclePolicy;
+  protected final ObjectLifecyclePolicy objectLifecyclePolicy;
+  protected final Attributes attributes;
 
   protected Object(
     Identifier identifier,
@@ -36,7 +36,7 @@ public abstract class Object extends AggregateRoot {
   }
 
   // TODO: rename
-  public abstract CompletableFuture<Void> upload0(BinarySupplier binarySupplier);
+  protected abstract CompletableFuture<Void> upload0(BinarySupplier binarySupplier);
 
   public CompletableFuture<BinarySupplier> download() {
     return beforeDownloading()
@@ -49,9 +49,7 @@ public abstract class Object extends AggregateRoot {
 
   public abstract boolean isFulfilled();
 
-  public long getSize() {
-    return attributes.getSize().getValue();
-  }
+  public abstract long getSize();
 
   private CompletableFuture<Void> beforeUploading() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));

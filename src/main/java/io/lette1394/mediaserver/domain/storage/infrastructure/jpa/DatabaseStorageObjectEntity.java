@@ -8,9 +8,7 @@ import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
 import io.lette1394.mediaserver.domain.storage.object.FulfilledObject;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.object.ObjectDownloadPolicy;
 import io.lette1394.mediaserver.domain.storage.object.ObjectLifecyclePolicy;
-import io.lette1394.mediaserver.domain.storage.object.ObjectUploadPolicy;
 import io.lette1394.mediaserver.domain.storage.object.PendingObject;
 import io.lette1394.mediaserver.domain.storage.object.Tag;
 import io.lette1394.mediaserver.domain.storage.object.Tags;
@@ -90,7 +88,7 @@ class DatabaseStorageObjectEntity {
       .stream(tagList.split(","))
       .map(str -> {
         final String[] split = str.split("=");
-        return new Tag(nonBlankString(split[0]), nonBlankString(split[1]));
+        return new Tag(nonBlankString(split[0]), split[1]);
       })
       .collect(Collectors.toList()));
   }

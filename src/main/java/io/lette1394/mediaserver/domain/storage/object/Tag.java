@@ -8,9 +8,9 @@ import lombok.Value;
 @Value
 public class Tag {
   NonBlankString key;
-  NonBlankString value;
+  String value;
 
   public static Tag tag(String key, String value) {
-    return new Tag(nonBlankString(key), nonBlankString(value));
+    return new Tag(nonBlankString(key), value);
   }
 }

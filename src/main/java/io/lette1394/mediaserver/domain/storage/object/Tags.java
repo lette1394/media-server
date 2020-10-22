@@ -23,6 +23,6 @@ public class Tags {
       .stream()
       .collect(Collectors.toMap(
         tag -> tag.getKey().getValue(),
-        tag -> tag.getValue().getValue()));
+        Tag::getValue));
   }
 }
