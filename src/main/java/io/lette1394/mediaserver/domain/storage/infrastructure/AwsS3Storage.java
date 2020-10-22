@@ -15,16 +15,18 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class AwsS3Storage implements Storage {
   @Override
-  public CompletableFuture<Boolean> objectExists(Identifier identifier)
-    throws ObjectNotFoundException {
-    return CompletableFuture.completedFuture(false);
+  public CompletableFuture<Result<Boolean>> objectExists(Identifier identifier) {
+    return null;
   }
 
   @Override
-  public CompletableFuture<Object> findObject(Identifier identifier)
-    throws ObjectNotFoundException {
+  public CompletableFuture<Result<Object>> findObject(Identifier identifier) {
+    return null;
+  }
 
-    return CompletableFuture.completedFuture(PendingObject.builder().build());
+  @Override
+  public CompletableFuture<Result<Void>> createObject(Object object) {
+    return null;
   }
 
   @Override

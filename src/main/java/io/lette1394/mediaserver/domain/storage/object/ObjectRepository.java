@@ -1,10 +1,12 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
-import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
+import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 
 public interface ObjectRepository {
-  CompletableFuture<Boolean> objectExists(Identifier identifier) throws ObjectNotFoundException;
+  CompletableFuture<Result<Boolean>> objectExists(Identifier identifier);
 
-  CompletableFuture<Object> findObject(Identifier identifier) throws ObjectNotFoundException;
+  CompletableFuture<Result<Object>> findObject(Identifier identifier);
+
+  CompletableFuture<Result<Void>> createObject(Object object);
 }

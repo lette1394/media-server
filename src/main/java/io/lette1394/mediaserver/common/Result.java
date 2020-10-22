@@ -21,8 +21,12 @@ public class Result<T> {
     return new Result<T>(true, value, "", null);
   }
 
+  public static <T> Result<T> fail(String reason) {
+    return fail(reason, null);
+  }
+
   public static <T> Result<T> fail(Throwable throwable) {
-    return new Result<>(false, null, "", throwable);
+    return fail("", throwable);
   }
 
   public static <T> Result<T> fail(String reason, Throwable throwable) {

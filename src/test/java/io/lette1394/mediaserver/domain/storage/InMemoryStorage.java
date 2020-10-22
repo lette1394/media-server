@@ -39,22 +39,27 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Boolean> objectExists(Identifier identifier)
+  public CompletableFuture<Result<Boolean>> objectExists(Identifier identifier)
     throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
-      return completedFuture(true);
+      return completedFuture(Result.succeed(true));
     }
-    return completedFuture(false);
+    return completedFuture(Result.succeed(false));
   }
 
   @Override
-  public CompletableFuture<Object> findObject(Identifier identifier)
+  public CompletableFuture<Result<Object>> findObject(Identifier identifier)
     throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
-      return completedFuture(objectHolder.get(identifier));
+      return completedFuture(Result.succeed(objectHolder.get(identifier)));
     }
-    return failedFuture(
-      new ObjectNotFoundException(format("Cannot found object with identifier: %s", identifier)));
+    return completedFuture(
+      Result.fail(format("Cannot found object with identifier: %s", identifier)));
+  }
+
+  @Override
+  public CompletableFuture<Result<Void>> createObject(Object object) {
+    return null;
   }
 
   @Override
