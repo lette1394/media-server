@@ -9,9 +9,7 @@ import io.lette1394.mediaserver.domain.storage.object.DeleteAllBinaryWhenClosedB
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,12 +45,12 @@ class FileSystemBinaryRepositoryTest {
     final byte[] binary = RandomUtils.nextBytes(CHUNK);
 
     binaryRepository
-      .createBinary(object, new TestBinarySupplier(binary))
+      .createBinary(object.identifier, new TestBinarySupplier(binary))
       .join();
 
     final byte[] holder = new byte[CHUNK];
     final InputStream inputStream = binaryRepository
-      .findBinary(object)
+      .findBinary(object.identifier)
       .join()
       .getSync();
     final int readLength = inputStream.read(holder);

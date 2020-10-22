@@ -3,26 +3,23 @@ package io.lette1394.mediaserver.domain.storage.infrastructure.filesystem;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
-import io.lette1394.mediaserver.domain.storage.infrastructure.AsyncAggregateReader;
+import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.infrastructure.SingleThreadInputStreamPublisher;
 import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
-import io.lette1394.mediaserver.domain.storage.object.Object;
+import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
 import lombok.Value;
 import org.reactivestreams.Publisher;
@@ -44,30 +41,35 @@ public class FileSystemBinaryRepository implements BinaryRepository {
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(Object object) {
+  public CompletableFuture<BinarySupplier> findBinary(
+    Identifier identifier) {
     try {
-      return completedFuture(readOp(object));
+      return completedFuture(readOp(identifier));
     } catch (IOException e) {
       return failedFuture(e);
     }
   }
 
   @Override
-  public CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier) {
-    return writeOp(object, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-      StandardOpenOption.READ);
+  public CompletableFuture<Result> createBinary(Identifier identifier,
+    BinarySupplier binarySupplier) {
+    return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+      StandardOpenOption.READ)
+      .thenApply(aVoid -> Result.succeed());
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Object object, BinarySupplier binarySupplier) {
-    return writeOp(object, binarySupplier, StandardOpenOption.APPEND);
+  public CompletableFuture<Result> appendBinary(Identifier identifier,
+    BinarySupplier binarySupplier) {
+    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND)
+      .thenApply(aVoid -> Result.succeed());
   }
 
   @Override
-  public CompletableFuture<Void> deleteBinary(Object object) {
+  public CompletableFuture<Result> deleteBinary(Identifier identifier) {
     return CompletableFuture.supplyAsync(() -> {
       try {
-        final Path path = createPath(object);
+        final Path path = createPath(identifier);
         final Path parent = path.getParent();
 
         Files.delete(path);
@@ -81,10 +83,10 @@ public class FileSystemBinaryRepository implements BinaryRepository {
     });
   }
 
-  private CompletableFuture<Void> writeOp(Object object, BinarySupplier binarySupplier,
+  private CompletableFuture<Void> writeOp(Identifier identifier, BinarySupplier binarySupplier,
     OpenOption... openOption) {
     final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    final Path path = createPath(object);
+    final Path path = createPath(identifier);
     final Path parent = path.getParent();
 
     try {
@@ -102,8 +104,8 @@ public class FileSystemBinaryRepository implements BinaryRepository {
     }
   }
 
-  private BinarySupplier readOp(Object object) throws IOException {
-    final Path objectPath = createPath(object);
+  private BinarySupplier readOp(Identifier identifier) throws IOException {
+    final Path objectPath = createPath(identifier);
     final InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
 
     return new BinarySupplier() {
@@ -134,10 +136,10 @@ public class FileSystemBinaryRepository implements BinaryRepository {
     };
   }
 
-  private Path createPath(Object object) {
+  private Path createPath(Identifier identifier) {
     return Paths.get(
       baseDir,
-      object.identifier.getArea(),
-      object.identifier.getKey()).toAbsolutePath();
+      identifier.getArea(),
+      identifier.getKey()).toAbsolutePath();
   }
 }

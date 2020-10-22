@@ -1,41 +1,32 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
 import io.lette1394.mediaserver.common.PositiveLong;
+import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
-public class FulfilledObject extends Object implements SizeAware {
+public class FulfilledObject extends Object {
   private final PositiveLong size;
 
   @Builder
   public FulfilledObject(Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectLifecyclePolicy objectLifecyclePolicy, PositiveLong size) {
-    super(identifier, attributes, binaryRepository, objectLifecyclePolicy);
+    ObjectPolicy objectPolicy, PositiveLong size) {
+    super(identifier, attributes, binaryRepository, objectPolicy);
     this.size = size;
   }
 
   @Override
-  public CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
-    return binaryRepository.createBinary(this, binarySupplier);
+  public CompletableFuture<Result> upload0(BinarySupplier binarySupplier) {
+    return binaryRepository
+      .createBinary(identifier, binarySupplier);
   }
 
   @Override
-  public boolean isInitial() {
-    return false;
+  protected ObjectState getObjectState() {
+    return ObjectState.FULFILLED;
   }
-
-  @Override
-  public boolean isPending() {
-    return false;
-  }
-
-  @Override
-  public boolean isFulfilled() {
-    return true;
-  }
-
 
   // TODO: Size object
   @Override

@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.domain.storage.infrastructure;
 
+import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
@@ -27,12 +28,13 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(Object object) {
+  public CompletableFuture<BinarySupplier> findBinary(
+    Identifier identifier) {
     return CompletableFuture.failedFuture(new RuntimeException());
   }
 
   @Override
-  public CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier) {
+  public CompletableFuture<Result> createBinary(Identifier identifier, BinarySupplier binarySupplier) {
     final Region region = Region.AP_NORTHEAST_2;
 
     final S3AsyncClient client = S3AsyncClient.builder()
@@ -49,16 +51,17 @@ public class AwsS3Storage implements Storage {
       .fromPublisher(s -> binarySupplier.getAsync()))
       .thenAccept(ss -> {
         System.out.println();
-      });
+      })
+      .thenApply(aVoid -> Result.succeed());
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Object object, BinarySupplier binarySupplier) {
+  public CompletableFuture<Result> appendBinary(Identifier identifier, BinarySupplier binarySupplier) {
     return null;
   }
 
   @Override
-  public CompletableFuture<Void> deleteBinary(Object object) {
+  public CompletableFuture<Result> deleteBinary(Identifier identifier) {
     return null;
   }
 }

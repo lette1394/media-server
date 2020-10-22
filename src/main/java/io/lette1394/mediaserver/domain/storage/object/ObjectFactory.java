@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ObjectFactory {
   private final BinaryRepository binaryRepository;
-  private final ObjectLifecyclePolicy objectLifecyclePolicy = ObjectLifecyclePolicy.ALL_LIFECYCLE_POLICY;
+  private final ObjectPolicy objectPolicy = ObjectPolicy.ALL_POLICY;
 
   public Object create(String area, String key) {
     final Identifier identifier = new Identifier(area, key);
@@ -23,7 +23,7 @@ public class ObjectFactory {
     return InitialObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(identifier)
-      .objectLifecyclePolicy(objectLifecyclePolicy)
+      .objectPolicy(objectPolicy)
       .attributes(attributes)
       .build();
   }

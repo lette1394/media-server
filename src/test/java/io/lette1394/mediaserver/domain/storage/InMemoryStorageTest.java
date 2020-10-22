@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.domain.storage;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
@@ -29,7 +30,7 @@ class InMemoryStorageTest {
 
   private void runSync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Void> upload = object.upload(new TestBinarySupplier(testBinary));
+    final CompletableFuture<Result> upload = object.upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
@@ -45,7 +46,7 @@ class InMemoryStorageTest {
 
   private void runAsync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Void> upload = object.upload(new TestBinarySupplier(testBinary));
+    final CompletableFuture<Result> upload = object.upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));

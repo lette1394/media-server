@@ -8,7 +8,7 @@ import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
 import io.lette1394.mediaserver.domain.storage.object.FulfilledObject;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.object.ObjectLifecyclePolicy;
+import io.lette1394.mediaserver.domain.storage.object.ObjectPolicy;
 import io.lette1394.mediaserver.domain.storage.object.PendingObject;
 import io.lette1394.mediaserver.domain.storage.object.Tag;
 import io.lette1394.mediaserver.domain.storage.object.Tags;
@@ -56,7 +56,7 @@ class DatabaseStorageObjectEntity {
     return FulfilledObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
-      .objectLifecyclePolicy(ObjectLifecyclePolicy.ALL_LIFECYCLE_POLICY)
+      .objectPolicy(ObjectPolicy.ALL_POLICY)
       .attributes(Attributes.builder()
         .size(positiveLong(sizeInByte))
         .created(created)
@@ -70,7 +70,7 @@ class DatabaseStorageObjectEntity {
     return PendingObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
-      .objectLifecyclePolicy(ObjectLifecyclePolicy.ALL_LIFECYCLE_POLICY)
+      .objectPolicy(ObjectPolicy.ALL_POLICY)
       .attributes(Attributes.builder()
         .size(positiveLong(sizeInByte))
         .created(created)

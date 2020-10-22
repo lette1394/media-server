@@ -1,8 +1,9 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
-import static io.lette1394.mediaserver.domain.storage.object.Policies.allowIfPassed;
+import static io.lette1394.mediaserver.domain.storage.object.Policies.runNextIfPassed;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
+import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.DownloadingTriggered;
 import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.Uploaded;
 import io.lette1394.mediaserver.domain.storage.object.ObjectEvents.UploadingTriggered;
@@ -14,61 +15,63 @@ public abstract class Object extends AggregateRoot {
   public final Identifier identifier;
 
   protected final BinaryRepository binaryRepository;
-  protected final ObjectLifecyclePolicy objectLifecyclePolicy;
+  protected final ObjectPolicy objectPolicy;
   protected final Attributes attributes;
 
   protected Object(
     Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectLifecyclePolicy objectLifecyclePolicy) {
+    ObjectPolicy objectPolicy) {
 
     this.identifier = identifier;
     this.attributes = attributes;
     this.binaryRepository = binaryRepository;
-    this.objectLifecyclePolicy = objectLifecyclePolicy;
+    this.objectPolicy = objectPolicy;
   }
 
-  public CompletableFuture<Void> upload(BinarySupplier binarySupplier) {
+  public CompletableFuture<Result> upload(BinarySupplier binarySupplier) {
     return beforeUploading()
-      .thenCompose(__ -> upload0(binarySupplier))
+      .thenCompose(runNextIfPassed(upload0(binarySupplier)))
       .thenCompose(__ -> afterUploaded());
   }
 
   // TODO: rename
-  protected abstract CompletableFuture<Void> upload0(BinarySupplier binarySupplier);
+  protected abstract CompletableFuture<Result> upload0(BinarySupplier binarySupplier);
 
   public CompletableFuture<BinarySupplier> download() {
     return beforeDownloading()
-      .thenCompose(__ -> binaryRepository.findBinary(this));
+      .thenCompose(__ -> binaryRepository.findBinary(identifier));
   }
 
-  public abstract boolean isInitial();
-
-  public abstract boolean isPending();
-
-  public abstract boolean isFulfilled();
+  protected abstract ObjectState getObjectState();
 
   public abstract long getSize();
 
-  private CompletableFuture<Void> beforeUploading() {
+  private CompletableFuture<Result> beforeUploading() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
-    return objectLifecyclePolicy
-      .beforeUploading(this, binaryRepository)
-      .thenAccept(allowIfPassed());
+
+    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOADING));
   }
 
-  private CompletableFuture<Void> afterUploaded() {
+  private CompletableFuture<Result> afterUploaded() {
     addEvent(Uploaded.uploaded(this, binaryRepository));
-    return objectLifecyclePolicy
-      .afterUploaded(this, binaryRepository)
-      .thenAccept(allowIfPassed());
+
+    return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED));
   }
 
-  private CompletableFuture<Void> beforeDownloading() {
+  private CompletableFuture<Result> beforeDownloading() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
-    return objectLifecyclePolicy
-      .beforeDownloading(this)
-      .thenAccept(allowIfPassed());
+
+    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOADING));
+  }
+
+  private ObjectSnapshot snapshot(ObjectLifeCycle lifeCycle) {
+    return ObjectSnapshot.builder()
+      .identifier(identifier)
+      .lifeCycle(lifeCycle)
+      .state(getObjectState())
+      .size(getSize())
+      .build();
   }
 }

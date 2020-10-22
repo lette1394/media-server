@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
-import java.nio.file.Files;
+import io.lette1394.mediaserver.common.Result;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -9,35 +9,40 @@ import lombok.Value;
 
 @Value
 public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBinaryRepository {
-  Set<Object> createdObjects = new HashSet<>();
+  Set<Identifier> createdObjects = new HashSet<>();
   BinaryRepository repository;
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(Object object) {
-    return repository.findBinary(object);
+  public CompletableFuture<BinarySupplier> findBinary(
+    Identifier identifier) {
+    return repository.findBinary(identifier);
   }
 
   @Override
-  public CompletableFuture<Void> createBinary(Object object, BinarySupplier binarySupplier) {
-    return repository.createBinary(object, binarySupplier)
-      .thenAccept(__ -> memory(object));
+  public CompletableFuture<Result> createBinary(Identifier identifier,
+    BinarySupplier binarySupplier) {
+    return repository.createBinary(identifier, binarySupplier)
+      .thenAccept(__ -> memory(identifier))
+      .thenApply(aVoid -> Result.succeed());
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Object object, BinarySupplier binarySupplier) {
-    return repository.appendBinary(object, binarySupplier);
+  public CompletableFuture<Result> appendBinary(Identifier identifier,
+    BinarySupplier binarySupplier) {
+    return repository.appendBinary(identifier, binarySupplier);
   }
 
   @Override
-  public CompletableFuture<Void> deleteBinary(Object object) {
+  public CompletableFuture<Result> deleteBinary(Identifier identifier) {
     return repository
-      .deleteBinary(object)
-      .thenAccept(__ -> createdObjects.remove(object));
+      .deleteBinary(identifier)
+      .thenAccept(__ -> createdObjects.remove(identifier))
+      .thenApply(aVoid -> Result.succeed());
   }
 
   @Override
   public void close() throws Exception {
-    final Set<CompletableFuture<Void>> collect = createdObjects
+    final Set<CompletableFuture<Result>> collect = createdObjects
       .parallelStream()
       .map(this::deleteBinary)
       .collect(Collectors.toSet());
@@ -45,7 +50,7 @@ public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBi
     collect.forEach(CompletableFuture::join);
   }
 
-  private void memory(Object object) {
-    createdObjects.add(object);
+  private void memory(Identifier identifier) {
+    createdObjects.add(identifier);
   }
 }

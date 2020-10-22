@@ -4,14 +4,15 @@ import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Policies {
-  public static Consumer<Result> allowIfPassed() {
+  public static Function<Result, CompletableFuture<Result>> runNextIfPassed(CompletableFuture<Result> future) {
     return result -> {
       if (result.isSucceed()) {
-        return;
+        return future;
       }
-      throw new RuntimeException(result.getThrowable());
+      return CompletableFuture.completedFuture(result);
     };
   }
 
