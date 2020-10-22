@@ -3,11 +3,11 @@ package io.lette1394.mediaserver.domain.storage.infrastructure.filesystem;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
+import io.lette1394.mediaserver.domain.storage.infrastructure.AsyncAggregateReader;
 import io.lette1394.mediaserver.domain.storage.infrastructure.SingleThreadInputStreamPublisher;
 import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.infrastructure.AsyncAggregateReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -20,14 +20,26 @@ import java.nio.file.StandardOpenOption;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
 import lombok.Value;
+import org.reactivestreams.Publisher;
 
 @Value
 public class FileSystemBinaryRepository implements BinaryRepository {
   String baseDir;
+
+  private static boolean isEmptyDirectory(Path path) throws IOException {
+    if (path == null) {
+      return false;
+    }
+    if (Files.isDirectory(path)) {
+      try (Stream<Path> entries = Files.list(path)) {
+        return entries.findFirst().isEmpty();
+      }
+    }
+    return false;
+  }
 
   @Override
   public CompletableFuture<BinarySupplier> findBinary(Object object) {
@@ -83,7 +95,8 @@ public class FileSystemBinaryRepository implements BinaryRepository {
         Executors.newSingleThreadExecutor());
 
       final LongAdder length = new LongAdder();
-      final AsyncAggregateReader<ByteBuffer, Void> asyncAggregateReader = new AsyncAggregateReader<>(100) {
+      final AsyncAggregateReader<ByteBuffer, Void> asyncAggregateReader = new AsyncAggregateReader<>(
+        100) {
         @Override
         protected void aggregateNext(ByteBuffer item) {
           final int remaining = item.remaining();
@@ -135,17 +148,5 @@ public class FileSystemBinaryRepository implements BinaryRepository {
       baseDir,
       object.identifier.getArea(),
       object.identifier.getKey()).toAbsolutePath();
-  }
-
-  private static boolean isEmptyDirectory(Path path) throws IOException {
-    if (path == null) {
-      return false;
-    }
-    if (Files.isDirectory(path)) {
-      try (Stream<Path> entries = Files.list(path)) {
-        return entries.findFirst().isEmpty();
-      }
-    }
-    return false;
   }
 }

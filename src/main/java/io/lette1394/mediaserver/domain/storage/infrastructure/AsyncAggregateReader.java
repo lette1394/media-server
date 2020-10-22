@@ -1,10 +1,10 @@
 package io.lette1394.mediaserver.domain.storage.infrastructure;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Flow.Publisher;
-import java.util.concurrent.Flow.Subscriber;
-import java.util.concurrent.Flow.Subscription;
 import lombok.RequiredArgsConstructor;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 public abstract class AsyncAggregateReader<FROM, TO> {
   private final CompletableFuture<TO> future = new CompletableFuture<>();

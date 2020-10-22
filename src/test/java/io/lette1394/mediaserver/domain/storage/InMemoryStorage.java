@@ -4,12 +4,12 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
+import io.lette1394.mediaserver.domain.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import io.lette1394.mediaserver.domain.storage.infrastructure.SingleThreadInputStreamPublisher;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
-import io.lette1394.mediaserver.domain.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Flow.Publisher;
 import lombok.Value;
+import org.reactivestreams.Publisher;
 
 @Value
 public class InMemoryStorage implements Storage {
@@ -38,7 +38,8 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Boolean> objectExists(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Boolean> objectExists(Identifier identifier)
+    throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(true);
     }
@@ -46,12 +47,13 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Object> findObject(Identifier identifier) throws ObjectNotFoundException {
+  public CompletableFuture<Object> findObject(Identifier identifier)
+    throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(objectHolder.get(identifier));
     }
     return failedFuture(
-        new ObjectNotFoundException(format("Cannot found object with identifier: %s", identifier)));
+      new ObjectNotFoundException(format("Cannot found object with identifier: %s", identifier)));
   }
 
   @Override
@@ -83,28 +85,28 @@ public class InMemoryStorage implements Storage {
   @Override
   public CompletableFuture<BinarySupplier> findBinary(Object object) {
     return completedFuture(
-        new BinarySupplier() {
-          @Override
-          public boolean isSyncSupported() {
-            return true;
-          }
+      new BinarySupplier() {
+        @Override
+        public boolean isSyncSupported() {
+          return true;
+        }
 
-          @Override
-          public boolean isAsyncSupported() {
-            return true;
-          }
+        @Override
+        public boolean isAsyncSupported() {
+          return true;
+        }
 
-          @Override
-          public InputStream getSync() {
-            return new ByteArrayInputStream(binaryHolder.get(object.identifier));
-          }
+        @Override
+        public InputStream getSync() {
+          return new ByteArrayInputStream(binaryHolder.get(object.identifier));
+        }
 
-          @Override
-          public Publisher<ByteBuffer> getAsync() {
-            final byte[] bytes = binaryHolder.get(object.identifier);
-            return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(bytes), chunkSize);
-          }
-        });
+        @Override
+        public Publisher<ByteBuffer> getAsync() {
+          final byte[] bytes = binaryHolder.get(object.identifier);
+          return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(bytes), chunkSize);
+        }
+      });
   }
 
   @Override
@@ -126,12 +128,12 @@ public class InMemoryStorage implements Storage {
 
   private CompletableFuture<Void> uploadAsync(Object object, BinarySupplier binarySupplier) {
     return new ByteBufferToByteArrayAsyncAggregateReader(500)
-        .read(binarySupplier.getAsync())
-        .thenAccept(
-            bytes -> {
-              objectHolder.put(object.identifier, object);
-              binaryHolder.put(object.identifier, bytes);
-            });
+      .read(binarySupplier.getAsync())
+      .thenAccept(
+        bytes -> {
+          objectHolder.put(object.identifier, object);
+          binaryHolder.put(object.identifier, bytes);
+        });
 
     // or just using SingleThreadedAsyncToSync
   }

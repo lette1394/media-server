@@ -5,10 +5,9 @@ import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Flow.Publisher;
 import lombok.Value;
 import org.apache.commons.lang3.RandomUtils;
-import reactor.test.StepVerifier;
+import org.reactivestreams.Publisher;
 
 @Value
 public class TestBinarySupplier implements BinarySupplier {
