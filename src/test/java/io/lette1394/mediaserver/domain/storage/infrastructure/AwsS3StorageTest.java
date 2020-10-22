@@ -21,7 +21,7 @@ class AwsS3StorageTest {
       StandardCharsets.UTF_8));
     final ObjectFactory factory = new ObjectFactory(awsS3Storage);
     final Object object = factory.create("h", "123");
-    final CompletableFuture<Result> upload = object.upload(binarySupplier);
+    final CompletableFuture<Result<Void>> upload = object.upload(binarySupplier);
 
     upload.join();
   }

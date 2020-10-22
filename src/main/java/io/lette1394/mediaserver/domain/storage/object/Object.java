@@ -30,37 +30,37 @@ public abstract class Object extends AggregateRoot {
     this.objectPolicy = objectPolicy;
   }
 
-  public CompletableFuture<Result> upload(BinarySupplier binarySupplier) {
-    return beforeUploading()
-      .thenCompose(runNextIfPassed(upload0(binarySupplier)))
-      .thenCompose(__ -> afterUploaded());
+  public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
+    return beforeUploading().thenCompose(
+      runNextIfPassed(upload0(binarySupplier)
+        .thenCompose(__ -> afterUploaded())));
   }
 
   // TODO: rename
-  protected abstract CompletableFuture<Result> upload0(BinarySupplier binarySupplier);
+  protected abstract CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier);
 
-  public CompletableFuture<BinarySupplier> download() {
+  public CompletableFuture<Result<BinarySupplier>> download() {
     return beforeDownloading()
-      .thenCompose(__ -> binaryRepository.findBinary(identifier));
+      .thenCompose(runNextIfPassed(binaryRepository.findBinary(identifier)));
   }
 
   protected abstract ObjectState getObjectState();
 
   public abstract long getSize();
 
-  private CompletableFuture<Result> beforeUploading() {
+  private CompletableFuture<Result<Void>> beforeUploading() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOADING));
   }
 
-  private CompletableFuture<Result> afterUploaded() {
+  private CompletableFuture<Result<Void>> afterUploaded() {
     addEvent(Uploaded.uploaded(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED));
   }
 
-  private CompletableFuture<Result> beforeDownloading() {
+  private CompletableFuture<Result<Void>> beforeDownloading() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOADING));

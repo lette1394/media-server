@@ -13,7 +13,7 @@ import lombok.Value;
 public class Uploading {
   Storage storage;
 
-  public CompletableFuture<Result> upload(Command command) {
+  public CompletableFuture<Result<Void>> upload(Command command) {
     final ObjectFactory factory = new ObjectFactory(storage);
     final Object object = factory.create(command.area, command.key);
 

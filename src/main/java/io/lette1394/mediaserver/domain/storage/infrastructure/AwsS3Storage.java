@@ -28,13 +28,13 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
+  public CompletableFuture<Result<BinarySupplier>> findBinary(
     Identifier identifier) {
     return CompletableFuture.failedFuture(new RuntimeException());
   }
 
   @Override
-  public CompletableFuture<Result> createBinary(Identifier identifier, BinarySupplier binarySupplier) {
+  public CompletableFuture<Result<Void>> createBinary(Identifier identifier, BinarySupplier binarySupplier) {
     final Region region = Region.AP_NORTHEAST_2;
 
     final S3AsyncClient client = S3AsyncClient.builder()
@@ -56,12 +56,12 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Result> appendBinary(Identifier identifier, BinarySupplier binarySupplier) {
+  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier, BinarySupplier binarySupplier) {
     return null;
   }
 
   @Override
-  public CompletableFuture<Result> deleteBinary(Identifier identifier) {
+  public CompletableFuture<Result<Void>> deleteBinary(Identifier identifier) {
     return null;
   }
 }

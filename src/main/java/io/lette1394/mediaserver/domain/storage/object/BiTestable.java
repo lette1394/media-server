@@ -9,7 +9,7 @@ import lombok.Value;
 
 @FunctionalInterface
 public interface BiTestable<T, U> {
-  CompletableFuture<Result> test(T t, U u);
+  CompletableFuture<Result<Void>> test(T t, U u);
 
   @Value
   class AllMatch<T, U> implements BiTestable<T, U> {
@@ -20,7 +20,7 @@ public interface BiTestable<T, U> {
     }
 
     @Override
-    public CompletableFuture<Result> test(T t, U u) {
+    public CompletableFuture<Result<Void>> test(T t, U u) {
       return policies
         .stream()
         .map(policy -> policy.test(t, u))

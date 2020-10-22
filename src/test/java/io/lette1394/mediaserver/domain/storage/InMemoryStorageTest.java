@@ -30,15 +30,19 @@ class InMemoryStorageTest {
 
   private void runSync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Result> upload = object.upload(new TestBinarySupplier(testBinary));
+    final CompletableFuture<Result<Void>> upload = object.upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
 
-    final CompletableFuture<BinarySupplier> download = object.download();
+    final CompletableFuture<Result<BinarySupplier>> download = object.download();
 
+    final Result<BinarySupplier> result = download.join();
+    if (result.isFailed()) {
+      throw new RuntimeException(result.getThrowable());
+    }
     final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
-      .read(download.join().getAsync())
+      .read(result.get().getAsync())
       .join();
 
     assertThat(downloadedBinary, is(testBinary));
@@ -46,15 +50,15 @@ class InMemoryStorageTest {
 
   private void runAsync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Result> upload = object.upload(new TestBinarySupplier(testBinary));
+    final CompletableFuture<Result<Void>> upload = object.upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
 
-    final CompletableFuture<BinarySupplier> download = object.download();
+    final CompletableFuture<Result<BinarySupplier>> download = object.download();
 
     final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
-      .read(download.join().getAsync())
+      .read(download.join().get().getAsync())
       .join();
 
     assertThat(downloadedBinary, is(testBinary));

@@ -15,7 +15,7 @@ public class InitialObject extends Object {
   }
 
   @Override
-  protected CompletableFuture<Result> upload0(BinarySupplier binarySupplier) {
+  protected CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier) {
     return binaryRepository.createBinary(identifier, binarySupplier);
   }
 

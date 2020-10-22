@@ -13,13 +13,13 @@ public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBi
   BinaryRepository repository;
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
+  public CompletableFuture<Result<BinarySupplier>> findBinary(
     Identifier identifier) {
     return repository.findBinary(identifier);
   }
 
   @Override
-  public CompletableFuture<Result> createBinary(Identifier identifier,
+  public CompletableFuture<Result<Void>> createBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
     return repository.createBinary(identifier, binarySupplier)
       .thenAccept(__ -> memory(identifier))
@@ -27,13 +27,13 @@ public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBi
   }
 
   @Override
-  public CompletableFuture<Result> appendBinary(Identifier identifier,
+  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
     return repository.appendBinary(identifier, binarySupplier);
   }
 
   @Override
-  public CompletableFuture<Result> deleteBinary(Identifier identifier) {
+  public CompletableFuture<Result<Void>> deleteBinary(Identifier identifier) {
     return repository
       .deleteBinary(identifier)
       .thenAccept(__ -> createdObjects.remove(identifier))
@@ -42,7 +42,7 @@ public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBi
 
   @Override
   public void close() throws Exception {
-    final Set<CompletableFuture<Result>> collect = createdObjects
+    final Set<CompletableFuture<Result<Void>>> collect = createdObjects
       .parallelStream()
       .map(this::deleteBinary)
       .collect(Collectors.toSet());

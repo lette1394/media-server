@@ -1,22 +1,24 @@
 package io.lette1394.mediaserver.domain.storage.object;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+
 import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Policies {
-  public static Function<Result, CompletableFuture<Result>> runNextIfPassed(CompletableFuture<Result> future) {
+  public static <T, R> Function<Result<T>, CompletableFuture<Result<R>>> runNextIfPassed(
+    CompletableFuture<Result<R>> future) {
     return result -> {
       if (result.isSucceed()) {
         return future;
       }
-      return CompletableFuture.completedFuture(result);
+      return completedFuture(Result.fail(result.getReason(), result.getThrowable()));
     };
   }
 
-  public static BinaryOperator<CompletableFuture<Result>> mergeAllMatch() {
+  public static BinaryOperator<CompletableFuture<Result<Void>>> mergeAllMatch() {
     return (test1, test2) -> test1.thenCombine(test2, (result1, result2) -> {
       if (result1.isSucceed() && result2.isSucceed()) {
         return Result.succeed();

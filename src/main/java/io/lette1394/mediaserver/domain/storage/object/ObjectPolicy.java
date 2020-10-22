@@ -16,11 +16,11 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
     }
     return completedFuture(succeed());
   };
-  ObjectPolicy ALLOW_UNDER_10MB_SIZE = current -> {
-    if (current.lifeCycle.isAfterUploaded() && current.size < 1024 * 1024 * 10) {
-      return completedFuture(succeed());
+  ObjectPolicy REJECT_10MB_SIZE_OVER = current -> {
+    if (current.lifeCycle.isAfterUploaded() && current.size > 1024 * 1024 * 10) {
+      return completedFuture(fail(violation("Allow under 10MB")));
     }
-    return completedFuture(fail(violation("Allow under 10MB")));
+    return completedFuture(succeed());
   };
   ObjectPolicy REJECT_PENDING_OBJECT = current -> {
     if (current.lifeCycle.isBeforeDownloading() && current.state.isPending()) {
@@ -31,11 +31,11 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
   ObjectPolicy ALL_POLICY = snapshot -> AllMatch.allMatch(Set.of(
 
     REJECT_RESUME_UPLOAD,
-    ALLOW_UNDER_10MB_SIZE,
+    REJECT_10MB_SIZE_OVER,
     REJECT_PENDING_OBJECT
 
   ))
     .test(snapshot);
 
-  CompletableFuture<Result> test(ObjectSnapshot current);
+  CompletableFuture<Result<Void>> test(ObjectSnapshot current);
 }

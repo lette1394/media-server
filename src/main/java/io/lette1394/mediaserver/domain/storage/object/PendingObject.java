@@ -19,7 +19,7 @@ public class PendingObject extends Object {
   }
 
   @Override
-  public CompletableFuture<Result> upload0(BinarySupplier binarySupplier) {
+  public CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier) {
     return binaryRepository.appendBinary(identifier, binarySupplier);
   }
 

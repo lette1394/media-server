@@ -18,7 +18,7 @@ public class FulfilledObject extends Object {
   }
 
   @Override
-  public CompletableFuture<Result> upload0(BinarySupplier binarySupplier) {
+  public CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier) {
     return binaryRepository
       .createBinary(identifier, binarySupplier);
   }

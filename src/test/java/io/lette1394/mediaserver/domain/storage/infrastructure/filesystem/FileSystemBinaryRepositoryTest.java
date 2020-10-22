@@ -52,6 +52,7 @@ class FileSystemBinaryRepositoryTest {
     final InputStream inputStream = binaryRepository
       .findBinary(object.identifier)
       .join()
+      .get()
       .getSync();
     final int readLength = inputStream.read(holder);
     final int expectEOF = inputStream.read();

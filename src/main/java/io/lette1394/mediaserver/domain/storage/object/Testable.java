@@ -10,7 +10,7 @@ import lombok.Value;
 
 @FunctionalInterface
 public interface Testable<T> {
-  CompletableFuture<Result> test(T t);
+  CompletableFuture<Result<Void>> test(T t);
 
   @Value
   class AllMatch<T> implements Testable<T> {
@@ -21,7 +21,7 @@ public interface Testable<T> {
     }
 
     @Override
-    public CompletableFuture<Result> test(T t) {
+    public CompletableFuture<Result<Void>> test(T t) {
       return policies
         .stream()
         .map(policy -> policy.test(t))

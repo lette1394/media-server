@@ -58,7 +58,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Result> createBinary(Identifier identifier,
+  public CompletableFuture<Result<Void>> createBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
     if (binarySupplier.isSyncSupported()) {
       return uploadBinarySync(identifier, binarySupplier)
@@ -72,7 +72,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Result> appendBinary(Identifier identifier,
+  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
     final byte[] bytes = binaryHolder.get(identifier);
     final InputStream input = binarySupplier.getSync();
@@ -84,14 +84,14 @@ public class InMemoryStorage implements Storage {
     } catch (IOException e) {
       return failedFuture(e);
     }
-    return completedFuture(null);
+    return completedFuture(Result.succeed());
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
+  public CompletableFuture<Result<BinarySupplier>> findBinary(
     Identifier identifier) {
     final byte[] binaries = binaryHolder.get(identifier);
-    return completedFuture(
+    return completedFuture(Result.succeed(
       new BinarySupplier() {
         @Override
         public boolean isSyncSupported() {
@@ -118,11 +118,11 @@ public class InMemoryStorage implements Storage {
           return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
             chunkSize);
         }
-      });
+      }));
   }
 
   @Override
-  public CompletableFuture<Result> deleteBinary(Identifier identifier) {
+  public CompletableFuture<Result<Void>> deleteBinary(Identifier identifier) {
     return null;
   }
 
