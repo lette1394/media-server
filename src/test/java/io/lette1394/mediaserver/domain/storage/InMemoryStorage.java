@@ -9,7 +9,7 @@ import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
-import io.lette1394.mediaserver.domain.storage.usecase.ByteBufferToByteArrayAsyncReader;
+import io.lette1394.mediaserver.domain.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import io.lette1394.mediaserver.domain.storage.usecase.ObjectNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -125,7 +125,7 @@ public class InMemoryStorage implements Storage {
   }
 
   private CompletableFuture<Void> uploadAsync(Object object, BinarySupplier binarySupplier) {
-    return new ByteBufferToByteArrayAsyncReader(500)
+    return new ByteBufferToByteArrayAsyncAggregateReader(500)
         .read(binarySupplier.getAsync())
         .thenAccept(
             bytes -> {

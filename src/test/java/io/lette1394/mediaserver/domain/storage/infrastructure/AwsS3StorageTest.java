@@ -11,6 +11,8 @@ import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
 import io.lette1394.mediaserver.utils.TestObjectFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 class AwsS3StorageTest {
 
   @Test
+  @Disabled
   void test1() {
     final AwsS3Storage awsS3Storage = new AwsS3Storage();
 

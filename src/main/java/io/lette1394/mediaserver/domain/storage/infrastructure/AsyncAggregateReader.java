@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage.usecase;
+package io.lette1394.mediaserver.domain.storage.infrastructure;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow.Publisher;
@@ -6,11 +6,11 @@ import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 import lombok.RequiredArgsConstructor;
 
-public abstract class AsyncReader<FROM, TO> {
+public abstract class AsyncAggregateReader<FROM, TO> {
   private final CompletableFuture<TO> future = new CompletableFuture<>();
   private final long itemLength;
 
-  public AsyncReader(long itemLength) {
+  public AsyncAggregateReader(long itemLength) {
     this.itemLength = itemLength;
   }
 
@@ -19,14 +19,14 @@ public abstract class AsyncReader<FROM, TO> {
     return future;
   }
 
-  protected abstract void translateNext(FROM item);
+  protected abstract void aggregateNext(FROM item);
 
-  protected abstract TO translateCompleted();
+  protected abstract TO aggregateCompleted();
 
   @RequiredArgsConstructor
   private static class AutoByteBufferSubscriber<FROM, TO> implements Subscriber<FROM> {
 
-    private final AsyncReader<FROM, TO> reader;
+    private final AsyncAggregateReader<FROM, TO> reader;
 
     private Subscription subscription;
 
@@ -39,7 +39,7 @@ public abstract class AsyncReader<FROM, TO> {
     // TODO: error handling
     @Override
     public void onNext(FROM item) {
-      reader.translateNext(item);
+      reader.aggregateNext(item);
 
       subscription.request(reader.itemLength);
     }
@@ -52,7 +52,7 @@ public abstract class AsyncReader<FROM, TO> {
     // TODO: error handling
     @Override
     public void onComplete() {
-      reader.future.complete(reader.translateCompleted());
+      reader.future.complete(reader.aggregateCompleted());
     }
   }
 }

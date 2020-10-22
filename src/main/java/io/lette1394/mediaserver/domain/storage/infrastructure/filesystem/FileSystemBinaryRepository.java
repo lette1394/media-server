@@ -7,7 +7,7 @@ import io.lette1394.mediaserver.domain.storage.infrastructure.SingleThreadInputS
 import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
-import io.lette1394.mediaserver.domain.storage.usecase.AsyncReader;
+import io.lette1394.mediaserver.domain.storage.infrastructure.AsyncAggregateReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -83,21 +83,21 @@ public class FileSystemBinaryRepository implements BinaryRepository {
         Executors.newSingleThreadExecutor());
 
       final LongAdder length = new LongAdder();
-      final AsyncReader<ByteBuffer, Void> asyncReader = new AsyncReader<>(100) {
+      final AsyncAggregateReader<ByteBuffer, Void> asyncAggregateReader = new AsyncAggregateReader<>(100) {
         @Override
-        protected void translateNext(ByteBuffer item) {
+        protected void aggregateNext(ByteBuffer item) {
           final int remaining = item.remaining();
           channel.write(item, length.longValue());
           length.add(remaining);
         }
 
         @Override
-        protected Void translateCompleted() {
+        protected Void aggregateCompleted() {
           return null;
         }
       };
 
-      return asyncReader.read(binarySupplier.getAsync());
+      return asyncAggregateReader.read(binarySupplier.getAsync());
     } catch (IOException e) {
       return failedFuture(e);
     }

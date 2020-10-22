@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.is;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
-import io.lette1394.mediaserver.domain.storage.usecase.ByteBufferToByteArrayAsyncReader;
+import io.lette1394.mediaserver.domain.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import java.util.concurrent.CompletableFuture;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ class InMemoryStorageTest {
 
     final CompletableFuture<BinarySupplier> download = object.download();
 
-    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncReader(ITEM_LENGTH)
+    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
       .read(download.join().getAsync())
       .join();
 
@@ -52,7 +52,7 @@ class InMemoryStorageTest {
 
     final CompletableFuture<BinarySupplier> download = object.download();
 
-    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncReader(ITEM_LENGTH)
+    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
       .read(download.join().getAsync())
       .join();
 
