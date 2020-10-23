@@ -28,8 +28,6 @@ public class AwsClient {
   }
 
   CompletableFuture<Result<Void>> put(ObjectPath objectPath, BinarySupplier binarySupplier) {
-    final Region region = Region.AP_NORTHEAST_2;
-
     final S3AsyncClient client = S3AsyncClient.builder()
       .region(region)
       .build();
