@@ -73,7 +73,7 @@ public abstract class Object extends AggregateRoot {
       .identifier(identifier)
       .lifeCycle(lifeCycle)
       .state(getObjectState())
-      .size(getSize())
+      .size(getProgressingSize())
       .build();
   }
 }
