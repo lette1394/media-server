@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
 public enum ObjectLifeCycle {
-  BEFORE_UPLOADING {
+  BEFORE_UPLOAD {
     @Override
     public boolean isBeforeUploading() {
       return true;
@@ -15,7 +15,7 @@ public enum ObjectLifeCycle {
     }
   },
 
-  BEFORE_DOWNLOADING {
+  BEFORE_DOWNLOAD {
     @Override
     public boolean isBeforeDownloading() {
       return true;

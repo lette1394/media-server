@@ -9,9 +9,17 @@ public interface BinarySupplier {
 
   boolean isAsyncSupported();
 
-  long getLength();
+  long getSize();
 
   InputStream getSync();
 
   Publisher<ByteBuffer> getAsync();
+
+  interface Listener {
+    void beforeTransfer();
+
+    void duringTransferring(long currentSize, long total);
+
+    void afterTransferred(long totalLength);
+  }
 }

@@ -11,6 +11,4 @@ public class Attributes {
 
   OffsetDateTime created;
   OffsetDateTime updated;
-
-
 }

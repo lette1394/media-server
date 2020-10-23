@@ -30,8 +30,8 @@ public class AccumulatingSizeBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getLength() {
-    return delegate.getLength();
+  public long getSize() {
+    return delegate.getSize();
   }
 
   @Override

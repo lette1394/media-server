@@ -53,7 +53,7 @@ public abstract class Object extends AggregateRoot {
   private CompletableFuture<Result<Void>> beforeUploading() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
 
-    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOADING));
+    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD));
   }
 
   private CompletableFuture<Result<Void>> afterUploaded() {
@@ -65,7 +65,7 @@ public abstract class Object extends AggregateRoot {
   private CompletableFuture<Result<Void>> beforeDownloading() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
 
-    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOADING));
+    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD));
   }
 
   private ObjectSnapshot snapshot(ObjectLifeCycle lifeCycle) {

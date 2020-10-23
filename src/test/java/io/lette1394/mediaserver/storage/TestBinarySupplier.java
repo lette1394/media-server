@@ -33,7 +33,7 @@ public class TestBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getLength() {
+  public long getSize() {
     return binary.length;
   }
 
