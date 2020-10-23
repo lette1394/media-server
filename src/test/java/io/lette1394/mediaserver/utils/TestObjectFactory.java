@@ -1,9 +1,8 @@
 package io.lette1394.mediaserver.utils;
 
-import io.lette1394.mediaserver.domain.storage.infrastructure.filesystem.FileSystemBinaryRepository;
-import io.lette1394.mediaserver.domain.storage.object.BinaryRepository;
-import io.lette1394.mediaserver.domain.storage.object.DeleteAllBinaryWhenClosedBinaryRepository;
-import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;
+import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemBinaryRepository;
+import io.lette1394.mediaserver.storage.domain.DeleteAllBinaryWhenClosedBinaryRepository;
+import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 
 public class TestObjectFactory extends ObjectFactory {
 
