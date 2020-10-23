@@ -1,12 +1,20 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import java.time.OffsetDateTime;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class ObjectFactory {
   private final BinaryRepository binaryRepository;
-  private final ObjectPolicy objectPolicy = ObjectPolicy.ALL_POLICY;
+  private final ObjectPolicy objectPolicy;
+
+  public ObjectFactory(BinaryRepository binaryRepository,
+    ObjectPolicy objectPolicy) {
+    this.binaryRepository = binaryRepository;
+    this.objectPolicy = objectPolicy;
+  }
+
+  public ObjectFactory(BinaryRepository binaryRepository) {
+    this(binaryRepository, ObjectPolicy.ALL_POLICY);
+  }
 
   public Object create(String area, String key) {
     final Identifier identifier = new Identifier(area, key);
