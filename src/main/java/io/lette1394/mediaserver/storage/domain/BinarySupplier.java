@@ -6,10 +6,12 @@ import org.reactivestreams.Publisher;
 
 public interface BinarySupplier {
   boolean isSyncSupported();
+
   boolean isAsyncSupported();
 
-  long length();
+  long getLength();
 
   InputStream getSync();
+
   Publisher<ByteBuffer> getAsync();
 }

@@ -30,23 +30,26 @@ public abstract class Object extends AggregateRoot {
     this.objectPolicy = objectPolicy;
   }
 
+  public abstract long getSize();
+
+
+
+
   public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
     return beforeUploading().thenCompose(
       runNextIfPassed(upload0(binarySupplier)
         .thenCompose(__ -> afterUploaded())));
   }
 
-  // TODO: rename
-  protected abstract CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier);
-
   public CompletableFuture<Result<BinarySupplier>> download() {
     return beforeDownloading()
       .thenCompose(runNextIfPassed(binaryRepository.findBinary(identifier)));
   }
 
-  protected abstract ObjectState getObjectState();
+  // TODO: rename
+  protected abstract CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier);
 
-  public abstract long getSize();
+  protected abstract ObjectState getObjectState();
 
   private CompletableFuture<Result<Void>> beforeUploading() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));

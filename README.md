@@ -1,7 +1,7 @@
 ### Requirements 1
 - [storage] 10GB file up/download (streaming)
 - [storage] Support range upload (a.k.a 이어올리기) 
- 
+    - size update per object sub classes 
  
  
 ### Requirements 2

@@ -5,7 +5,6 @@ import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
-
 public class PendingObject extends Object {
   private final PositiveLong size;
 

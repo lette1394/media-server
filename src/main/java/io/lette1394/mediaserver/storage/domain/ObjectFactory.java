@@ -1,7 +1,5 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
-
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 
@@ -15,15 +13,14 @@ public class ObjectFactory {
 
     final Attributes attributes = Attributes.builder()
       .tags(Tags.tags(Tag.tag("k1", "v1"), Tag.tag("k2", "v2")))
-      .size(positiveLong(123))
       .created(OffsetDateTime.now())
       .updated(OffsetDateTime.now())
       .build();
 
     return InitialObject.builder()
-      .binaryRepository(binaryRepository)
       .identifier(identifier)
       .objectPolicy(objectPolicy)
+      .binaryRepository(binaryRepository)
       .attributes(attributes)
       .build();
   }
