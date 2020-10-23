@@ -1,12 +1,12 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.PositiveOrZeroLongAdder;
 import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.Builder;
 
 public class InitialObject extends Object {
-  private final PositiveOrZeroLongAdder size;
+  private final AtomicLong processingSize;
 
   @Builder
   public InitialObject(Identifier identifier,
@@ -14,7 +14,7 @@ public class InitialObject extends Object {
     BinaryRepository binaryRepository,
     ObjectPolicy objectPolicy) {
     super(identifier, attributes, binaryRepository, objectPolicy);
-    this.size = new PositiveOrZeroLongAdder(0L);
+    this.processingSize = new AtomicLong(0L);
   }
 
   @Override
@@ -23,7 +23,7 @@ public class InitialObject extends Object {
       identifier,
       new AccumulatingSizeBinarySupplier(
         binarySupplier,
-        size::add));
+        processingSize::set));
   }
 
   @Override
@@ -38,6 +38,6 @@ public class InitialObject extends Object {
 
   @Override
   public long getProgressingSize() {
-    return size.get();
+    return processingSize.get();
   }
 }

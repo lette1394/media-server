@@ -4,11 +4,12 @@ import io.lette1394.mediaserver.common.PositiveLong;
 import io.lette1394.mediaserver.common.PositiveOrZeroLongAdder;
 import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.Builder;
 
 public class FulfilledObject extends Object {
   private final PositiveLong size;
-  private final PositiveOrZeroLongAdder progressingSize;
+  private final AtomicLong progressingSize;
 
   @Builder
   public FulfilledObject(Identifier identifier,
@@ -17,7 +18,7 @@ public class FulfilledObject extends Object {
     ObjectPolicy objectPolicy, PositiveLong size) {
     super(identifier, attributes, binaryRepository, objectPolicy);
     this.size = size;
-    this.progressingSize = new PositiveOrZeroLongAdder(size);
+    this.progressingSize = new AtomicLong(0L);
   }
 
   @Override
@@ -27,7 +28,7 @@ public class FulfilledObject extends Object {
         identifier,
         new AccumulatingSizeBinarySupplier(
           binarySupplier,
-          progressingSize::add));
+          progressingSize::set));
   }
 
   @Override

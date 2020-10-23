@@ -11,7 +11,7 @@ import org.reactivestreams.Subscription;
 @Value
 public class ListenableBinarySupplier implements BinarySupplier {
   BinarySupplier binarySupplier;
-  BinarySupplier.Listener listener;
+  Listener listener;
 
   @Override
   public boolean isSyncSupported() {
@@ -101,5 +101,16 @@ public class ListenableBinarySupplier implements BinarySupplier {
         listener.afterTransferred(accumulate);
       }
     });
+  }
+
+  public interface Listener {
+    default void beforeTransfer() {
+    }
+
+    default void duringTransferring(long currentSize, long total) {
+    }
+
+    default void afterTransferred(long totalLength) {
+    }
   }
 }

@@ -3,7 +3,14 @@ package io.lette1394.mediaserver.storage.domain;
 public enum ObjectLifeCycle {
   BEFORE_UPLOAD {
     @Override
-    public boolean isBeforeUploading() {
+    public boolean isBeforeUpload() {
+      return true;
+    }
+  },
+
+  DURING_UPLOADING {
+    @Override
+    public boolean isDuringUploading() {
       return true;
     }
   },
@@ -17,12 +24,16 @@ public enum ObjectLifeCycle {
 
   BEFORE_DOWNLOAD {
     @Override
-    public boolean isBeforeDownloading() {
+    public boolean isBeforeDownload() {
       return true;
     }
   };
 
-  public boolean isBeforeUploading() {
+  public boolean isBeforeUpload() {
+    return false;
+  }
+
+  public boolean isDuringUploading() {
     return false;
   }
 
@@ -30,7 +41,7 @@ public enum ObjectLifeCycle {
     return false;
   }
 
-  public boolean isBeforeDownloading() {
+  public boolean isBeforeDownload() {
     return false;
   }
 }

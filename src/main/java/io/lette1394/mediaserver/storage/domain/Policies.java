@@ -32,7 +32,7 @@ public class Policies {
         return result2;
       }
 
-      return Result.fail("unreachable", new ObjectPolicyViolationException());
+      return Result.fail("unreachable", new PolicyViolationException());
     });
   }
 }

@@ -4,6 +4,7 @@ import static io.lette1394.mediaserver.storage.domain.Policies.runNextIfPassed;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.Result;
+import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered;
@@ -35,13 +36,21 @@ public abstract class Object extends AggregateRoot {
   public abstract long getProgressingSize();
 
   public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
-    return beforeUploading().thenCompose(
-      runNextIfPassed(upload0(binarySupplier)
+    final BinarySupplier listenableBinarySupplier = new ListenableBinarySupplier(
+      binarySupplier, new Listener() {
+      @Override
+      public void duringTransferring(long currentSize, long total) {
+        duringUploading();
+      }
+    });
+
+    return beforeUpload().thenCompose(
+      runNextIfPassed(upload0(listenableBinarySupplier)
         .thenCompose(__ -> afterUploaded())));
   }
 
   public CompletableFuture<Result<BinarySupplier>> download() {
-    return beforeDownloading()
+    return beforeDownload()
       .thenCompose(runNextIfPassed(binaryRepository.findBinary(identifier)));
   }
 
@@ -50,10 +59,15 @@ public abstract class Object extends AggregateRoot {
 
   protected abstract ObjectState getObjectState();
 
-  private CompletableFuture<Result<Void>> beforeUploading() {
+  private CompletableFuture<Result<Void>> beforeUpload() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD));
+  }
+
+  private CompletableFuture<Result<Void>> duringUploading() {
+    // event 발행 -> 성능 문제가 있을 거 같은데...
+    return objectPolicy.test(snapshot(ObjectLifeCycle.DURING_UPLOADING));
   }
 
   private CompletableFuture<Result<Void>> afterUploaded() {
@@ -62,7 +76,7 @@ public abstract class Object extends AggregateRoot {
     return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED));
   }
 
-  private CompletableFuture<Result<Void>> beforeDownloading() {
+  private CompletableFuture<Result<Void>> beforeDownload() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD));
@@ -73,7 +87,8 @@ public abstract class Object extends AggregateRoot {
       .identifier(identifier)
       .lifeCycle(lifeCycle)
       .state(getObjectState())
-      .size(getProgressingSize())
+      .size(getSize())
+      .progressingSize(getProgressingSize())
       .build();
   }
 }

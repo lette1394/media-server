@@ -1,12 +1,12 @@
 package io.lette1394.mediaserver.common;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class AggregateRoot {
-  private final List<Event> events = new ArrayList<>();
-  private final List<Event.Listener<Event>> listeners = new ArrayList<>();
+  private final List<Event> events = new LinkedList<>();
+  private final List<Event.Listener<Event>> listeners = new LinkedList<>();
 
   protected void addEvent(Event event) {
     events.add(event);
@@ -35,6 +35,7 @@ public class AggregateRoot {
       }));
   }
 
+  // TODO: 시간 복잡도! linked list
   public List<Event> getEvents() {
     return Collections.unmodifiableList(events);
   }

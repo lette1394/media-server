@@ -8,4 +8,5 @@ public class ObjectSnapshot {
   public final ObjectState state;
   public final ObjectLifeCycle lifeCycle;
   public final long size;
+  public final long progressingSize;
 }
