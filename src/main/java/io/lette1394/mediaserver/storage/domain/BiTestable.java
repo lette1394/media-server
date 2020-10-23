@@ -1,15 +1,12 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-
 import io.lette1394.mediaserver.common.Result;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import lombok.Value;
 
 @FunctionalInterface
 public interface BiTestable<T, U> {
-  CompletableFuture<Result<Void>> test(T t, U u);
+  Result<Void> test(T t, U u);
 
   @Value
   class AllMatch<T, U> implements BiTestable<T, U> {
@@ -20,12 +17,12 @@ public interface BiTestable<T, U> {
     }
 
     @Override
-    public CompletableFuture<Result<Void>> test(T t, U u) {
+    public Result<Void> test(T t, U u) {
       return policies
         .stream()
         .map(policy -> policy.test(t, u))
         .reduce(
-          completedFuture(Result.succeed()),
+          Result.succeed(),
           Policies.mergeAllMatch());
     }
   }

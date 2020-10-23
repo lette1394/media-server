@@ -110,16 +110,16 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
   }
 
   interface Policy {
-    default Result<Boolean> beforeTransfer() {
-      return Result.succeed(true);
+    default Result<Void> beforeTransfer() {
+      return Result.succeed();
     }
 
-    default Result<Boolean> duringTransferring(long currentSize, long total) {
-      return Result.succeed(true);
+    default Result<Void> duringTransferring(long currentSize, long total) {
+      return Result.succeed();
     }
 
-    default Result<Boolean> afterTransferred(long totalLength) {
-      return Result.succeed(true);
+    default Result<Void> afterTransferred(long totalLength) {
+      return Result.succeed();
     }
   }
 }

@@ -16,7 +16,7 @@ class InMemoryStorageTest {
   private final static int CHUNK_SIZE = 20;
   private final static int ITEM_LENGTH = 100;
 
-  private final static byte[] testBinary = RandomStringUtils.random(1000).getBytes();
+  private final static byte[] testBinary = RandomStringUtils.random(1).getBytes();
 
   @Test
   void sync() {

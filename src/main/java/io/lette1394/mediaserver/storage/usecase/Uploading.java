@@ -4,7 +4,6 @@ import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
-import io.lette1394.mediaserver.storage.domain.Policies;
 import io.lette1394.mediaserver.storage.domain.Storage;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -18,9 +17,7 @@ public class Uploading {
     final ObjectFactory factory = new ObjectFactory(storage);
     final Object object = factory.create(command.area, command.key);
 
-    return object
-      .upload(command.binarySupplier)
-      .thenCompose(Policies.runNextIfPassed(storage.createObject(object)));
+    return null;
   }
 
   @Value

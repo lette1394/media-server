@@ -1,10 +1,11 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import static io.lette1394.mediaserver.storage.domain.Policies.runIfPassed;
 import static io.lette1394.mediaserver.storage.domain.Policies.runNextIfPassed;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.Result;
-import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
+import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier.Policy;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered;
@@ -36,47 +37,40 @@ public abstract class Object extends AggregateRoot {
   public abstract long getProgressingSize();
 
   public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
-    final BinarySupplier listenableBinarySupplier = new ListenableBinarySupplier(
-      binarySupplier, new Listener() {
-      @Override
-      public void duringTransferring(long currentSize, long total) {
-        duringUploading();
-      }
-    });
-
-    return beforeUpload().thenCompose(
-      runNextIfPassed(upload0(listenableBinarySupplier)
-        .thenCompose(__ -> afterUploaded())));
+    return runIfPassed(beforeUpload())
+      .thenCompose(__ -> upload0(wrap(binarySupplier))
+        .thenApply(runNextIfPassed(this::afterUploaded)));
   }
 
   public CompletableFuture<Result<BinarySupplier>> download() {
-    return beforeDownload()
-      .thenCompose(runNextIfPassed(binaryRepository.findBinary(identifier)));
+    return runIfPassed(beforeDownload())
+      .thenCompose(__ -> binaryRepository.findBinary(identifier));
   }
 
   // TODO: rename
+
   protected abstract CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier);
 
   protected abstract ObjectState getObjectState();
 
-  private CompletableFuture<Result<Void>> beforeUpload() {
+  private Result<Void> beforeUpload() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD));
   }
 
-  private CompletableFuture<Result<Void>> duringUploading() {
+  private Result<Void> duringUploading() {
     // event 발행 -> 성능 문제가 있을 거 같은데...
     return objectPolicy.test(snapshot(ObjectLifeCycle.DURING_UPLOADING));
   }
 
-  private CompletableFuture<Result<Void>> afterUploaded() {
+  private Result<Void> afterUploaded() {
     addEvent(Uploaded.uploaded(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED));
   }
 
-  private CompletableFuture<Result<Void>> beforeDownload() {
+  private Result<Void> beforeDownload() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD));
@@ -90,5 +84,15 @@ public abstract class Object extends AggregateRoot {
       .size(getSize())
       .progressingSize(getProgressingSize())
       .build();
+  }
+
+  private BinarySupplier wrap(BinarySupplier binarySupplier) {
+    return new ControllableBinarySupplier(
+      binarySupplier, new Policy() {
+      @Override
+      public Result<Void> duringTransferring(long currentSize, long total) {
+        return duringUploading();
+      }
+    });
   }
 }
