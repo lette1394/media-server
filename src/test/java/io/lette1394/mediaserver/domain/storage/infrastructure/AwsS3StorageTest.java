@@ -2,6 +2,7 @@ package io.lette1394.mediaserver.domain.storage.infrastructure;
 
 import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.TestBinarySupplier;
+import io.lette1394.mediaserver.domain.storage.infrastructure.awss3.AwsS3Storage;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.ObjectFactory;

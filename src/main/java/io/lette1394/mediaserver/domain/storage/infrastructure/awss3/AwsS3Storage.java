@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.domain.storage.infrastructure;
+package io.lette1394.mediaserver.domain.storage.infrastructure.awss3;
 
 import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.domain.storage.object.BinarySupplier;
@@ -6,12 +6,12 @@ import io.lette1394.mediaserver.domain.storage.object.Identifier;
 import io.lette1394.mediaserver.domain.storage.object.Object;
 import io.lette1394.mediaserver.domain.storage.object.Storage;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import lombok.Value;
 
+@Value
 public class AwsS3Storage implements Storage {
+  AwsClient client;
+
   @Override
   public CompletableFuture<Result<Boolean>> objectExists(Identifier identifier) {
     return null;
@@ -36,24 +36,7 @@ public class AwsS3Storage implements Storage {
   @Override
   public CompletableFuture<Result<Void>> createBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
-    final Region region = Region.AP_NORTHEAST_2;
-
-    final S3AsyncClient client = S3AsyncClient.builder()
-      .region(region)
-      .build();
-
-    return client.putObject(PutObjectRequest.builder()
-      .bucket("a-media-server")
-      .key("wowgogo")
-      // TODO: content length를 꼭 받아야 하는구나... 이럴수가
-      //  이게 어쩔수 없는건가? stream 이라서 전체 길이를 모르니까? http chunk 방식은 끝에 뭐가 올지 아는데.. 음..
-      .contentLength(14L)
-      .build(), AsyncRequestBody
-      .fromPublisher(s -> binarySupplier.getAsync()))
-      .thenAccept(ss -> {
-        System.out.println();
-      })
-      .thenApply(aVoid -> Result.succeed());
+    return client.put(new AwsObjectPath(identifier), binarySupplier);
   }
 
   @Override
