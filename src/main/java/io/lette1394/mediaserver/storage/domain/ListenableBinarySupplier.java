@@ -41,7 +41,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
 
         final int read = sync.read();
         if (read != -1) {
-          notifyMiddle(read);
+          notifyMiddle();
         }
         if (read == -1) {
           notifyLast();
@@ -57,8 +57,8 @@ public class ListenableBinarySupplier implements BinarySupplier {
         }
       }
 
-      private void notifyMiddle(int size) {
-        accumulate += size;
+      private void notifyMiddle() {
+        accumulate += 1;
         listener.duringTransferring(accumulate, getSize());
       }
 

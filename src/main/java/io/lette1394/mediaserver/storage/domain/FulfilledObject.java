@@ -1,7 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import io.lette1394.mediaserver.common.PositiveLong;
-import io.lette1394.mediaserver.common.PositiveOrZeroLongAdder;
 import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,10 +39,5 @@ public class FulfilledObject extends Object {
   @Override
   public long getSize() {
     return size.get();
-  }
-
-  @Override
-  public long getProgressingSize() {
-    return progressingSize.get();
   }
 }

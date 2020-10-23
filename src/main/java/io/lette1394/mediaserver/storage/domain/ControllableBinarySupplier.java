@@ -29,7 +29,7 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
 
         final int read = sync.read();
         if (read != -1) {
-          checkMiddle(read);
+          checkMiddle();
         }
         if (read == -1) {
           checkLast();
@@ -47,8 +47,8 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
         checkSucceed(policy.beforeTransfer());
       }
 
-      private void checkMiddle(int size) {
-        accumulate += size;
+      private void checkMiddle() {
+        accumulate += 1;
         checkSucceed(policy.duringTransferring(accumulate, getSize()));
       }
 

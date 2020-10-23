@@ -24,8 +24,8 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
   };
 
   ObjectPolicy REJECT_10MB_SIZE_OVER = current -> {
-    if (current.lifeCycle.isDuringUploading() && current.progressingSize > 1000) {
-      return fail(violation(String.format("Allow under 10MB, but: [%s] byte", current.progressingSize)));
+    if (current.lifeCycle.isDuringUploading() && current.progressingSize > 1024) {
+      return fail(violation(String.format("Allow under 1K, got: [%s] bytes", current.progressingSize)));
     }
     return succeed();
   };

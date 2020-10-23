@@ -34,12 +34,10 @@ public abstract class Object extends AggregateRoot {
 
   public abstract long getSize();
 
-  public abstract long getProgressingSize();
-
   public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
     return runIfPassed(beforeUpload())
       .thenCompose(__ -> upload0(wrap(binarySupplier))
-        .thenApply(runNextIfPassed(this::afterUploaded)));
+        .thenApply(runNextIfPassed(() -> this.afterUploaded(binarySupplier.getSize()))));
   }
 
   public CompletableFuture<Result<BinarySupplier>> download() {
@@ -48,7 +46,6 @@ public abstract class Object extends AggregateRoot {
   }
 
   // TODO: rename
-
   protected abstract CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier);
 
   protected abstract ObjectState getObjectState();
@@ -56,33 +53,33 @@ public abstract class Object extends AggregateRoot {
   private Result<Void> beforeUpload() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
 
-    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD));
+    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD, 0L));
   }
 
-  private Result<Void> duringUploading() {
+  private Result<Void> duringUploading(long currentSize) {
     // event 발행 -> 성능 문제가 있을 거 같은데...
-    return objectPolicy.test(snapshot(ObjectLifeCycle.DURING_UPLOADING));
+    return objectPolicy.test(snapshot(ObjectLifeCycle.DURING_UPLOADING, currentSize));
   }
 
-  private Result<Void> afterUploaded() {
+  private Result<Void> afterUploaded(long totalSize) {
     addEvent(Uploaded.uploaded(this, binaryRepository));
 
-    return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED));
+    return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED, totalSize));
   }
 
   private Result<Void> beforeDownload() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
 
-    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD));
+    return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD, 0L));
   }
 
-  private ObjectSnapshot snapshot(ObjectLifeCycle lifeCycle) {
+  private ObjectSnapshot snapshot(ObjectLifeCycle lifeCycle, long progressingSize) {
     return ObjectSnapshot.builder()
       .identifier(identifier)
       .lifeCycle(lifeCycle)
       .state(getObjectState())
       .size(getSize())
-      .progressingSize(getProgressingSize())
+      .progressingSize(progressingSize)
       .build();
   }
 
@@ -91,7 +88,7 @@ public abstract class Object extends AggregateRoot {
       binarySupplier, new Policy() {
       @Override
       public Result<Void> duringTransferring(long currentSize, long total) {
-        return duringUploading();
+        return duringUploading(currentSize);
       }
     });
   }

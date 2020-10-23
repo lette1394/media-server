@@ -35,9 +35,4 @@ public class InitialObject extends Object {
   public long getSize() {
     return 0;
   }
-
-  @Override
-  public long getProgressingSize() {
-    return processingSize.get();
-  }
 }

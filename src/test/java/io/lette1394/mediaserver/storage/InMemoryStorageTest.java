@@ -9,14 +9,14 @@ import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import java.util.concurrent.CompletableFuture;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.Test;
 
 class InMemoryStorageTest {
   private final static int CHUNK_SIZE = 20;
   private final static int ITEM_LENGTH = 100;
 
-  private final static byte[] testBinary = RandomStringUtils.random(1).getBytes();
+  private final static byte[] testBinary = RandomUtils.nextBytes(1024);
 
   @Test
   void sync() {
@@ -30,7 +30,8 @@ class InMemoryStorageTest {
 
   private void runSync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Result<Void>> upload = object.upload(new TestBinarySupplier(testBinary));
+    final CompletableFuture<Result<Void>> upload = object
+      .upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));
@@ -50,7 +51,8 @@ class InMemoryStorageTest {
 
   private void runAsync(ObjectFactory factory) {
     final Object object = factory.create("1", "2");
-    final CompletableFuture<Result<Void>> upload = object.upload(new TestBinarySupplier(testBinary));
+    final CompletableFuture<Result<Void>> upload = object
+      .upload(new TestBinarySupplier(testBinary));
     upload.join();
     assertThat(upload.isDone(), is(true));
     assertThat(upload.isCompletedExceptionally(), is(false));

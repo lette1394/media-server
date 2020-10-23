@@ -38,9 +38,4 @@ public class PendingObject extends Object {
   public long getSize() {
     return size.get();
   }
-
-  @Override
-  public long getProgressingSize() {
-    return progressingSize.get();
-  }
 }
