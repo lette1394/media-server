@@ -1,12 +1,14 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import io.lette1394.mediaserver.common.PositiveLong;
+import io.lette1394.mediaserver.common.PositiveOrZeroLongAdder;
 import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
 public class PendingObject extends Object {
   private final PositiveLong size;
+  private final PositiveOrZeroLongAdder progressingSize;
 
   @Builder
   public PendingObject(Identifier identifier,
@@ -15,11 +17,16 @@ public class PendingObject extends Object {
     ObjectPolicy objectPolicy, PositiveLong size) {
     super(identifier, attributes, binaryRepository, objectPolicy);
     this.size = size;
+    this.progressingSize = new PositiveOrZeroLongAdder(size);
   }
 
   @Override
   public CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier) {
-    return binaryRepository.appendBinary(identifier, binarySupplier);
+    return binaryRepository.appendBinary(
+      identifier,
+      new AccumulatingSizeBinarySupplier(
+        binarySupplier,
+        progressingSize::add));
   }
 
   @Override
@@ -29,6 +36,11 @@ public class PendingObject extends Object {
 
   @Override
   public long getSize() {
-    return size.getValue();
+    return size.get();
+  }
+
+  @Override
+  public long getProgressingSize() {
+    return progressingSize.get();
   }
 }

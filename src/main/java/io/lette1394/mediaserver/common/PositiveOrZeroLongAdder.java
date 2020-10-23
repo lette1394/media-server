@@ -1,9 +1,7 @@
 package io.lette1394.mediaserver.common;
 
 import java.util.concurrent.atomic.LongAdder;
-import lombok.Value;
 
-@Value(staticConstructor = "positiveOrZeroLongAdder")
 public class PositiveOrZeroLongAdder {
   LongAdder longAdder;
 
@@ -13,6 +11,10 @@ public class PositiveOrZeroLongAdder {
     longAdder.add(initialValue);
 
     this.longAdder = longAdder;
+  }
+
+  public PositiveOrZeroLongAdder(PositiveLong positiveLong) {
+    this(positiveLong.get());
   }
 
   public PositiveOrZeroLongAdder() {

@@ -19,7 +19,11 @@ public class InitialObject extends Object {
 
   @Override
   protected CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier) {
-    return binaryRepository.createBinary(identifier, binarySupplier);
+    return binaryRepository.createBinary(
+      identifier,
+      new AccumulatingSizeBinarySupplier(
+        binarySupplier,
+        size::add));
   }
 
   @Override
@@ -30,5 +34,10 @@ public class InitialObject extends Object {
   @Override
   public long getSize() {
     return 0;
+  }
+
+  @Override
+  public long getProgressingSize() {
+    return size.get();
   }
 }

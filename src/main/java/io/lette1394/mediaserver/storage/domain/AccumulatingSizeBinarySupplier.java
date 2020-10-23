@@ -80,6 +80,7 @@ public class AccumulatingSizeBinarySupplier implements BinarySupplier {
     });
   }
 
+  @FunctionalInterface
   interface Listener {
     void sizeChanged(long value);
   }

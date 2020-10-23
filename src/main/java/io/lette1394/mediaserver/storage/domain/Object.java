@@ -32,8 +32,7 @@ public abstract class Object extends AggregateRoot {
 
   public abstract long getSize();
 
-
-
+  public abstract long getProgressingSize();
 
   public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
     return beforeUploading().thenCompose(
