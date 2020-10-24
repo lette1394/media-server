@@ -25,3 +25,18 @@
 ...
 
 
+---
+
+jvm options to remove warnings
+```
+--add-opens
+java.base/java.lang=ALL-UNNAMED
+--add-opens
+java.base/java.util.function=ALL-UNNAMED
+--add-opens
+java.base/java.util.concurrent=ALL-UNNAMED
+--add-opens
+java.base/java.lang.reflect=ALL-UNNAMED
+--add-opens
+java.base/java.lang.invoke=ALL-UNNAMED
+```

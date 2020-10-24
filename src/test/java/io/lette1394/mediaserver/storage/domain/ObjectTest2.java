@@ -18,7 +18,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.jupiter.api.Test;
 
-class ObjectTest {
+class ObjectTest2 {
   private final static String AREA_NAME = "TEST-AREA";
   private final static String OBJECT_KEY = "OBJECT_KEY_0001";
 

@@ -35,7 +35,7 @@ public class InMemoryStorage implements Storage {
   }
 
   public InMemoryStorage() {
-    this(1000);
+    this(1024);
   }
 
   @Override
