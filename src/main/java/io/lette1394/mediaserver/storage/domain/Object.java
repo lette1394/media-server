@@ -6,7 +6,9 @@ import static io.lette1394.mediaserver.storage.domain.Policies.runNextIfPassed;
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier.Policy;
+import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered;
+import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +37,11 @@ public abstract class Object extends AggregateRoot {
   public abstract long getSize();
 
   public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
+    final Result<Void> result = beforeUpload();
+    if (result.isFailed()) {
+      return CompletableFuture.completedFuture(result);
+    }
+
     return runIfPassed(beforeUpload())
       .thenCompose(__ -> upload0(wrap(binarySupplier))
         .thenApply(runNextIfPassed(() -> this.afterUploaded(binarySupplier.getSize()))));
@@ -73,6 +80,13 @@ public abstract class Object extends AggregateRoot {
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD, 0L));
   }
 
+  // TODO: exception handler를 위해 event listener 가 또 필요할까...?
+  //  domain event 만으로 충분히 가능할 거 같은데... 안되려나
+  //  한 번 해 보자.
+  private void uploadAborted(Throwable throwable) {
+    addEvent(UploadAborted.uploadAborted(this, throwable));
+  }
+
   private ObjectSnapshot snapshot(ObjectLifeCycle lifeCycle, long progressingSize) {
     return ObjectSnapshot.builder()
       .identifier(identifier)
@@ -84,8 +98,16 @@ public abstract class Object extends AggregateRoot {
   }
 
   private BinarySupplier wrap(BinarySupplier binarySupplier) {
+    final BinarySupplier listenableBinarySupplier = new ListenableBinarySupplier(
+      binarySupplier, new Listener() {
+      @Override
+      public void transferAborted(Throwable throwable) {
+        uploadAborted(throwable);
+      }
+    });
+
     return new ControllableBinarySupplier(
-      binarySupplier, new Policy() {
+      listenableBinarySupplier, new Policy() {
       @Override
       public Result<Void> duringTransferring(long currentSize, long total) {
         return duringUploading(currentSize);

@@ -112,5 +112,8 @@ public class ListenableBinarySupplier implements BinarySupplier {
 
     default void afterTransferred(long totalLength) {
     }
+
+    default void transferAborted(Throwable throwable) {
+    }
   }
 }

@@ -1,6 +1,9 @@
 package io.lette1394.mediaserver.common;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import lombok.Value;
 
 @Value
@@ -22,7 +25,7 @@ public class Result<T> {
   }
 
   public static <T> Result<T> fail(String reason) {
-    return fail(reason, null);
+    return fail(reason, new RuntimeException(reason));
   }
 
   public static <T> Result<T> fail(Throwable throwable) {
@@ -56,5 +59,14 @@ public class Result<T> {
       return "";
     }
     return reason;
+  }
+
+  public <R> Result<R> map(Function<? super T, ? extends R> mapper) {
+    Objects.requireNonNull(mapper);
+    if (isFailed()) {
+      return Result.fail(this.reason, this.throwable);
+    } else {
+      return Result.succeed(mapper.apply(value));
+    }
   }
 }

@@ -1,5 +1,7 @@
 package io.lette1394.mediaserver.storage.usecase;
 
+import static io.lette1394.mediaserver.storage.domain.Policies.runNextIfPassedAsync;
+
 import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
@@ -17,7 +19,8 @@ public class Uploading {
     final ObjectFactory factory = new ObjectFactory(storage);
     final Object object = factory.create(command.area, command.key);
 
-    return null;
+    return object.upload(command.binarySupplier)
+      .thenCompose(runNextIfPassedAsync(() -> storage.createObject(object)));
   }
 
   @Value
