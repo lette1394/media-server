@@ -1,25 +1,32 @@
 package io.lette1394.mediaserver.common
 
-
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 
-class CompletableFutureExpectDsl {
-  CompletableFuture<?> future
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.is
+import static org.hamcrest.Matchers.not
+import static org.junit.jupiter.api.Assertions.fail
 
-  static CompletableFutureExpectDsl expect(CompletableFuture<?> future) {
-    def dsl = new CompletableFutureExpectDsl()
-    dsl.future = future
-    return dsl
-  }
+class CompletableFutureExpectDsl<T> {
+  CompletableFuture<T> future
 
-  void completedExceptionallyWith(Class<? extends Throwable> expected) {
+  void gotCause(Class<? extends Throwable> expected) {
     try {
       future.join()
+      fail("unreachable")
     } catch (Exception e) {
       if (e instanceof CompletionException) {
-        e.getCause() != null && e.getCause().getClass() == expected
+        assertThat(e.getCause(), is(not(null)))
+        assertThat(e.getCause().getClass(), is(expected))
+      } else {
+        fail("unreachable")
       }
     }
+  }
+
+  @Override
+  String toString() {
+    return "Expect CompletableFuture"
   }
 }

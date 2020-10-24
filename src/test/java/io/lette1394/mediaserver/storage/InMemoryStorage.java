@@ -145,8 +145,6 @@ public class InMemoryStorage implements Storage {
     return new ByteBufferToByteArrayAsyncAggregateReader(500)
       .read(binarySupplier.getAsync())
       .thenAccept(bytes -> binaryHolder.put(identifier, bytes));
-
-    // or just using SingleThreadedAsyncToSync
   }
 
   private byte[] readAll(InputStream inputStream) throws IOException {

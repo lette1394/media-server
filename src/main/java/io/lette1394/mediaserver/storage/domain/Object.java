@@ -1,10 +1,10 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadAborted.*;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered.*;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted.*;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded.*;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered.*;
+import static io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadAborted.downloadAborted;
+import static io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered.downloadingTriggered;
+import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted.uploadAborted;
+import static io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded.uploaded;
+import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered.uploadingTriggered;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier.Policy;
@@ -108,9 +108,16 @@ public abstract class Object extends AggregateRoot {
   private BinarySupplier wrap(BinarySupplier binarySupplier) {
     final BinarySupplier listenableBinarySupplier = new ListenableBinarySupplier(
       binarySupplier, new Listener() {
+        //TODO: 클래스로 빼자
+      private boolean aborted = false;
+
       @Override
       public void transferAborted(Throwable throwable) {
+        if (aborted) {
+          return;
+        }
         abortUpload(throwable);
+        aborted = true;
       }
     });
 

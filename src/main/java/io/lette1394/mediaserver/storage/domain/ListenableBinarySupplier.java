@@ -37,17 +37,20 @@ public class ListenableBinarySupplier implements BinarySupplier {
 
       @Override
       public int read() throws IOException {
-        notifyFirst();
-
-        final int read = sync.read();
-        if (read != -1) {
-          notifyMiddle();
+        try {
+          notifyFirst();
+          final int read = sync.read();
+          if (read != -1) {
+            notifyMiddle();
+          }
+          if (read == -1) {
+            notifyLast();
+          }
+          return read;
+        } catch (Exception e) {
+          notifyAborted(e);
+          throw e;
         }
-        if (read == -1) {
-          notifyLast();
-        }
-
-        return read;
       }
 
       private void notifyFirst() {
@@ -65,6 +68,10 @@ public class ListenableBinarySupplier implements BinarySupplier {
       private void notifyLast() {
         listener.afterTransferred(getSize());
       }
+
+      private void notifyAborted(Throwable throwable) {
+        listener.transferAborted(throwable);
+      }
     };
   }
 
@@ -76,6 +83,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
 
       @Override
       public void onSubscribe(Subscription s) {
+        subscriber.onSubscribe(s);
         listener.beforeTransfer();
       }
 
@@ -93,6 +101,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
       @Override
       public void onError(Throwable t) {
         subscriber.onError(t);
+        listener.transferAborted(t);
       }
 
       @Override
@@ -113,6 +122,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
     default void afterTransferred(long totalLength) {
     }
 
+    // 한 번만 실행된다는 걸 보장 해야 한다.
     default void transferAborted(Throwable throwable) {
     }
   }
