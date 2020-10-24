@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 public interface ObjectEvents {
 
-  @RequiredArgsConstructor(staticName = "UploadingTriggered")
+  @RequiredArgsConstructor(staticName = "uploadingTriggered")
   class UploadingTriggered extends ContextBoundedEvent {
     public final Object object;
     public final BinaryRepository binaryRepository;
@@ -26,5 +26,11 @@ public interface ObjectEvents {
   @RequiredArgsConstructor(staticName = "downloadingTriggered")
   class DownloadingTriggered extends ContextBoundedEvent {
     public final Object object;
+  }
+
+  @RequiredArgsConstructor(staticName = "downloadAborted")
+  class DownloadAborted extends ContextBoundedEvent {
+    public final Object object;
+    public final Throwable throwable;
   }
 }
