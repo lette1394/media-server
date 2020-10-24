@@ -1,8 +1,5 @@
 package io.lette1394.mediaserver.storage.usecase;
 
-import static io.lette1394.mediaserver.storage.domain.Policies.runNextIfPassedAsync;
-
-import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
@@ -15,12 +12,12 @@ import lombok.Value;
 public class Uploading {
   Storage storage;
 
-  public CompletableFuture<Result<Void>> upload(Command command) {
+  public CompletableFuture<Object> upload(Command command) {
     final ObjectFactory factory = new ObjectFactory(storage);
     final Object object = factory.create(command.area, command.key);
 
     return object.upload(command.binarySupplier)
-      .thenCompose(runNextIfPassedAsync(() -> storage.createObject(object)));
+      .thenCompose(storage::saveObject);
   }
 
   @Value

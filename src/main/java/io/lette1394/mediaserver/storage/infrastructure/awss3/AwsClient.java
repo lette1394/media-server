@@ -1,8 +1,7 @@
 package io.lette1394.mediaserver.storage.infrastructure.awss3;
 
-import io.lette1394.mediaserver.common.Result;
-import io.lette1394.mediaserver.storage.infrastructure.ObjectPath;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.infrastructure.ObjectPath;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 import lombok.Value;
@@ -27,7 +26,7 @@ public class AwsClient {
       .build();
   }
 
-  CompletableFuture<Result<Void>> put(ObjectPath objectPath, BinarySupplier binarySupplier) {
+  CompletableFuture<Void> put(ObjectPath objectPath, BinarySupplier binarySupplier) {
     final S3AsyncClient client = S3AsyncClient.builder()
       .region(region)
       .build();
@@ -37,7 +36,7 @@ public class AwsClient {
       .key(objectPath.asString())
       .contentLength(binarySupplier.getSize())
       .build(), AsyncRequestBody
-      .fromPublisher(s -> binarySupplier.getAsync()))
-      .thenApply(aVoid -> Result.succeed());
+      .fromPublisher(binarySupplier.getAsync()))
+      .thenApply(response -> null);
   }
 }

@@ -1,12 +1,13 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import static io.lette1394.mediaserver.storage.domain.Violations.violation;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import io.lette1394.mediaserver.common.Event;
-import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted;
+import io.vavr.control.Try;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -22,11 +23,10 @@ class ObjectTest {
   @Test
   void upload() {
     final ObjectFactory factory = new ObjectFactory(new InMemoryStorage(),
-      current -> Result.fail("force fail"));
+      current -> Try.failure(violation("force to fail")));
     final Object object = factory.create(AREA_NAME, OBJECT_KEY);
 
     object.upload(new TestBinarySupplier(testBinary)).join();
-
     assertThat(object, hasEvent(UploadAborted.class));
   }
 

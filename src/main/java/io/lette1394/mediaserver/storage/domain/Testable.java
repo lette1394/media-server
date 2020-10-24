@@ -1,12 +1,13 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.Result;
+import io.lette1394.mediaserver.common.Tries;
+import io.vavr.control.Try;
 import java.util.Set;
 import lombok.Value;
 
 @FunctionalInterface
 public interface Testable<T> {
-  Result<Void> test(T t);
+  Try<Void> test(T t);
 
   @Value
   class AllMatch<T> implements Testable<T> {
@@ -17,13 +18,13 @@ public interface Testable<T> {
     }
 
     @Override
-    public Result<Void> test(T t) {
+    public Try<Void> test(T t) {
       return policies
         .stream()
         .map(policy -> policy.test(t))
         .reduce(
-          Result.succeed(),
-          Policies.mergeAllMatch());
+          Tries.SUCCEED,
+          Tries.mergeAllMatch());
     }
   }
 }

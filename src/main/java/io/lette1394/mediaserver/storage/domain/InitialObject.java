@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.Result;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
@@ -14,8 +13,8 @@ public class InitialObject extends Object {
   }
 
   @Override
-  protected CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier) {
-    return binaryRepository.createBinary(identifier, binarySupplier);
+  protected CompletableFuture<Void> upload0(BinarySupplier binarySupplier) {
+    return binaryRepository.saveBinary(identifier, binarySupplier);
   }
 
   @Override

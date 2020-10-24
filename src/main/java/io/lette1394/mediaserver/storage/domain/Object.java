@@ -1,16 +1,13 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import static io.lette1394.mediaserver.storage.domain.Policies.runIfPassed;
-import static io.lette1394.mediaserver.storage.domain.Policies.runNextIfPassed;
-
 import io.lette1394.mediaserver.common.AggregateRoot;
-import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier.Policy;
 import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded;
 import io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered;
+import io.vavr.control.Try;
 import java.util.concurrent.CompletableFuture;
 import lombok.EqualsAndHashCode;
 
@@ -36,45 +33,57 @@ public abstract class Object extends AggregateRoot {
 
   public abstract long getSize();
 
-  public CompletableFuture<Result<Void>> upload(BinarySupplier binarySupplier) {
-    final Result<Void> result = beforeUpload();
-    if (result.isFailed()) {
-      return CompletableFuture.completedFuture(result);
-    }
+  public CompletableFuture<Object> upload(BinarySupplier binarySupplier) {
+    final Try<Integer> success = Try.success(123);
+    final CompletableFuture<Long> longCompletableFuture = CompletableFuture.completedFuture(55L);
 
-    return runIfPassed(beforeUpload())
-      .thenCompose(__ -> upload0(wrap(binarySupplier))
-        .thenApply(runNextIfPassed(() -> this.afterUploaded(binarySupplier.getSize()))));
+//
+//    int input = 2;
+//    String output = Match(input).of(
+//      Case($(1), "one"),
+//      Case($(2), "two"),
+//      Case($(3), "three"),
+//      Case($(), "?"));
+//
+//    Integer a =  Match(success).of(
+//      Case($(Try::isSuccess), Try::get),
+//      Case($(), () -> null));
+
+    return checkBeforeUpload().toCompletableFuture()
+      .thenCompose(__ -> upload0(wrap(binarySupplier)))
+      .thenCompose(__1 ->
+        checkAfterUploaded(binarySupplier.getSize()).map(__2 -> this)
+          .toCompletableFuture());
   }
 
-  public CompletableFuture<Result<BinarySupplier>> download() {
-    return runIfPassed(beforeDownload())
+  public CompletableFuture<BinarySupplier> download() {
+    return checkBeforeDownload().toCompletableFuture()
       .thenCompose(__ -> binaryRepository.findBinary(identifier));
   }
 
   // TODO: rename
-  protected abstract CompletableFuture<Result<Void>> upload0(BinarySupplier binarySupplier);
+  protected abstract CompletableFuture<Void> upload0(BinarySupplier binarySupplier);
 
   protected abstract ObjectState getObjectState();
 
-  private Result<Void> beforeUpload() {
+  private Try<Void> checkBeforeUpload() {
     addEvent(UploadingTriggered.UploadingTriggered(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD, 0L));
   }
 
-  private Result<Void> duringUploading(long currentSize) {
+  private Try<Void> checkDuringUploading(long currentSize) {
     // event 발행 -> 성능 문제가 있을 거 같은데...
     return objectPolicy.test(snapshot(ObjectLifeCycle.DURING_UPLOADING, currentSize));
   }
 
-  private Result<Void> afterUploaded(long totalSize) {
+  private Try<Void> checkAfterUploaded(long totalSize) {
     addEvent(Uploaded.uploaded(this, binaryRepository));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.AFTER_UPLOADED, totalSize));
   }
 
-  private Result<Void> beforeDownload() {
+  private Try<Void> checkBeforeDownload() {
     addEvent(DownloadingTriggered.downloadingTriggered(this));
 
     return objectPolicy.test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD, 0L));
@@ -109,8 +118,8 @@ public abstract class Object extends AggregateRoot {
     return new ControllableBinarySupplier(
       listenableBinarySupplier, new Policy() {
       @Override
-      public Result<Void> duringTransferring(long currentSize, long total) {
-        return duringUploading(currentSize);
+      public Try<Void> duringTransferring(long currentSize, long total) {
+        return checkDuringUploading(currentSize);
       }
     });
   }

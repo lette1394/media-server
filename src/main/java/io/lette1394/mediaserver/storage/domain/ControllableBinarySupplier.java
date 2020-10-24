@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.Result;
+import io.lette1394.mediaserver.common.Tries;
+import io.vavr.control.Try;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -56,11 +57,11 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
         checkSucceed(policy.afterTransferred(getSize()));
       }
 
-      private void checkSucceed(Result<?> result) {
-        if (result.isSucceed()) {
+      private void checkSucceed(Try<?> result) {
+        if (result.isSuccess()) {
           return;
         }
-        throw new RuntimeException(result.getThrowable());
+        throw new RuntimeException(result.getCause());
       }
     };
   }
@@ -100,26 +101,26 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
         checkSucceed(policy.afterTransferred(accumulate));
       }
 
-      private void checkSucceed(Result<?> result) {
-        if (result.isSucceed()) {
+      private void checkSucceed(Try<?> result) {
+        if (result.isSuccess()) {
           return;
         }
-        onError(result.getThrowable());
+        onError(result.getCause());
       }
     });
   }
 
   interface Policy {
-    default Result<Void> beforeTransfer() {
-      return Result.succeed();
+    default Try<Void> beforeTransfer() {
+      return Tries.SUCCEED;
     }
 
-    default Result<Void> duringTransferring(long currentSize, long total) {
-      return Result.succeed();
+    default Try<Void> duringTransferring(long currentSize, long total) {
+      return Tries.SUCCEED;
     }
 
-    default Result<Void> afterTransferred(long totalLength) {
-      return Result.succeed();
+    default Try<Void> afterTransferred(long totalLength) {
+      return Tries.SUCCEED;
     }
   }
 }

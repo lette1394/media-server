@@ -3,11 +3,11 @@ package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.AutoClosableBinaryRepository;
+import io.lette1394.mediaserver.storage.domain.DeleteAllBinaryWhenClosedBinaryRepository;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
-import io.lette1394.mediaserver.storage.TestBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.DeleteAllBinaryWhenClosedBinaryRepository;
 import java.io.InputStream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
@@ -45,14 +45,13 @@ class FileSystemBinaryRepositoryTest {
     final byte[] binary = RandomUtils.nextBytes(CHUNK);
 
     binaryRepository
-      .createBinary(object.identifier, new TestBinarySupplier(binary))
+      .saveBinary(object.identifier, new TestBinarySupplier(binary))
       .join();
 
     final byte[] holder = new byte[CHUNK];
     final InputStream inputStream = binaryRepository
       .findBinary(object.identifier)
       .join()
-      .get()
       .getSync();
     final int readLength = inputStream.read(holder);
     final int expectEOF = inputStream.read();

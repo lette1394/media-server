@@ -1,28 +1,19 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.Result;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public interface BinaryRepository {
-  default CompletableFuture<Result<Boolean>> binaryExists(Identifier identifier) {
+  default CompletableFuture<Boolean> binaryExists(Identifier identifier) {
     return findBinary(identifier)
-      .thenApply(binary -> {
-        if (Objects.nonNull(binary)) {
-          return Result.succeed(true);
-        }
-        return Result.succeed(false);
-      })
-      .exceptionally(Result::fail);
+      .thenApply(__ -> true)
+      .exceptionally(__ -> false);
   }
 
-  CompletableFuture<Result<BinarySupplier>> findBinary(Identifier identifier);
+  CompletableFuture<BinarySupplier> findBinary(Identifier identifier);
 
-  CompletableFuture<Result<Void>> createBinary(Identifier identifier,
-    BinarySupplier binarySupplier);
+  CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier binarySupplier);
 
-  CompletableFuture<Result<Void>> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier);
+  CompletableFuture<Void> appendBinary(Identifier identifier, BinarySupplier binarySupplier);
 
-  CompletableFuture<Result<Void>> deleteBinary(Identifier identifier);
+  CompletableFuture<Void> deleteBinary(Identifier identifier);
 }

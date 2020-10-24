@@ -1,14 +1,12 @@
 package io.lette1394.mediaserver.storage.infrastructure;
 
-import io.lette1394.mediaserver.common.Result;
+import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.infrastructure.awss3.AwsClient;
 import io.lette1394.mediaserver.storage.infrastructure.awss3.AwsS3Storage;
-import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
@@ -27,9 +25,7 @@ class AwsS3StorageTest {
       StandardCharsets.UTF_8));
     final ObjectFactory factory = new ObjectFactory(awsS3Storage);
     final Object object = factory.create("h", "123");
-    final CompletableFuture<Result<Void>> upload = object.upload(binarySupplier);
-
-    upload.join();
+    object.upload(binarySupplier).join();
   }
 
 }

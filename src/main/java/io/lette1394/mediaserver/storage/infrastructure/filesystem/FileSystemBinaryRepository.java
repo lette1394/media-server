@@ -41,32 +41,30 @@ public class FileSystemBinaryRepository implements BinaryRepository {
   }
 
   @Override
-  public CompletableFuture<Result<BinarySupplier>> findBinary(
+  public CompletableFuture<BinarySupplier> findBinary(
     Identifier identifier) {
     try {
-      return completedFuture(Result.succeed(readOp(identifier)));
+      return CompletableFuture.completedFuture(readOp(identifier));
     } catch (IOException e) {
-      return failedFuture(e);
+      return CompletableFuture.failedFuture(e);
     }
   }
 
   @Override
-  public CompletableFuture<Result<Void>> createBinary(Identifier identifier,
+  public CompletableFuture<Void> saveBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-      StandardOpenOption.READ)
-      .thenApply(aVoid -> Result.succeed());
+      StandardOpenOption.READ);
   }
 
   @Override
-  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier,
+  public CompletableFuture<Void> appendBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
-    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND)
-      .thenApply(aVoid -> Result.succeed());
+    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
   }
 
   @Override
-  public CompletableFuture<Result<Void>> deleteBinary(Identifier identifier) {
+  public CompletableFuture<Void> deleteBinary(Identifier identifier) {
     return CompletableFuture.supplyAsync(() -> {
       try {
         final Path path = createPath(identifier);

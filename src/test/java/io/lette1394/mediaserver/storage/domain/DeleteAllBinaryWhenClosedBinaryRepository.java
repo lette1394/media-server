@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.Result;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -13,36 +12,34 @@ public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBi
   BinaryRepository repository;
 
   @Override
-  public CompletableFuture<Result<BinarySupplier>> findBinary(
+  public CompletableFuture<BinarySupplier> findBinary(
     Identifier identifier) {
     return repository.findBinary(identifier);
   }
 
   @Override
-  public CompletableFuture<Result<Void>> createBinary(Identifier identifier,
+  public CompletableFuture<Void> saveBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
-    return repository.createBinary(identifier, binarySupplier)
-      .thenAccept(__ -> memory(identifier))
-      .thenApply(aVoid -> Result.succeed());
+    return repository.saveBinary(identifier, binarySupplier)
+      .thenAccept(__ -> memory(identifier));
   }
 
   @Override
-  public CompletableFuture<Result<Void>> appendBinary(Identifier identifier,
+  public CompletableFuture<Void> appendBinary(Identifier identifier,
     BinarySupplier binarySupplier) {
     return repository.appendBinary(identifier, binarySupplier);
   }
 
   @Override
-  public CompletableFuture<Result<Void>> deleteBinary(Identifier identifier) {
+  public CompletableFuture<Void> deleteBinary(Identifier identifier) {
     return repository
       .deleteBinary(identifier)
-      .thenAccept(__ -> createdObjects.remove(identifier))
-      .thenApply(aVoid -> Result.succeed());
+      .thenAccept(__ -> createdObjects.remove(identifier));
   }
 
   @Override
   public void close() throws Exception {
-    final Set<CompletableFuture<Result<Void>>> collect = createdObjects
+    final Set<CompletableFuture<Void>> collect = createdObjects
       .parallelStream()
       .map(this::deleteBinary)
       .collect(Collectors.toSet());
