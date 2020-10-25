@@ -2,6 +2,7 @@ package io.lette1394.mediaserver.storage.domain.object;
 
 import static io.lette1394.mediaserver.common.Violations.violation;
 import static io.lette1394.mediaserver.storage.domain.object.LifeCycle.*;
+import static java.lang.String.format;
 
 import io.lette1394.mediaserver.common.Testable;
 import io.lette1394.mediaserver.common.Tries;
@@ -11,29 +12,29 @@ import java.util.Set;
 public interface Policy extends Testable<Snapshot> {
 
   Policy REJECT_RESUME_UPLOAD = current -> {
-    if (current.getLifeCycle().is(BEFORE_UPLOAD) && current.getState().isPending()) {
+    if (current.is(BEFORE_UPLOAD) && current.isPending()) {
       return Try.failure(violation("reject resume upload"));
     }
     return Tries.SUCCEED;
   };
 
   Policy REJECT_OVERWRITE_UPLOAD = current -> {
-    if (current.getLifeCycle().is(BEFORE_UPLOAD) && current.getState().isFulfilled()) {
+    if (current.is(BEFORE_UPLOAD) && current.isFulfilled()) {
       return Try.failure(violation("reject resume upload"));
     }
     return Tries.SUCCEED;
   };
 
   Policy REJECT_10MB_SIZE_OVER = current -> {
-    if (current.getLifeCycle().is(DURING_UPLOADING) && current.getProgressingSize() > 1024*1024*10) {
+    if (current.is(DURING_UPLOADING) && current.getProgressingSize() > 1024*1024*10) {
       return Try.failure(
-        violation(String.format("Allow under 1K, got: [%s] bytes", current.getProgressingSize())));
+        violation(format("Allow under 1K, got: [%s] bytes", current.getProgressingSize())));
     }
     return Tries.SUCCEED;
   };
 
   Policy REJECT_PENDING_OBJECT = current -> {
-    if (current.getLifeCycle().is(BEFORE_DOWNLOAD) && current.getState().isPending()) {
+    if (current.is(BEFORE_DOWNLOAD) && current.isPending()) {
       return Try.failure(violation("Reject pending object download"));
     }
     return Tries.SUCCEED;

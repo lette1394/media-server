@@ -9,6 +9,8 @@
  
  
 ### Requirements 2
+- [storage] Support content-type 
+
 ### Requirements 3
 ### Requirements 4
 
