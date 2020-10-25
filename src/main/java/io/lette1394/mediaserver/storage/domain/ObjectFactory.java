@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import java.time.OffsetDateTime;
+import java.util.concurrent.CompletableFuture;
 
 public class ObjectFactory {
   private final BinaryRepository binaryRepository;

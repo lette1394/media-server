@@ -27,6 +27,11 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
+  public CompletableFuture<Void> deleteObject(Identifier identifier) {
+    return null;
+  }
+
+  @Override
   public CompletableFuture<BinarySupplier> findBinary(
     Identifier identifier) {
     return CompletableFuture.failedFuture(new RuntimeException());

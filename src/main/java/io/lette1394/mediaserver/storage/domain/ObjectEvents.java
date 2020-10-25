@@ -1,36 +1,56 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.common.Event.ContextBoundedEvent;
+import io.lette1394.mediaserver.common.Event;
 import lombok.RequiredArgsConstructor;
 
 public interface ObjectEvents {
 
-  @RequiredArgsConstructor(staticName = "uploadingTriggered")
-  class UploadingTriggered extends ContextBoundedEvent {
+  @RequiredArgsConstructor
+  class UploadingTriggered extends Event {
     public final Object object;
     public final BinaryRepository binaryRepository;
+
+    public static Event uploadingTriggered(Object object, BinaryRepository binaryRepository) {
+      return new UploadingTriggered(object, binaryRepository);
+    }
   }
 
-  @RequiredArgsConstructor(staticName = "uploaded")
-  class Uploaded extends ContextBoundedEvent {
+  @RequiredArgsConstructor
+  class Uploaded extends Event {
     public final Object object;
     public final BinaryRepository binaryRepository;
+
+    public static Event uploaded(Object object, BinaryRepository binaryRepository) {
+      return new Uploaded(object, binaryRepository);
+    }
   }
 
-  @RequiredArgsConstructor(staticName = "uploadAborted")
-  class UploadAborted extends ContextBoundedEvent {
+  @RequiredArgsConstructor
+  class UploadAborted extends Event {
     public final Object object;
     public final Throwable throwable;
+
+    public static Event uploadAborted(Object object, Throwable throwable) {
+      return new UploadAborted(object, throwable);
+    }
   }
 
-  @RequiredArgsConstructor(staticName = "downloadingTriggered")
-  class DownloadingTriggered extends ContextBoundedEvent {
+  @RequiredArgsConstructor
+  class DownloadingTriggered extends Event {
     public final Object object;
+
+    public static Event downloadingTriggered(Object object) {
+      return new DownloadingTriggered(object);
+    }
   }
 
-  @RequiredArgsConstructor(staticName = "downloadAborted")
-  class DownloadAborted extends ContextBoundedEvent {
+  @RequiredArgsConstructor
+  class DownloadAborted extends Event {
     public final Object object;
     public final Throwable throwable;
+
+    public static Event downloadAborted(Object object, Throwable throwable) {
+      return new DownloadAborted(object, throwable);
+    }
   }
 }

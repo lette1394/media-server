@@ -8,4 +8,6 @@ public interface ObjectRepository {
   CompletableFuture<Object> findObject(Identifier identifier);
 
   CompletableFuture<Object> saveObject(Object object);
+
+  CompletableFuture<Void> deleteObject(Identifier identifier);
 }

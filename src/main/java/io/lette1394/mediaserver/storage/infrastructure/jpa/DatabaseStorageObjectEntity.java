@@ -3,15 +3,17 @@ package io.lette1394.mediaserver.storage.infrastructure.jpa;
 import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
-import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.domain.Attributes;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
+import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
+import io.lette1394.mediaserver.storage.domain.ObjectState;
 import io.lette1394.mediaserver.storage.domain.PendingObject;
 import io.lette1394.mediaserver.storage.domain.Tag;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -21,17 +23,21 @@ import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+@Builder
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 class DatabaseStorageObjectEntity {
+  private static final String TAG_DELIMITER = ",";
+
   @EmbeddedId
   ObjectId objectId;
-  State state;
+  ObjectState state;
   long sizeInByte;
 
   // k1=v1,k2=v2,k3=v3,...
@@ -40,12 +46,50 @@ class DatabaseStorageObjectEntity {
   OffsetDateTime created;
   OffsetDateTime updated;
 
+  static DatabaseStorageObjectEntity fromObject(Object object) {
+    return DatabaseStorageObjectEntity.builder()
+      .state(mapState(object))
+      .tagList(fromTags(object.getTags()))
+      .sizeInByte(object.getSnapshot().getProgressingSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
+      .objectId(new ObjectId(object.identifier))
+      .created(object.getCreated())
+      .updated(OffsetDateTime.now())
+      .build();
+  }
+
+  private static ObjectState mapState(Object object) {
+    final ObjectSnapshot snapshot = object.getSnapshot();
+    final long size = snapshot.getSize();
+    final long progressSize = snapshot.getProgressingSize();
+    if (size == 0 && progressSize == 0) {
+      return ObjectState.INITIAL;
+    }
+    if (size == 0 && progressSize > 0) {
+      return ObjectState.PENDING;
+    }
+
+    if (size == 0) {
+      return ObjectState.INITIAL;
+    }
+
+
+    return null;
+  }
+
+  private static String fromTags(Tags tags) {
+    return tags.toMap()
+      .entrySet()
+      .stream()
+      .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
+      .collect(Collectors.joining(TAG_DELIMITER));
+  }
+
   Object toObject(BinaryRepository binaryRepository) {
-    if (state == State.PENDING) {
+    if (state == ObjectState.PENDING) {
       return createPendingObject(binaryRepository);
     }
 
-    if (state == State.FULFILLED) {
+    if (state == ObjectState.FULFILLED) {
       return createFulfilledObject(binaryRepository);
     }
 
@@ -61,7 +105,7 @@ class DatabaseStorageObjectEntity {
       .attributes(Attributes.builder()
         .created(created)
         .updated(updated)
-        .tags(parseTags())
+        .tags(toTags())
         .build())
       .build();
   }
@@ -75,26 +119,22 @@ class DatabaseStorageObjectEntity {
       .attributes(Attributes.builder()
         .created(created)
         .updated(updated)
-        .tags(parseTags())
+        .tags(toTags())
         .build())
       .build();
   }
 
-  private Tags parseTags() {
+  private Tags toTags() {
     if (StringUtils.isBlank(tagList)) {
       return Tags.tags(Collections.emptyList());
     }
     return Tags.tags(Arrays
-      .stream(tagList.split(","))
+      .stream(tagList.split(TAG_DELIMITER))
       .map(str -> {
         final String[] split = str.split("=");
         return new Tag(nonBlankString(split[0]), split[1]);
       })
       .collect(Collectors.toList()));
-  }
-
-  enum State {
-    PENDING, FULFILLED
   }
 
   @Data

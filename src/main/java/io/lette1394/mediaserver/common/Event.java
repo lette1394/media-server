@@ -5,8 +5,10 @@ import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.EventListener;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 
+@AllArgsConstructor
 public class Event {
   protected final Instant when = Instant.now();
   protected final UUID eventId = UUID.randomUUID();
@@ -28,8 +30,5 @@ public class Event {
 
   public interface Publisher<T extends Event> {
     void publish(Event event);
-  }
-
-  public static class ContextBoundedEvent extends Event {
   }
 }

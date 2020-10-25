@@ -10,7 +10,9 @@ import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier.Policy;
 import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
 import io.vavr.control.Try;
+import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
@@ -20,6 +22,10 @@ public abstract class Object extends AggregateRoot {
   protected final BinaryRepository binaryRepository;
   protected final ObjectPolicy objectPolicy;
   protected final Attributes attributes;
+
+  private final ObjectSnapshot currentSnapshot;
+
+  private final AtomicLong progressedLength = new AtomicLong(0);
 
   protected Object(
     Identifier identifier,
@@ -31,14 +37,22 @@ public abstract class Object extends AggregateRoot {
     this.attributes = attributes;
     this.binaryRepository = binaryRepository;
     this.objectPolicy = objectPolicy;
+    this.currentSnapshot = ObjectSnapshot.initial(this);
   }
 
-  public abstract long getSize();
+  protected abstract long getSize();
+
+  public ObjectSnapshot getSnapshot() {
+    return currentSnapshot;
+  }
 
   public CompletableFuture<Object> upload(BinarySupplier binarySupplier) {
+    final long length = binarySupplier.getLength();
+
     return checkBeforeUpload().toCompletableFuture()
       .thenCompose(__ -> upload0(wrap(binarySupplier)))
       .thenCompose(__1 ->
+        // TODO: 실제 올라간 사이즈로 체크해야 하지 않나?
         checkAfterUploaded(binarySupplier.getLength()).map(__2 -> this).toCompletableFuture());
   }
 
@@ -54,33 +68,29 @@ public abstract class Object extends AggregateRoot {
 
   private Try<Void> checkBeforeUpload() {
     addEvent(uploadingTriggered(this, binaryRepository));
-
     return objectPolicy
-      .test(snapshot(ObjectLifeCycle.BEFORE_UPLOAD, 0L))
+      .test(currentSnapshot.update(ObjectLifeCycle.BEFORE_UPLOAD).update(0L))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkDuringUploading(long currentSize) {
     // TODO: event 발행 -> 성능 문제가 있을 거 같은데...
-
     return objectPolicy
-      .test(snapshot(ObjectLifeCycle.DURING_UPLOADING, currentSize))
+      .test(currentSnapshot.update(ObjectLifeCycle.DURING_UPLOADING).update(currentSize))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkAfterUploaded(long totalSize) {
     addEvent(uploaded(this, binaryRepository));
-
     return objectPolicy
-      .test(snapshot(ObjectLifeCycle.AFTER_UPLOADED, totalSize))
+      .test(currentSnapshot.update(ObjectLifeCycle.AFTER_UPLOADED).update(totalSize))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkBeforeDownload() {
     addEvent(downloadingTriggered(this));
-
     return objectPolicy
-      .test(snapshot(ObjectLifeCycle.BEFORE_DOWNLOAD, 0L))
+      .test(currentSnapshot.update(ObjectLifeCycle.BEFORE_DOWNLOAD).update(0L))
       .onFailure(this::abortDownload);
   }
 
@@ -95,20 +105,10 @@ public abstract class Object extends AggregateRoot {
     addEvent(downloadAborted(this, throwable));
   }
 
-  private ObjectSnapshot snapshot(ObjectLifeCycle lifeCycle, long progressingSize) {
-    return ObjectSnapshot.builder()
-      .identifier(identifier)
-      .lifeCycle(lifeCycle)
-      .state(getObjectState())
-      .size(getSize())
-      .progressingSize(progressingSize)
-      .build();
-  }
-
   private BinarySupplier wrap(BinarySupplier binarySupplier) {
     final BinarySupplier listenableBinarySupplier = new ListenableBinarySupplier(
       binarySupplier, new Listener() {
-        //TODO: 클래스로 빼자
+      //TODO: 클래스로 빼자
       private boolean aborted = false;
 
       @Override
@@ -119,6 +119,11 @@ public abstract class Object extends AggregateRoot {
         abortUpload(throwable);
         aborted = true;
       }
+
+      @Override
+      public void duringTransferring(long currentLength, long totalLength) {
+        progressedLength.set(currentLength);
+      }
     });
 
     return new ControllableBinarySupplier(
@@ -128,5 +133,17 @@ public abstract class Object extends AggregateRoot {
         return checkDuringUploading(currentSize);
       }
     });
+  }
+
+  public Tags getTags() {
+    return attributes.getTags();
+  }
+
+  public OffsetDateTime getCreated() {
+    return attributes.getCreated();
+  }
+
+  public OffsetDateTime getUpdated() {
+    return attributes.getUpdated();
   }
 }

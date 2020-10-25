@@ -12,18 +12,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 class DatabaseObjectRepository implements ObjectRepository {
-  private final DatabaseObjectEntityRepository repository;
+  private final DatabaseObjectEntityRepository db;
   private final BinaryRepository binaryRepository;
 
   @Override
   public CompletableFuture<Boolean> objectExists(Identifier identifier) {
     return CompletableFuture
-      .completedFuture(repository.existsById(new ObjectId(identifier)));
+      .completedFuture(db.existsById(new ObjectId(identifier)));
   }
 
   @Override
   public CompletableFuture<Object> findObject(Identifier identifier) {
-    return repository
+    return db
       .findById(new ObjectId(identifier))
       .map(entity -> entity.toObject(binaryRepository))
       .map(CompletableFuture::completedFuture)
@@ -32,6 +32,12 @@ class DatabaseObjectRepository implements ObjectRepository {
 
   @Override
   public CompletableFuture<Object> saveObject(Object object) {
+    db.save(DatabaseStorageObjectEntity.fromObject(object));
+    return null;
+  }
+
+  @Override
+  public CompletableFuture<Void> deleteObject(Identifier identifier) {
     return null;
   }
 }
