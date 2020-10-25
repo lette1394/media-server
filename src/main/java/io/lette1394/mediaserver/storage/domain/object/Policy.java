@@ -25,7 +25,7 @@ public interface Policy extends Testable<Snapshot> {
   };
 
   Policy REJECT_10MB_SIZE_OVER = current -> {
-    if (current.getLifeCycle().is(DURING_UPLOADING) && current.getProgressingSize() > 1024) {
+    if (current.getLifeCycle().is(DURING_UPLOADING) && current.getProgressingSize() > 1024*1024*10) {
       return Try.failure(
         violation(String.format("Allow under 1K, got: [%s] bytes", current.getProgressingSize())));
     }

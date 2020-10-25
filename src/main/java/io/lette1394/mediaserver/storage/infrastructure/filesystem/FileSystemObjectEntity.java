@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Value;
+import org.apache.commons.lang3.StringUtils;
 
 @Value
 public class FileSystemObjectEntity {
@@ -69,12 +70,14 @@ public class FileSystemObjectEntity {
       identifier(),
       tags(),
       size(),
-      processingSize(),
+      progressingSize(),
       timestamp(),
-      snapshot(),
       state());
 
-    return String.join(LINE_SEPARATOR, strings)
+    return strings
+      .stream()
+      .filter(StringUtils::isNotBlank)
+      .collect(Collectors.joining(LINE_SEPARATOR))
       .getBytes(StandardCharsets.UTF_8);
   }
 
@@ -104,19 +107,13 @@ public class FileSystemObjectEntity {
     return format("state:%s", state);
   }
 
-  private String snapshot() {
-    return format("created:%s", object.getCreated())
-      + LINE_SEPARATOR
-      + format("updated:%s,", object.getUpdated());
-  }
-
   private String size() {
     final Snapshot snapshot = object.getSnapshot();
-    return String.valueOf(snapshot.getSize());
+    return format("size:%s", snapshot.getSize());
   }
 
-  private String processingSize() {
+  private String progressingSize() {
     final Snapshot snapshot = object.getSnapshot();
-    return String.valueOf(snapshot.getProgressingSize());
+    return format("progressingSize:%s", snapshot.getProgressingSize());
   }
 }

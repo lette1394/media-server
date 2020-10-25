@@ -38,6 +38,7 @@ public class Snapshot {
 
   public State computeState() {
     if (isCompletedNormally()) {
+      // TODO: fulfilled 이면 size가 progressing size와 같아야한다
       return State.FULFILLED;
     }
     if (isCompletedExceptionally()) {

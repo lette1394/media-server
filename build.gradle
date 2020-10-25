@@ -29,6 +29,7 @@ dependencies {
 
 
     // [storage][infra]
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.3.4.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.3.4.RELEASE'
     implementation 'software.amazon.awssdk:s3:2.15.11'
     implementation 'org.springframework:spring-webflux:5.2.9.RELEASE'

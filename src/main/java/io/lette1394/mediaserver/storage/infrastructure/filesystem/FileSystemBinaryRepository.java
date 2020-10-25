@@ -61,13 +61,13 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
 
   @Override
   public CompletableFuture<Boolean> objectExists(Identifier identifier) {
-    return completedFuture(Files.exists(createPath(identifier)));
+    return completedFuture(Files.exists(createPath(identifier, ".txt")));
   }
 
   @Override
   public CompletableFuture<Object> findObject(Identifier identifier) {
     return wrap(() -> {
-      final byte[] bytes = Files.readAllBytes(createPath(identifier));
+      final byte[] bytes = Files.readAllBytes(createPath(identifier, ".txt"));
       return FileSystemObjectEntity.fromBytes(bytes, this).getObject();
     });
   }
@@ -76,7 +76,7 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
   public CompletableFuture<Object> saveObject(Object object) {
     final byte[] bytes = new FileSystemObjectEntity(object).toBytes();
     return wrap(() -> {
-      Files.write(createPath(object.getIdentifier()), bytes);
+      Files.write(ensureDirectory(createPath(object.getIdentifier(), ".txt")), bytes);
       return object;
     });
   }
@@ -84,7 +84,7 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
   @Override
   public CompletableFuture<Void> deleteObject(Identifier identifier) {
     return wrap(() -> {
-      Files.delete(createPath(identifier));
+      Files.delete(createPath(identifier, ".txt"));
       return null;
     });
   }
@@ -93,7 +93,7 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
   public CompletableFuture<BinarySupplier> findBinary(
     Identifier identifier) {
     try {
-      return completedFuture(readOp(identifier));
+      return completedFuture(readBinary(identifier));
     } catch (IOException e) {
       return failedFuture(e);
     }
@@ -116,7 +116,7 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
   public CompletableFuture<Void> deleteBinary(Identifier identifier) {
     return CompletableFuture.supplyAsync(() -> {
       try {
-        final Path path = createPath(identifier);
+        final Path path = createPath(identifier, "");
         final Path parent = path.getParent();
 
         Files.delete(path);
@@ -133,7 +133,7 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
   private CompletableFuture<Void> writeOp(Identifier identifier, BinarySupplier binarySupplier,
     OpenOption... openOption) {
     final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    final Path path = createPath(identifier);
+    final Path path = createPath(identifier, "");
     final Path parent = path.getParent();
 
     try {
@@ -151,8 +151,8 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
     }
   }
 
-  private BinarySupplier readOp(Identifier identifier) throws IOException {
-    final Path objectPath = createPath(identifier);
+  private BinarySupplier readBinary(Identifier identifier) throws IOException {
+    final Path objectPath = createPath(identifier, "");
     final InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
 
     return new BinarySupplier() {
@@ -183,10 +183,17 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
     };
   }
 
-  private Path createPath(Identifier identifier) {
+  private Path createPath(Identifier identifier, String ext) {
     return Paths.get(
       baseDir,
       identifier.getArea(),
-      identifier.getKey()).toAbsolutePath();
+      identifier.getKey() + ext).toAbsolutePath();
+  }
+
+  private Path ensureDirectory(Path path) throws IOException {
+    if (Files.notExists(path.getParent())) {
+      Files.createDirectories(path.getParent());
+    }
+    return path;
   }
 }
