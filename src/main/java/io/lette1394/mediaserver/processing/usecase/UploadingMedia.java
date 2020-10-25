@@ -2,7 +2,7 @@ package io.lette1394.mediaserver.processing.usecase;
 
 import io.lette1394.mediaserver.common.Result;
 import io.lette1394.mediaserver.processing.domain.MediaObject;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Storage;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import java.util.Map;

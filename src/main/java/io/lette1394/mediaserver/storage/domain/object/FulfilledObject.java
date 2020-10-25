@@ -1,13 +1,8 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
 import io.lette1394.mediaserver.common.PositiveLong;
-import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Attributes;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Policy;
-import io.lette1394.mediaserver.storage.domain.object.State;
+import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 

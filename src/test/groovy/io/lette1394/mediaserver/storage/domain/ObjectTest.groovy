@@ -2,6 +2,7 @@ package io.lette1394.mediaserver.storage.domain
 
 import io.lette1394.mediaserver.common.PolicyViolationException
 import io.lette1394.mediaserver.storage.BrokenIOException
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier
 import io.lette1394.mediaserver.storage.domain.object.Object
 import io.lette1394.mediaserver.storage.domain.object.Policy
 import io.vavr.control.Try

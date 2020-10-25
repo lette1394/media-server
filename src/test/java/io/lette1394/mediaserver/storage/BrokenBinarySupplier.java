@@ -4,7 +4,7 @@ import static io.lette1394.mediaserver.common.Contracts.require;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;

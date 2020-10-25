@@ -7,6 +7,8 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
 import io.lette1394.mediaserver.storage.BrokenBinarySupplier;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;

@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.storage.domain.binary;
 
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import java.util.concurrent.CompletableFuture;

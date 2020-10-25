@@ -7,11 +7,11 @@ import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.Upload
 import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadingTriggered.uploadingTriggered;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
-import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
+import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.ControllableBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.ListenableBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.ListenableBinarySupplier.Listener;
 import io.vavr.control.Try;
 import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;

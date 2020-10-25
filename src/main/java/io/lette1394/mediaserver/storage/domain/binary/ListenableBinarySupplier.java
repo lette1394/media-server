@@ -1,7 +1,5 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.storage.domain.binary;
 
-import io.lette1394.mediaserver.common.Tries;
-import io.vavr.control.Try;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -11,9 +9,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-public class ControllableBinarySupplier implements BinarySupplier {
+public class ListenableBinarySupplier implements BinarySupplier {
   BinarySupplier binarySupplier;
-  Policy policy;
+  Listener listener;
 
   @Override
   public boolean isSyncSupported() {
@@ -34,47 +32,45 @@ public class ControllableBinarySupplier implements BinarySupplier {
   public InputStream getSync() {
     final InputStream sync = binarySupplier.getSync();
     return new InputStream() {
-      boolean isFirstRead = true;
+      private boolean isFirstRead = true;
       private long accumulate = 0L;
 
       @Override
       public int read() throws IOException {
-        checkFirst();
-
-        final int read = sync.read();
-        if (read != -1) {
-          checkMiddle();
+        try {
+          notifyFirst();
+          final int read = sync.read();
+          if (read != -1) {
+            notifyMiddle();
+          }
+          if (read == -1) {
+            notifyLast();
+          }
+          return read;
+        } catch (Exception e) {
+          notifyAborted(e);
+          throw e;
         }
-        if (read == -1) {
-          checkLast();
-        }
-
-        return read;
       }
 
-      private void checkFirst() {
-        if (!isFirstRead) {
-          return;
+      private void notifyFirst() {
+        if (isFirstRead) {
+          listener.beforeTransfer();
+          isFirstRead = false;
         }
-        isFirstRead = false;
-
-        checkSucceed(policy.beforeTransfer());
       }
 
-      private void checkMiddle() {
+      private void notifyMiddle() {
         accumulate += 1;
-        checkSucceed(policy.duringTransferring(accumulate, getLength()));
+        listener.duringTransferring(accumulate, getLength());
       }
 
-      private void checkLast() {
-        checkSucceed(policy.afterTransferred(getLength()));
+      private void notifyLast() {
+        listener.afterTransferred(getLength());
       }
 
-      private void checkSucceed(Try<?> result) {
-        if (result.isSuccess()) {
-          return;
-        }
-        throw new RuntimeException(result.getCause());
+      private void notifyAborted(Throwable throwable) {
+        listener.transferAborted(throwable);
       }
     };
   }
@@ -87,9 +83,8 @@ public class ControllableBinarySupplier implements BinarySupplier {
 
       @Override
       public void onSubscribe(Subscription s) {
-        checkSucceed(policy.beforeTransfer());
-
         subscriber.onSubscribe(s);
+        listener.beforeTransfer();
       }
 
       @Override
@@ -99,41 +94,36 @@ public class ControllableBinarySupplier implements BinarySupplier {
 
         if (remaining > 0) {
           accumulate += remaining;
-          checkSucceed(policy.duringTransferring(accumulate, getLength()));
+          listener.duringTransferring(accumulate, getLength());
         }
       }
 
       @Override
       public void onError(Throwable t) {
         subscriber.onError(t);
+        listener.transferAborted(t);
       }
 
       @Override
       public void onComplete() {
         subscriber.onComplete();
-        checkSucceed(policy.afterTransferred(accumulate));
-      }
-
-      private void checkSucceed(Try<?> result) {
-        if (result.isSuccess()) {
-          return;
-        }
-        onError(result.getCause());
+        listener.afterTransferred(accumulate);
       }
     });
   }
 
-  public interface Policy {
-    default Try<Void> beforeTransfer() {
-      return Tries.SUCCEED;
+  public interface Listener {
+    default void beforeTransfer() {
     }
 
-    default Try<Void> duringTransferring(long currentSize, long total) {
-      return Tries.SUCCEED;
+    default void duringTransferring(long currentLength, long totalLength) {
     }
 
-    default Try<Void> afterTransferred(long totalLength) {
-      return Tries.SUCCEED;
+    default void afterTransferred(long totalLength) {
+    }
+
+    // 한 번만 실행된다는 걸 보장 해야 한다.
+    default void transferAborted(Throwable throwable) {
     }
   }
 }
