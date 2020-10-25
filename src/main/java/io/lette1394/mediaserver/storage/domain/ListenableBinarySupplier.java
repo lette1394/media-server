@@ -24,8 +24,8 @@ public class ListenableBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getSize() {
-    return binarySupplier.getSize();
+  public long getLength() {
+    return binarySupplier.getLength();
   }
 
   @Override
@@ -62,11 +62,11 @@ public class ListenableBinarySupplier implements BinarySupplier {
 
       private void notifyMiddle() {
         accumulate += 1;
-        listener.duringTransferring(accumulate, getSize());
+        listener.duringTransferring(accumulate, getLength());
       }
 
       private void notifyLast() {
-        listener.afterTransferred(getSize());
+        listener.afterTransferred(getLength());
       }
 
       private void notifyAborted(Throwable throwable) {
@@ -94,7 +94,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
 
         if (remaining > 0) {
           accumulate += remaining;
-          listener.duringTransferring(accumulate, getSize());
+          listener.duringTransferring(accumulate, getLength());
         }
       }
 
@@ -116,7 +116,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
     default void beforeTransfer() {
     }
 
-    default void duringTransferring(long currentSize, long total) {
+    default void duringTransferring(long currentLength, long totalLength) {
     }
 
     default void afterTransferred(long totalLength) {

@@ -39,7 +39,7 @@ public abstract class Object extends AggregateRoot {
     return checkBeforeUpload().toCompletableFuture()
       .thenCompose(__ -> upload0(wrap(binarySupplier)))
       .thenCompose(__1 ->
-        checkAfterUploaded(binarySupplier.getSize()).map(__2 -> this).toCompletableFuture());
+        checkAfterUploaded(binarySupplier.getLength()).map(__2 -> this).toCompletableFuture());
   }
 
   public CompletableFuture<BinarySupplier> download() {

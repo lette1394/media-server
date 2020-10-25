@@ -21,7 +21,7 @@ public class BrokenBinarySupplier implements BinarySupplier {
   public BrokenBinarySupplier(BinarySupplier delegate, long exceptionAt) {
     require(nonNull(delegate), "require: nonNull(binarySupplier)");
     require(exceptionAt >= 0, "require: exceptionAt >= 0");
-    require(delegate.getSize() > exceptionAt, "require: delegate.getSize() > exceptionAt");
+    require(delegate.getLength() > exceptionAt, "require: delegate.getSize() > exceptionAt");
 
     this.delegate = delegate;
     this.exceptionAt = exceptionAt;
@@ -38,8 +38,8 @@ public class BrokenBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getSize() {
-    return delegate.getSize();
+  public long getLength() {
+    return delegate.getLength();
   }
 
   @Override
@@ -53,7 +53,7 @@ public class BrokenBinarySupplier implements BinarySupplier {
         if (position == exceptionAt) {
           throw new BrokenIOException(
             format("broken read triggered, size:[%s], exceptionAt:[%s]",
-              getSize(), exceptionAt));
+              getLength(), exceptionAt));
         }
         position += 1;
         return sync.read();
@@ -80,7 +80,7 @@ public class BrokenBinarySupplier implements BinarySupplier {
             if (position >= exceptionAt) {
               onError(new BrokenIOException(
                 format("broken read triggered, size:[%s], exceptionAt:[%s]",
-                  getSize(),
+                  getLength(),
                   exceptionAt)));
             } else {
               position += byteBuffer.remaining();

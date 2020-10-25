@@ -5,21 +5,34 @@ import io.vavr.control.Try;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import lombok.Value;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public class ControllableBinarySupplier extends DelegatingBinarySupplier {
-  private final Policy policy;
+@Value
+public class ControllableBinarySupplier implements BinarySupplier {
+  BinarySupplier binarySupplier;
+  Policy policy;
 
-  public ControllableBinarySupplier(BinarySupplier binarySupplier, Policy policy) {
-    super(binarySupplier);
-    this.policy = policy;
+  @Override
+  public boolean isSyncSupported() {
+    return binarySupplier.isSyncSupported();
+  }
+
+  @Override
+  public boolean isAsyncSupported() {
+    return binarySupplier.isAsyncSupported();
+  }
+
+  @Override
+  public long getLength() {
+    return binarySupplier.getLength();
   }
 
   @Override
   public InputStream getSync() {
-    final InputStream sync = super.getSync();
+    final InputStream sync = binarySupplier.getSync();
     return new InputStream() {
       boolean isFirstRead = true;
       private long accumulate = 0L;
@@ -50,11 +63,11 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
 
       private void checkMiddle() {
         accumulate += 1;
-        checkSucceed(policy.duringTransferring(accumulate, getSize()));
+        checkSucceed(policy.duringTransferring(accumulate, getLength()));
       }
 
       private void checkLast() {
-        checkSucceed(policy.afterTransferred(getSize()));
+        checkSucceed(policy.afterTransferred(getLength()));
       }
 
       private void checkSucceed(Try<?> result) {
@@ -68,7 +81,7 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
 
   @Override
   public Publisher<ByteBuffer> getAsync() {
-    final Publisher<ByteBuffer> async = super.getAsync();
+    final Publisher<ByteBuffer> async = binarySupplier.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
       private long accumulate = 0L;
 
@@ -86,7 +99,7 @@ public class ControllableBinarySupplier extends DelegatingBinarySupplier {
 
         if (remaining > 0) {
           accumulate += remaining;
-          checkSucceed(policy.duringTransferring(accumulate, getSize()));
+          checkSucceed(policy.duringTransferring(accumulate, getLength()));
         }
       }
 

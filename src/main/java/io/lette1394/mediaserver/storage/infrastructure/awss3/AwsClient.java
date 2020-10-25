@@ -34,7 +34,7 @@ public class AwsClient {
     return client.putObject(PutObjectRequest.builder()
       .bucket(awsBucket)
       .key(objectPath.asString())
-      .contentLength(binarySupplier.getSize())
+      .contentLength(binarySupplier.getLength())
       .build(), AsyncRequestBody
       .fromPublisher(binarySupplier.getAsync()))
       .thenApply(response -> null);

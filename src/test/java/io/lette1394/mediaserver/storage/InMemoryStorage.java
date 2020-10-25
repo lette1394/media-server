@@ -106,7 +106,7 @@ public class InMemoryStorage implements Storage {
         }
 
         @Override
-        public long getSize() {
+        public long getLength() {
           return binaries.length;
         }
 

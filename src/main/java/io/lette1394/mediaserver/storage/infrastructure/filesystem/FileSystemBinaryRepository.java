@@ -118,7 +118,7 @@ public class FileSystemBinaryRepository implements BinaryRepository {
       }
 
       @Override
-      public long getSize() {
+      public long getLength() {
         return objectPath.toFile().length();
       }
 

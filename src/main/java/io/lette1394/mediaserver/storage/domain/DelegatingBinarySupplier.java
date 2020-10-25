@@ -22,8 +22,8 @@ public class DelegatingBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getSize() {
-    return binarySupplier.getSize();
+  public long getLength() {
+    return binarySupplier.getLength();
   }
 
   @Override
