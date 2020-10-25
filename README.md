@@ -1,9 +1,9 @@
 ### Requirements 1
-- [storage] 10GB file up/download (streaming)
+- [storage] Support streaming: 10GB file up/download
 - [storage] Support range upload (a.k.a 이어올리기) 
     - [x] Update size per object sub classes 
-    - [ ] exception handler when uploading is broken
-    - [ ] Add test for classes
+    - [x] exception callback when uploading is broken
+    - [x] Add test for classes
     - [ ] Adjust class access modifier level
     - [ ] Add netty, spring mvc, spring webflux implements
  
