@@ -17,10 +17,12 @@ import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
 public abstract class Object extends AggregateRoot {
-  public final Identifier identifier;
+  @Getter
+  protected final Identifier identifier;
 
   protected final BinaryRepository binaryRepository;
   protected final Policy policy;

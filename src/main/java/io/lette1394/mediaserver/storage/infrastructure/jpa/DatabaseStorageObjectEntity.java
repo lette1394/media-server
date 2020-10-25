@@ -51,7 +51,7 @@ class DatabaseStorageObjectEntity {
       .state(mapState(object))
       .tagList(fromTags(object.getTags()))
       .sizeInByte(object.getSnapshot().getProgressingSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
-      .objectId(new ObjectId(object.identifier))
+      .objectId(new ObjectId(object.getIdentifier()))
       .created(object.getCreated())
       .updated(OffsetDateTime.now())
       .build();

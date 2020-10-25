@@ -58,8 +58,8 @@ public class InMemoryStorage implements Storage {
 
   @Override
   public CompletableFuture<Object> saveObject(Object object) {
-    return findObject(object.identifier)
-      .thenApply(found -> objectHolder.put(found.identifier, object));
+    return findObject(object.getIdentifier())
+      .thenApply(found -> objectHolder.put(found.getIdentifier(), object));
   }
 
   @Override

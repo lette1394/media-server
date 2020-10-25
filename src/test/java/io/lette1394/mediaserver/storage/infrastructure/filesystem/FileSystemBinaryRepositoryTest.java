@@ -45,12 +45,12 @@ class FileSystemBinaryRepositoryTest {
     final byte[] binary = RandomUtils.nextBytes(CHUNK);
 
     binaryRepository
-      .saveBinary(object.identifier, new TestBinarySupplier(binary))
+      .saveBinary(object.getIdentifier(), new TestBinarySupplier(binary))
       .join();
 
     final byte[] holder = new byte[CHUNK];
     final InputStream inputStream = binaryRepository
-      .findBinary(object.identifier)
+      .findBinary(object.getIdentifier())
       .join()
       .getSync();
     final int readLength = inputStream.read(holder);

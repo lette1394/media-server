@@ -7,6 +7,8 @@ import lombok.Value;
 @Value
 @Builder
 public class Attributes {
+  // TODO: 이거 필요한가?
+
   Tags tags;
 
   OffsetDateTime created;
