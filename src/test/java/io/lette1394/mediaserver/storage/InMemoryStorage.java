@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage;
 
-import static io.lette1394.mediaserver.storage.domain.Violations.violation;
+import static io.lette1394.mediaserver.common.Violations.violation;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;

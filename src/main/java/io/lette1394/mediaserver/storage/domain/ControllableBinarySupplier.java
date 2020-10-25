@@ -11,7 +11,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-public class ControllableBinarySupplier implements BinarySupplier {
+class ControllableBinarySupplier implements BinarySupplier {
   BinarySupplier binarySupplier;
   Policy policy;
 

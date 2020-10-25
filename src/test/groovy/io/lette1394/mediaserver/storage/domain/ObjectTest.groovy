@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.domain
 
-
+import io.lette1394.mediaserver.common.PolicyViolationException
 import io.lette1394.mediaserver.storage.BrokenIOException
 import io.vavr.control.Try
 import spock.lang.Specification
@@ -11,7 +11,7 @@ import static io.lette1394.mediaserver.common.Expects.expect
 import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted
 import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered
 import static io.lette1394.mediaserver.storage.domain.ObjectFixture.*
-import static io.lette1394.mediaserver.storage.domain.Violations.violation
+import static io.lette1394.mediaserver.common.Violations.violation
 
 class ObjectTest extends Specification {
   def '정책을 어기면, 업로드 중단'() {

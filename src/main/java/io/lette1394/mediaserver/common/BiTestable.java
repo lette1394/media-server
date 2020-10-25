@@ -1,12 +1,12 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.common;
 
-import io.lette1394.mediaserver.common.Result;
+import io.vavr.control.Try;
 import java.util.Set;
 import lombok.Value;
 
 @FunctionalInterface
 public interface BiTestable<T, U> {
-  Result<Void> test(T t, U u);
+  Try<Void> test(T t, U u);
 
   @Value
   class AllMatch<T, U> implements BiTestable<T, U> {
@@ -17,13 +17,13 @@ public interface BiTestable<T, U> {
     }
 
     @Override
-    public Result<Void> test(T t, U u) {
+    public Try<Void> test(T t, U u) {
       return policies
         .stream()
         .map(policy -> policy.test(t, u))
         .reduce(
-          Result.succeed(),
-          Policies.mergeAllMatch());
+          Try.success(null),
+          Tries.mergeAllMatch());
     }
   }
 }

@@ -1,6 +1,5 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.common;
 
-import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
 import java.util.Set;
 import lombok.Value;

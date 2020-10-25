@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 
-public class DelegatingBinarySupplier implements BinarySupplier {
+class DelegatingBinarySupplier implements BinarySupplier {
   private final BinarySupplier binarySupplier;
 
   public DelegatingBinarySupplier(BinarySupplier binarySupplier) {

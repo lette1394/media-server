@@ -1,7 +1,8 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import static io.lette1394.mediaserver.storage.domain.Violations.violation;
+import static io.lette1394.mediaserver.common.Violations.violation;
 
+import io.lette1394.mediaserver.common.Testable;
 import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
 import java.util.Set;
