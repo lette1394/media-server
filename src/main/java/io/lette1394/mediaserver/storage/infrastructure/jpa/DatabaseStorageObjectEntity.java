@@ -4,6 +4,7 @@ import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.common.UnknownException;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
@@ -39,6 +40,7 @@ class DatabaseStorageObjectEntity {
   ObjectId objectId;
   State state;
   long sizeInByte;
+  long progressingSizeInByte;
 
   // k1=v1,k2=v2,k3=v3,...
   String tagList;
@@ -47,10 +49,13 @@ class DatabaseStorageObjectEntity {
   OffsetDateTime updated;
 
   static DatabaseStorageObjectEntity fromObject(Object object) {
+    final Snapshot snapshot = object.getSnapshot();
+
     return DatabaseStorageObjectEntity.builder()
       .state(mapState(object))
       .tagList(fromTags(object.getTags()))
-      .sizeInByte(object.getSnapshot().getProgressingSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
+      .sizeInByte(snapshot.getSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
+      .progressingSizeInByte(snapshot.getProgressingSize())
       .objectId(new ObjectId(object.getIdentifier()))
       .created(object.getCreated())
       .updated(OffsetDateTime.now())
@@ -59,20 +64,19 @@ class DatabaseStorageObjectEntity {
 
   private static State mapState(Object object) {
     final Snapshot snapshot = object.getSnapshot();
-    final long size = snapshot.getSize();
-    final long progressSize = snapshot.getProgressingSize();
-    if (size == 0 && progressSize == 0) {
-      return State.INITIAL;
-    }
-    if (size == 0 && progressSize > 0) {
-      return State.PENDING;
-    }
 
-    if (size == 0) {
-      return State.INITIAL;
+    if (snapshot.isCompletedNormally()) {
+      return State.FULFILLED;
     }
-
-    return null;
+    if (snapshot.isCompletedExceptionally()) {
+      if (snapshot.getProgressingSize() > 0) {
+        return State.PENDING;
+      }
+      if (snapshot.getProgressingSize() == 0) {
+        return State.INITIAL;
+      }
+    }
+    throw new UnknownException("illegal state");
   }
 
   private static String fromTags(Tags tags) {

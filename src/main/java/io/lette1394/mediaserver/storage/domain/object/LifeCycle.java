@@ -36,6 +36,6 @@ public enum LifeCycle {
   }
 
   public boolean isCompleted() {
-    return false;
+    return isCompletedNormally() || isCompletedExceptionally();
   }
 }

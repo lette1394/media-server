@@ -3,13 +3,15 @@ package io.lette1394.mediaserver.storage.domain.object;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.Delegate;
 
 @Getter
 public class Snapshot {
   private final Identifier identifier;
   private final long size;
-
+  @Delegate(excludes = Enum.class)
   private State state;
+  @Delegate(excludes = Enum.class)
   private LifeCycle lifeCycle;
   private long progressingSize;
 
