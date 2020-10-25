@@ -23,9 +23,10 @@ import lombok.Getter;
 public abstract class Object extends AggregateRoot {
   @Getter
   protected final Identifier identifier;
+
   protected final Tags tags;
-  protected final TimeStamp timeStamp;
   protected final Snapshot currentSnapshot;
+  protected final TimeStamp timeStamp;
 
   protected final Policy policy;
   protected final BinaryRepository binaryRepository;

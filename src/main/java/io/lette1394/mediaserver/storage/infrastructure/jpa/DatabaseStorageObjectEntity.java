@@ -152,5 +152,9 @@ class DatabaseStorageObjectEntity {
     public ObjectId(Identifier identifier) {
       this(identifier.getArea(), identifier.getKey());
     }
+
+    public static ObjectId fromIdentifier(Identifier identifier) {
+      return new ObjectId(identifier);
+    }
   }
 }
