@@ -131,7 +131,8 @@ public class InMemoryStorage implements Storage {
 
   @Override
   public CompletableFuture<Void> deleteBinary(Identifier identifier) {
-    return null;
+    binaryHolder.remove(identifier);
+    return completedFuture(null);
   }
 
   private CompletableFuture<Void> uploadBinarySync(Identifier identifier,
