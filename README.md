@@ -4,7 +4,7 @@
     - [x] Update size per object sub classes 
     - [x] exception callback when uploading is broken
     - [x] Add test for classes
-    - [ ] Adjust class access modifier level
+    - [x] Adjust class access modifier level
     - [ ] Add netty, spring mvc, spring webflux implements
  
  
