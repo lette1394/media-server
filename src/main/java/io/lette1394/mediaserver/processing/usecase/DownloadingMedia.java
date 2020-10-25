@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.processing.usecase;
 
-import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.object.Identifier;
+import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.Storage;
 import io.lette1394.mediaserver.storage.usecase.ObjectNotFoundException;
 import lombok.Value;

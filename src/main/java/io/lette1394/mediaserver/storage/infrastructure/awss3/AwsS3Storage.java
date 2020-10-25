@@ -1,8 +1,8 @@
 package io.lette1394.mediaserver.storage.infrastructure.awss3;
 
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.object.Identifier;
+import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.Storage;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;

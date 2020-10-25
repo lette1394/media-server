@@ -2,14 +2,16 @@ package io.lette1394.mediaserver.storage.domain
 
 import io.lette1394.mediaserver.common.PolicyViolationException
 import io.lette1394.mediaserver.storage.BrokenIOException
+import io.lette1394.mediaserver.storage.domain.object.Object
+import io.lette1394.mediaserver.storage.domain.object.Policy
 import io.vavr.control.Try
 import spock.lang.Specification
 
 import java.util.concurrent.CompletionException
 
 import static io.lette1394.mediaserver.common.Expects.expect
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadAborted
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadingTriggered
 import static io.lette1394.mediaserver.storage.domain.ObjectFixture.*
 import static io.lette1394.mediaserver.common.Violations.violation
 

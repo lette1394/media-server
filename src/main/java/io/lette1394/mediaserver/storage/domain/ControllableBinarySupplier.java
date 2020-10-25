@@ -11,7 +11,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-class ControllableBinarySupplier implements BinarySupplier {
+public class ControllableBinarySupplier implements BinarySupplier {
   BinarySupplier binarySupplier;
   Policy policy;
 
@@ -123,7 +123,7 @@ class ControllableBinarySupplier implements BinarySupplier {
     });
   }
 
-  interface Policy {
+  public interface Policy {
     default Try<Void> beforeTransfer() {
       return Tries.SUCCEED;
     }

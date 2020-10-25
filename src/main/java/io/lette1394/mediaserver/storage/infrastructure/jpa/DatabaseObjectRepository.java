@@ -1,9 +1,9 @@
 package io.lette1394.mediaserver.storage.infrastructure.jpa;
 
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.domain.Object;
-import io.lette1394.mediaserver.storage.domain.ObjectRepository;
+import io.lette1394.mediaserver.storage.domain.object.Identifier;
+import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.object.ObjectRepository;
 import io.lette1394.mediaserver.storage.infrastructure.jpa.DatabaseStorageObjectEntity.ObjectId;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;

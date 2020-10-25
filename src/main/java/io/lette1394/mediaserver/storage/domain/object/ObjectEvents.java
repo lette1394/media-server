@@ -1,6 +1,7 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.storage.domain.object;
 
 import io.lette1394.mediaserver.common.Event;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import lombok.RequiredArgsConstructor;
 
 public interface ObjectEvents {

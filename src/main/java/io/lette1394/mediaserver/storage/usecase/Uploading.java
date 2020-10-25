@@ -1,8 +1,8 @@
 package io.lette1394.mediaserver.storage.usecase;
 
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.Object;
-import io.lette1394.mediaserver.storage.domain.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.Storage;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

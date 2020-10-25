@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.storage.domain.object;
 
 import lombok.AccessLevel;
 import lombok.Builder;

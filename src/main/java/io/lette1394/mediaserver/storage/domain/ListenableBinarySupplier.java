@@ -9,7 +9,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-class ListenableBinarySupplier implements BinarySupplier {
+public class ListenableBinarySupplier implements BinarySupplier {
   BinarySupplier binarySupplier;
   Listener listener;
 
@@ -112,7 +112,7 @@ class ListenableBinarySupplier implements BinarySupplier {
     });
   }
 
-  interface Listener {
+  public interface Listener {
     default void beforeTransfer() {
     }
 

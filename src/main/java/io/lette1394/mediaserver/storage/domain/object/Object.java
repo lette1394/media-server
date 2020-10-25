@@ -1,12 +1,16 @@
-package io.lette1394.mediaserver.storage.domain;
+package io.lette1394.mediaserver.storage.domain.object;
 
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadAborted.downloadAborted;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.DownloadingTriggered.downloadingTriggered;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadAborted.uploadAborted;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded.uploaded;
-import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered.uploadingTriggered;
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.DownloadAborted.downloadAborted;
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.DownloadingTriggered.downloadingTriggered;
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadAborted.uploadAborted;
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.Uploaded.uploaded;
+import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadingTriggered.uploadingTriggered;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
 import io.vavr.control.Try;
 import java.time.OffsetDateTime;
