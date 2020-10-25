@@ -11,8 +11,8 @@ import spock.lang.Specification
 import java.util.concurrent.CompletionException
 
 import static io.lette1394.mediaserver.common.Expects.expect
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadAborted
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadingTriggered
+import static io.lette1394.mediaserver.storage.domain.object.Events.UploadAborted
+import static io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered
 import static io.lette1394.mediaserver.storage.domain.ObjectFixture.*
 import static io.lette1394.mediaserver.common.Violations.violation
 

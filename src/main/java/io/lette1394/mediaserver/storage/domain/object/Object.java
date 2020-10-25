@@ -1,10 +1,10 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.DownloadAborted.downloadAborted;
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.DownloadingTriggered.downloadingTriggered;
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadAborted.uploadAborted;
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.Uploaded.uploaded;
-import static io.lette1394.mediaserver.storage.domain.object.ObjectEvents.UploadingTriggered.uploadingTriggered;
+import static io.lette1394.mediaserver.storage.domain.object.Events.DownloadAborted.downloadAborted;
+import static io.lette1394.mediaserver.storage.domain.object.Events.DownloadingTriggered.downloadingTriggered;
+import static io.lette1394.mediaserver.storage.domain.object.Events.UploadAborted.uploadAborted;
+import static io.lette1394.mediaserver.storage.domain.object.Events.Uploaded.uploaded;
+import static io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered.uploadingTriggered;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
