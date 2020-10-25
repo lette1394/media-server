@@ -11,7 +11,7 @@ import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.domain.object.Policy;
 import io.vavr.control.Try;
 
@@ -38,14 +38,14 @@ public class ObjectFixture {
 
   public static Object anyObject(Policy policy) {
     final Identifier identifier = anyIdentifier();
-    return new ObjectFactory(memory(), policy)
+    return new Factory(memory(), policy)
       .create(identifier.getArea(), identifier.getKey());
   }
 
   public static Object anyObject() {
     final Policy allow = current -> Try.success(null);
     final Identifier identifier = anyIdentifier();
-    return new ObjectFactory(memory(), allow).create(identifier.getArea(), identifier.getKey());
+    return new Factory(memory(), allow).create(identifier.getArea(), identifier.getKey());
   }
 
   public static Object the(Object object) {

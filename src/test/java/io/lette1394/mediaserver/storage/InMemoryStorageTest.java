@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.Test;
@@ -18,15 +18,15 @@ class InMemoryStorageTest {
 
   @Test
   void sync() {
-    runSync(new ObjectFactory(new InMemoryStorage(CHUNK_SIZE)));
+    runSync(new Factory(new InMemoryStorage(CHUNK_SIZE)));
   }
 
   @Test
   void async() {
-    runAsync(new ObjectFactory(new InMemoryStorage(CHUNK_SIZE)));
+    runAsync(new Factory(new InMemoryStorage(CHUNK_SIZE)));
   }
 
-  private void runSync(ObjectFactory factory) {
+  private void runSync(Factory factory) {
     final Object object = factory.create("1", "2")
       .upload(new TestBinarySupplier(testBinary))
       .join();
@@ -40,7 +40,7 @@ class InMemoryStorageTest {
     assertThat(downloadedBinary, is(testBinary));
   }
 
-  private void runAsync(ObjectFactory factory) {
+  private void runAsync(Factory factory) {
     final Object object = factory.create("1", "2")
       .upload(new TestBinarySupplier(testBinary))
       .join();

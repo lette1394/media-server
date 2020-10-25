@@ -7,7 +7,7 @@ import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.AutoClosableBinaryRepository;
 import io.lette1394.mediaserver.storage.domain.DeleteAllBinaryWhenClosedBinaryRepository;
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.object.Factory;
 import java.io.InputStream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
@@ -40,7 +40,7 @@ class FileSystemBinaryRepositoryTest {
   @Test
   @SneakyThrows
   void test1() {
-    final ObjectFactory factory = new ObjectFactory(binaryRepository);
+    final Factory factory = new Factory(binaryRepository);
     final Object object = factory.create("test", "001");
     final byte[] binary = RandomUtils.nextBytes(CHUNK);
 

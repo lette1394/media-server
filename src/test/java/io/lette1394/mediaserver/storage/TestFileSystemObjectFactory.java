@@ -3,17 +3,17 @@ package io.lette1394.mediaserver.storage;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemBinaryRepository;
 import lombok.Value;
 
 @Value
 public class TestFileSystemObjectFactory {
   private static final String BASE_DIR = "out/binaries";
-  private static final ObjectFactory factory;
+  private static final Factory factory;
 
   static {
-    factory = new ObjectFactory(new FileSystemBinaryRepository(BASE_DIR));
+    factory = new Factory(new FileSystemBinaryRepository(BASE_DIR));
   }
 
   public static Object createObjectWithRandomIdentifier() {
