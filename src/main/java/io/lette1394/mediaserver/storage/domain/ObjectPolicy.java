@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import static io.lette1394.mediaserver.common.Violations.violation;
-import static io.lette1394.mediaserver.storage.domain.ObjectLifeCycle.*;
+import static io.lette1394.mediaserver.storage.domain.LifeCycle.*;
 
 import io.lette1394.mediaserver.common.Testable;
 import io.lette1394.mediaserver.common.Tries;

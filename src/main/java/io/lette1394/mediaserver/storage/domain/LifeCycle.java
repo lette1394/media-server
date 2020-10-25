@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public enum ObjectLifeCycle {
+public enum LifeCycle {
   NO_OPERATION,
 
   OPERATION_ABORTED {
@@ -23,8 +23,8 @@ public enum ObjectLifeCycle {
 
   BEFORE_DOWNLOAD;
 
-  public boolean is(ObjectLifeCycle objectLifeCycle) {
-    return this == objectLifeCycle;
+  public boolean is(LifeCycle lifeCycle) {
+    return this == lifeCycle;
   }
 
   public boolean isCompletedExceptionally() {

@@ -10,12 +10,12 @@ public class Snapshot {
   private final long size;
 
   private State state;
-  private ObjectLifeCycle lifeCycle;
+  private LifeCycle lifeCycle;
   private long progressingSize;
 
   @Builder(access = AccessLevel.PRIVATE)
   private Snapshot(Identifier identifier,
-    State state, ObjectLifeCycle lifeCycle, long size, long progressingSize) {
+    State state, LifeCycle lifeCycle, long size, long progressingSize) {
     this.identifier = identifier;
     this.state = state;
     this.lifeCycle = lifeCycle;
@@ -27,13 +27,13 @@ public class Snapshot {
     return Snapshot.builder()
       .identifier(object.identifier)
       .size(object.getSize())
-      .lifeCycle(ObjectLifeCycle.NO_OPERATION)
+      .lifeCycle(LifeCycle.NO_OPERATION)
       .state(object.getObjectState())
       .progressingSize(0)
       .build();
   }
 
-  Snapshot update(ObjectLifeCycle lifeCycle) {
+  Snapshot update(LifeCycle lifeCycle) {
     this.lifeCycle = lifeCycle;
     return this;
   }

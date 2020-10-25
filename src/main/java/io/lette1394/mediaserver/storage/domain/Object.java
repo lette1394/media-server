@@ -69,28 +69,28 @@ public abstract class Object extends AggregateRoot {
   private Try<Void> checkBeforeUpload() {
     addEvent(uploadingTriggered(this, binaryRepository));
     return objectPolicy
-      .test(currentSnapshot.update(ObjectLifeCycle.BEFORE_UPLOAD).update(0L))
+      .test(currentSnapshot.update(LifeCycle.BEFORE_UPLOAD).update(0L))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkDuringUploading(long currentSize) {
     // TODO: event 발행 -> 성능 문제가 있을 거 같은데...
     return objectPolicy
-      .test(currentSnapshot.update(ObjectLifeCycle.DURING_UPLOADING).update(currentSize))
+      .test(currentSnapshot.update(LifeCycle.DURING_UPLOADING).update(currentSize))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkAfterUploaded(long totalSize) {
     addEvent(uploaded(this, binaryRepository));
     return objectPolicy
-      .test(currentSnapshot.update(ObjectLifeCycle.AFTER_UPLOADED).update(totalSize))
+      .test(currentSnapshot.update(LifeCycle.AFTER_UPLOADED).update(totalSize))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkBeforeDownload() {
     addEvent(downloadingTriggered(this));
     return objectPolicy
-      .test(currentSnapshot.update(ObjectLifeCycle.BEFORE_DOWNLOAD).update(0L))
+      .test(currentSnapshot.update(LifeCycle.BEFORE_DOWNLOAD).update(0L))
       .onFailure(this::abortDownload);
   }
 
