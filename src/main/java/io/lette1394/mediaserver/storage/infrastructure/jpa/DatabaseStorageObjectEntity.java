@@ -3,15 +3,15 @@ package io.lette1394.mediaserver.storage.infrastructure.jpa;
 import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
-import io.lette1394.mediaserver.storage.domain.object.Attributes;
+import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.object.PendingObject;
 import io.lette1394.mediaserver.storage.domain.object.Policy;
 import io.lette1394.mediaserver.storage.domain.object.Snapshot;
 import io.lette1394.mediaserver.storage.domain.object.State;
-import io.lette1394.mediaserver.storage.domain.object.PendingObject;
 import io.lette1394.mediaserver.storage.domain.object.Tag;
 import io.lette1394.mediaserver.storage.domain.object.Tags;
 import java.io.Serializable;
@@ -72,7 +72,6 @@ class DatabaseStorageObjectEntity {
       return State.INITIAL;
     }
 
-
     return null;
   }
 
@@ -102,11 +101,11 @@ class DatabaseStorageObjectEntity {
       .identifier(new Identifier(objectId.area, objectId.key))
       .policy(Policy.ALL_POLICY)
       .size(positiveLong(sizeInByte))
-      .attributes(Attributes.builder()
+      .timeStamp(TimeStamp.builder()
         .created(created)
         .updated(updated)
-        .tags(toTags())
         .build())
+      .tags(toTags())
       .build();
   }
 
@@ -116,11 +115,11 @@ class DatabaseStorageObjectEntity {
       .identifier(new Identifier(objectId.area, objectId.key))
       .policy(Policy.ALL_POLICY)
       .size(positiveLong(sizeInByte))
-      .attributes(Attributes.builder()
+      .timeStamp(TimeStamp.builder()
         .created(created)
         .updated(updated)
-        .tags(toTags())
         .build())
+      .tags(toTags())
       .build();
   }
 

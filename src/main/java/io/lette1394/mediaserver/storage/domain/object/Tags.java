@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,11 @@ public class Tags {
   List<Tag> tags;
 
   public static Tags tags(Tag... tags) {
-    return new Tags(List.of(tags));
+    return new Tags(Lists.newArrayList(tags));
+  }
+
+  public static Tags empty() {
+    return new Tags(Lists.newArrayList());
   }
 
   public List<Tag> getTags() {

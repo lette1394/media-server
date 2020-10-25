@@ -7,6 +7,7 @@ import static io.lette1394.mediaserver.storage.domain.object.Events.Uploaded.upl
 import static io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered.uploadingTriggered;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
+import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.ControllableBinarySupplier;
@@ -15,7 +16,6 @@ import io.lette1394.mediaserver.storage.domain.binary.ListenableBinarySupplier.L
 import io.vavr.control.Try;
 import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -23,25 +23,23 @@ import lombok.Getter;
 public abstract class Object extends AggregateRoot {
   @Getter
   protected final Identifier identifier;
+  protected final Tags tags;
+  protected final TimeStamp timeStamp;
+  protected final Snapshot currentSnapshot;
 
-  protected final BinaryRepository binaryRepository;
   protected final Policy policy;
-  protected final Attributes attributes;
-
-  private final Snapshot currentSnapshot;
-
-  private final AtomicLong progressedLength = new AtomicLong(0);
+  protected final BinaryRepository binaryRepository;
 
   protected Object(
     Identifier identifier,
-    Attributes attributes,
     BinaryRepository binaryRepository,
-    Policy policy) {
+    Policy policy, TimeStamp timeStamp, Tags tags) {
 
     this.identifier = identifier;
-    this.attributes = attributes;
     this.binaryRepository = binaryRepository;
     this.policy = policy;
+    this.timeStamp = timeStamp;
+    this.tags = tags;
     this.currentSnapshot = Snapshot.initial(this);
   }
 
@@ -127,7 +125,7 @@ public abstract class Object extends AggregateRoot {
 
       @Override
       public void duringTransferring(long currentLength, long totalLength) {
-        progressedLength.set(currentLength);
+        currentSnapshot.update(currentLength);
       }
     });
 
@@ -141,14 +139,14 @@ public abstract class Object extends AggregateRoot {
   }
 
   public Tags getTags() {
-    return attributes.getTags();
+    return tags;
   }
 
   public OffsetDateTime getCreated() {
-    return attributes.getCreated();
+    return timeStamp.getCreated();
   }
 
   public OffsetDateTime getUpdated() {
-    return attributes.getUpdated();
+    return timeStamp.getUpdated();
   }
 }

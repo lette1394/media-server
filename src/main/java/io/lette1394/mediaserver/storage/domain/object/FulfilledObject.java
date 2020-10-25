@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
 import io.lette1394.mediaserver.common.PositiveLong;
+import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import java.util.concurrent.CompletableFuture;
@@ -11,10 +12,10 @@ public class FulfilledObject extends Object {
 
   @Builder
   public FulfilledObject(Identifier identifier,
-    Attributes attributes,
-    BinaryRepository binaryRepository,
-    Policy policy, PositiveLong size) {
-    super(identifier, attributes, binaryRepository, policy);
+    BinaryRepository binaryRepository, Policy policy,
+    TimeStamp timeStamp,
+    Tags tags, PositiveLong size) {
+    super(identifier, binaryRepository, policy, timeStamp, tags);
     this.size = size;
   }
 
