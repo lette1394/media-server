@@ -8,7 +8,7 @@ import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
 import java.util.Set;
 
-public interface ObjectPolicy extends Testable<ObjectSnapshot> {
+public interface ObjectPolicy extends Testable<Snapshot> {
 
   ObjectPolicy REJECT_RESUME_UPLOAD = current -> {
     if (current.getLifeCycle().is(BEFORE_UPLOAD) && current.getState().isPending()) {
@@ -47,5 +47,5 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
   ))
     .test(snapshot);
 
-  Try<Void> test(ObjectSnapshot current);
+  Try<Void> test(Snapshot current);
 }

@@ -9,7 +9,7 @@ import io.lette1394.mediaserver.storage.domain.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
-import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
+import io.lette1394.mediaserver.storage.domain.Snapshot;
 import io.lette1394.mediaserver.storage.domain.ObjectState;
 import io.lette1394.mediaserver.storage.domain.PendingObject;
 import io.lette1394.mediaserver.storage.domain.Tag;
@@ -58,7 +58,7 @@ class DatabaseStorageObjectEntity {
   }
 
   private static ObjectState mapState(Object object) {
-    final ObjectSnapshot snapshot = object.getSnapshot();
+    final Snapshot snapshot = object.getSnapshot();
     final long size = snapshot.getSize();
     final long progressSize = snapshot.getProgressingSize();
     if (size == 0 && progressSize == 0) {

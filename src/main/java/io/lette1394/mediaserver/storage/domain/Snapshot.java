@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class ObjectSnapshot {
+public class Snapshot {
   private final Identifier identifier;
   private final long size;
 
@@ -14,7 +14,7 @@ public class ObjectSnapshot {
   private long progressingSize;
 
   @Builder(access = AccessLevel.PRIVATE)
-  private ObjectSnapshot(Identifier identifier,
+  private Snapshot(Identifier identifier,
     ObjectState state, ObjectLifeCycle lifeCycle, long size, long progressingSize) {
     this.identifier = identifier;
     this.state = state;
@@ -23,8 +23,8 @@ public class ObjectSnapshot {
     this.progressingSize = progressingSize;
   }
 
-  static ObjectSnapshot initial(Object object) {
-    return ObjectSnapshot.builder()
+  static Snapshot initial(Object object) {
+    return Snapshot.builder()
       .identifier(object.identifier)
       .size(object.getSize())
       .lifeCycle(ObjectLifeCycle.NO_OPERATION)
@@ -33,18 +33,18 @@ public class ObjectSnapshot {
       .build();
   }
 
-  ObjectSnapshot update(ObjectLifeCycle lifeCycle) {
+  Snapshot update(ObjectLifeCycle lifeCycle) {
     this.lifeCycle = lifeCycle;
     return this;
   }
 
-  ObjectSnapshot update(ObjectState state) {
+  Snapshot update(ObjectState state) {
     this.state = state;
     return this;
   }
 
   // 다른 패키지로 옮기는 걸 고려
-  ObjectSnapshot update(long progressingSize) {
+  Snapshot update(long progressingSize) {
     this.progressingSize = progressingSize;
     return this;
   }

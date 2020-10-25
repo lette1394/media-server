@@ -23,7 +23,7 @@ public abstract class Object extends AggregateRoot {
   protected final ObjectPolicy objectPolicy;
   protected final Attributes attributes;
 
-  private final ObjectSnapshot currentSnapshot;
+  private final Snapshot currentSnapshot;
 
   private final AtomicLong progressedLength = new AtomicLong(0);
 
@@ -37,12 +37,12 @@ public abstract class Object extends AggregateRoot {
     this.attributes = attributes;
     this.binaryRepository = binaryRepository;
     this.objectPolicy = objectPolicy;
-    this.currentSnapshot = ObjectSnapshot.initial(this);
+    this.currentSnapshot = Snapshot.initial(this);
   }
 
   protected abstract long getSize();
 
-  public ObjectSnapshot getSnapshot() {
+  public Snapshot getSnapshot() {
     return currentSnapshot;
   }
 
