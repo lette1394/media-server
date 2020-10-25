@@ -16,7 +16,7 @@ import static io.lette1394.mediaserver.common.Violations.violation
 class ObjectTest extends Specification {
   def '정책을 어기면, 업로드 중단'() {
     given:
-      ObjectPolicy forceReject = { snapshot -> Try.failure(violation("force to fail")) }
+      Policy forceReject = { snapshot -> Try.failure(violation("force to fail")) }
       Object object = anyObject(forceReject)
     and:
       BinarySupplier randomBinary = randomBinarySupplier()

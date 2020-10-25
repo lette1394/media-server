@@ -8,8 +8,8 @@ public class InitialObject extends Object {
   public InitialObject(Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectPolicy objectPolicy) {
-    super(identifier, attributes, binaryRepository, objectPolicy);
+    Policy policy) {
+    super(identifier, attributes, binaryRepository, policy);
   }
 
   @Override

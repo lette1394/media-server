@@ -8,7 +8,7 @@ import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
-import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
+import io.lette1394.mediaserver.storage.domain.Policy;
 import io.lette1394.mediaserver.storage.domain.Snapshot;
 import io.lette1394.mediaserver.storage.domain.State;
 import io.lette1394.mediaserver.storage.domain.PendingObject;
@@ -100,7 +100,7 @@ class DatabaseStorageObjectEntity {
     return FulfilledObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
-      .objectPolicy(ObjectPolicy.ALL_POLICY)
+      .policy(Policy.ALL_POLICY)
       .size(positiveLong(sizeInByte))
       .attributes(Attributes.builder()
         .created(created)
@@ -114,7 +114,7 @@ class DatabaseStorageObjectEntity {
     return PendingObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
-      .objectPolicy(ObjectPolicy.ALL_POLICY)
+      .policy(Policy.ALL_POLICY)
       .size(positiveLong(sizeInByte))
       .attributes(Attributes.builder()
         .created(created)

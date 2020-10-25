@@ -30,14 +30,14 @@ public class ObjectFixture {
     return new BrokenBinarySupplier(binarySupplier, nextInt(start, size));
   }
 
-  public static Object anyObject(ObjectPolicy objectPolicy) {
+  public static Object anyObject(Policy policy) {
     final Identifier identifier = anyIdentifier();
-    return new ObjectFactory(memory(), objectPolicy)
+    return new ObjectFactory(memory(), policy)
       .create(identifier.getArea(), identifier.getKey());
   }
 
   public static Object anyObject() {
-    final ObjectPolicy allow = current -> Try.success(null);
+    final Policy allow = current -> Try.success(null);
     final Identifier identifier = anyIdentifier();
     return new ObjectFactory(memory(), allow).create(identifier.getArea(), identifier.getKey());
   }

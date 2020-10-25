@@ -1,20 +1,19 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import java.time.OffsetDateTime;
-import java.util.concurrent.CompletableFuture;
 
 public class ObjectFactory {
   private final BinaryRepository binaryRepository;
-  private final ObjectPolicy objectPolicy;
+  private final Policy policy;
 
   public ObjectFactory(BinaryRepository binaryRepository,
-    ObjectPolicy objectPolicy) {
+    Policy policy) {
     this.binaryRepository = binaryRepository;
-    this.objectPolicy = objectPolicy;
+    this.policy = policy;
   }
 
   public ObjectFactory(BinaryRepository binaryRepository) {
-    this(binaryRepository, ObjectPolicy.ALL_POLICY);
+    this(binaryRepository, Policy.ALL_POLICY);
   }
 
   public Object create(String area, String key) {
@@ -28,7 +27,7 @@ public class ObjectFactory {
 
     return InitialObject.builder()
       .identifier(identifier)
-      .objectPolicy(objectPolicy)
+      .policy(policy)
       .binaryRepository(binaryRepository)
       .attributes(attributes)
       .build();

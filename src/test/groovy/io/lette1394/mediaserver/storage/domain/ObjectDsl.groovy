@@ -6,7 +6,7 @@ import java.util.function.BiFunction
 class ObjectDsl {
   Identifier identifier
   State state
-  ObjectPolicy policy
+  Policy policy
   BinaryRepository binaryRepository
   BiFunction<Object, BinarySupplier, CompletableFuture<Object>> method
 
@@ -28,7 +28,7 @@ class ObjectDsl {
     return this
   }
 
-  ObjectDsl obey(ObjectPolicy objectPolicy) {
+  ObjectDsl obey(Policy objectPolicy) {
     this.policy = objectPolicy
     return this
   }

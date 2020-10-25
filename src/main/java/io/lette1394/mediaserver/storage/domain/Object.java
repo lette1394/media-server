@@ -7,7 +7,6 @@ import static io.lette1394.mediaserver.storage.domain.ObjectEvents.Uploaded.uplo
 import static io.lette1394.mediaserver.storage.domain.ObjectEvents.UploadingTriggered.uploadingTriggered;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
-import io.lette1394.mediaserver.storage.domain.ControllableBinarySupplier.Policy;
 import io.lette1394.mediaserver.storage.domain.ListenableBinarySupplier.Listener;
 import io.vavr.control.Try;
 import java.time.OffsetDateTime;
@@ -20,7 +19,7 @@ public abstract class Object extends AggregateRoot {
   public final Identifier identifier;
 
   protected final BinaryRepository binaryRepository;
-  protected final ObjectPolicy objectPolicy;
+  protected final Policy policy;
   protected final Attributes attributes;
 
   private final Snapshot currentSnapshot;
@@ -31,12 +30,12 @@ public abstract class Object extends AggregateRoot {
     Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectPolicy objectPolicy) {
+    Policy policy) {
 
     this.identifier = identifier;
     this.attributes = attributes;
     this.binaryRepository = binaryRepository;
-    this.objectPolicy = objectPolicy;
+    this.policy = policy;
     this.currentSnapshot = Snapshot.initial(this);
   }
 
@@ -68,28 +67,28 @@ public abstract class Object extends AggregateRoot {
 
   private Try<Void> checkBeforeUpload() {
     addEvent(uploadingTriggered(this, binaryRepository));
-    return objectPolicy
+    return policy
       .test(currentSnapshot.update(LifeCycle.BEFORE_UPLOAD).update(0L))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkDuringUploading(long currentSize) {
     // TODO: event 발행 -> 성능 문제가 있을 거 같은데...
-    return objectPolicy
+    return policy
       .test(currentSnapshot.update(LifeCycle.DURING_UPLOADING).update(currentSize))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkAfterUploaded(long totalSize) {
     addEvent(uploaded(this, binaryRepository));
-    return objectPolicy
+    return policy
       .test(currentSnapshot.update(LifeCycle.AFTER_UPLOADED).update(totalSize))
       .onFailure(this::abortUpload);
   }
 
   private Try<Void> checkBeforeDownload() {
     addEvent(downloadingTriggered(this));
-    return objectPolicy
+    return policy
       .test(currentSnapshot.update(LifeCycle.BEFORE_DOWNLOAD).update(0L))
       .onFailure(this::abortDownload);
   }
@@ -127,7 +126,7 @@ public abstract class Object extends AggregateRoot {
     });
 
     return new ControllableBinarySupplier(
-      listenableBinarySupplier, new Policy() {
+      listenableBinarySupplier, new ControllableBinarySupplier.Policy() {
       @Override
       public Try<Void> duringTransferring(long currentSize, long total) {
         return checkDuringUploading(currentSize);

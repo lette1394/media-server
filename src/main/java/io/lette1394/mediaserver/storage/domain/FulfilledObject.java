@@ -11,8 +11,8 @@ public class FulfilledObject extends Object {
   public FulfilledObject(Identifier identifier,
     Attributes attributes,
     BinaryRepository binaryRepository,
-    ObjectPolicy objectPolicy, PositiveLong size) {
-    super(identifier, attributes, binaryRepository, objectPolicy);
+    Policy policy, PositiveLong size) {
+    super(identifier, attributes, binaryRepository, policy);
     this.size = size;
   }
 
