@@ -22,8 +22,8 @@ public class FulfilledObject extends Object {
   }
 
   @Override
-  protected ObjectState getObjectState() {
-    return ObjectState.FULFILLED;
+  protected State getObjectState() {
+    return State.FULFILLED;
   }
 
   // TODO: Size object

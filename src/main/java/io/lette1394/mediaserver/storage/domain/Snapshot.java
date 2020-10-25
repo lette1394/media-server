@@ -9,13 +9,13 @@ public class Snapshot {
   private final Identifier identifier;
   private final long size;
 
-  private ObjectState state;
+  private State state;
   private ObjectLifeCycle lifeCycle;
   private long progressingSize;
 
   @Builder(access = AccessLevel.PRIVATE)
   private Snapshot(Identifier identifier,
-    ObjectState state, ObjectLifeCycle lifeCycle, long size, long progressingSize) {
+    State state, ObjectLifeCycle lifeCycle, long size, long progressingSize) {
     this.identifier = identifier;
     this.state = state;
     this.lifeCycle = lifeCycle;
@@ -38,7 +38,7 @@ public class Snapshot {
     return this;
   }
 
-  Snapshot update(ObjectState state) {
+  Snapshot update(State state) {
     this.state = state;
     return this;
   }

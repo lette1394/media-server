@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public enum ObjectState {
+public enum State {
   INITIAL {
     @Override
     public boolean isInitial() {

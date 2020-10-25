@@ -22,8 +22,8 @@ public class PendingObject extends Object {
   }
 
   @Override
-  protected ObjectState getObjectState() {
-    return ObjectState.PENDING;
+  protected State getObjectState() {
+    return State.PENDING;
   }
 
   @Override

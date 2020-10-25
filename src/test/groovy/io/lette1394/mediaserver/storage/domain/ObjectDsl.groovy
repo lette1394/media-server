@@ -5,7 +5,7 @@ import java.util.function.BiFunction
 
 class ObjectDsl {
   Identifier identifier
-  ObjectState state
+  State state
   ObjectPolicy policy
   BinaryRepository binaryRepository
   BiFunction<Object, BinarySupplier, CompletableFuture<Object>> method
@@ -19,7 +19,7 @@ class ObjectDsl {
 
   static ObjectDsl aInitialObject() {
     final ObjectDsl objectDsl = new ObjectDsl()
-    objectDsl.state = ObjectState.INITIAL
+    objectDsl.state = State.INITIAL
     return objectDsl
   }
 

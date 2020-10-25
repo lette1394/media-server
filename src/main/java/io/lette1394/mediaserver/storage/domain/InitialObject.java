@@ -18,8 +18,8 @@ public class InitialObject extends Object {
   }
 
   @Override
-  protected ObjectState getObjectState() {
-    return ObjectState.INITIAL;
+  protected State getObjectState() {
+    return State.INITIAL;
   }
 
   @Override

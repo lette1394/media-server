@@ -10,7 +10,7 @@ import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
 import io.lette1394.mediaserver.storage.domain.Snapshot;
-import io.lette1394.mediaserver.storage.domain.ObjectState;
+import io.lette1394.mediaserver.storage.domain.State;
 import io.lette1394.mediaserver.storage.domain.PendingObject;
 import io.lette1394.mediaserver.storage.domain.Tag;
 import io.lette1394.mediaserver.storage.domain.Tags;
@@ -37,7 +37,7 @@ class DatabaseStorageObjectEntity {
 
   @EmbeddedId
   ObjectId objectId;
-  ObjectState state;
+  State state;
   long sizeInByte;
 
   // k1=v1,k2=v2,k3=v3,...
@@ -57,19 +57,19 @@ class DatabaseStorageObjectEntity {
       .build();
   }
 
-  private static ObjectState mapState(Object object) {
+  private static State mapState(Object object) {
     final Snapshot snapshot = object.getSnapshot();
     final long size = snapshot.getSize();
     final long progressSize = snapshot.getProgressingSize();
     if (size == 0 && progressSize == 0) {
-      return ObjectState.INITIAL;
+      return State.INITIAL;
     }
     if (size == 0 && progressSize > 0) {
-      return ObjectState.PENDING;
+      return State.PENDING;
     }
 
     if (size == 0) {
-      return ObjectState.INITIAL;
+      return State.INITIAL;
     }
 
 
@@ -85,11 +85,11 @@ class DatabaseStorageObjectEntity {
   }
 
   Object toObject(BinaryRepository binaryRepository) {
-    if (state == ObjectState.PENDING) {
+    if (state == State.PENDING) {
       return createPendingObject(binaryRepository);
     }
 
-    if (state == ObjectState.FULFILLED) {
+    if (state == State.FULFILLED) {
       return createFulfilledObject(binaryRepository);
     }
 

@@ -64,7 +64,7 @@ public abstract class Object extends AggregateRoot {
   // TODO: rename
   protected abstract CompletableFuture<Void> upload0(BinarySupplier binarySupplier);
 
-  protected abstract ObjectState getObjectState();
+  protected abstract State getObjectState();
 
   private Try<Void> checkBeforeUpload() {
     addEvent(uploadingTriggered(this, binaryRepository));
