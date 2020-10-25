@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
+import io.lette1394.mediaserver.common.UnknownException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,6 +34,21 @@ public class Snapshot {
       .state(object.getObjectState())
       .progressingSize(0)
       .build();
+  }
+
+  public State computeState() {
+    if (isCompletedNormally()) {
+      return State.FULFILLED;
+    }
+    if (isCompletedExceptionally()) {
+      if (progressingSize > 0) {
+        return State.PENDING;
+      }
+      if (getProgressingSize() == 0) {
+        return State.INITIAL;
+      }
+    }
+    throw new UnknownException("illegal state");
   }
 
   Snapshot update(LifeCycle lifeCycle) {

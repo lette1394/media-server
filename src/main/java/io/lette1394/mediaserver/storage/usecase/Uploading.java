@@ -1,9 +1,9 @@
 package io.lette1394.mediaserver.storage.usecase;
 
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.domain.Storage;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.object.Factory;
+import io.lette1394.mediaserver.storage.domain.object.Object;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;
@@ -16,7 +16,8 @@ public class Uploading {
     final Factory factory = new Factory(storage);
     final Object object = factory.create(command.area, command.key);
 
-    return object.upload(command.binarySupplier)
+    return object
+      .upload(command.binarySupplier)
       .thenCompose(storage::saveObject);
   }
 

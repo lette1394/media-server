@@ -3,10 +3,12 @@ package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
-import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
+import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.object.ObjectRepository;
+import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -16,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +27,7 @@ import lombok.Value;
 import org.reactivestreams.Publisher;
 
 @Value
-public class FileSystemBinaryRepository implements BinaryRepository {
+public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepository {
   String baseDir;
 
   private static boolean isEmptyDirectory(Path path) throws IOException {
@@ -39,13 +42,60 @@ public class FileSystemBinaryRepository implements BinaryRepository {
     return false;
   }
 
+  private static CompletableFuture<Void> wrap(Runnable runnable) {
+    try {
+      runnable.run();
+      return completedFuture(null);
+    } catch (Exception e) {
+      return failedFuture(e);
+    }
+  }
+
+  private static <T> CompletableFuture<T> wrap(Callable<T> callable) {
+    try {
+      return completedFuture(callable.call());
+    } catch (Exception e) {
+      return failedFuture(e);
+    }
+  }
+
+  @Override
+  public CompletableFuture<Boolean> objectExists(Identifier identifier) {
+    return completedFuture(Files.exists(createPath(identifier)));
+  }
+
+  @Override
+  public CompletableFuture<Object> findObject(Identifier identifier) {
+    return wrap(() -> {
+      final byte[] bytes = Files.readAllBytes(createPath(identifier));
+      return FileSystemObjectEntity.fromBytes(bytes, this).getObject();
+    });
+  }
+
+  @Override
+  public CompletableFuture<Object> saveObject(Object object) {
+    final byte[] bytes = new FileSystemObjectEntity(object).toBytes();
+    return wrap(() -> {
+      Files.write(createPath(object.getIdentifier()), bytes);
+      return object;
+    });
+  }
+
+  @Override
+  public CompletableFuture<Void> deleteObject(Identifier identifier) {
+    return wrap(() -> {
+      Files.delete(createPath(identifier));
+      return null;
+    });
+  }
+
   @Override
   public CompletableFuture<BinarySupplier> findBinary(
     Identifier identifier) {
     try {
-      return CompletableFuture.completedFuture(readOp(identifier));
+      return completedFuture(readOp(identifier));
     } catch (IOException e) {
-      return CompletableFuture.failedFuture(e);
+      return failedFuture(e);
     }
   }
 

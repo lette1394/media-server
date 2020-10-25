@@ -4,7 +4,6 @@ import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
 import io.lette1394.mediaserver.common.TimeStamp;
-import io.lette1394.mediaserver.common.UnknownException;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
@@ -52,7 +51,7 @@ class DatabaseStorageObjectEntity {
     final Snapshot snapshot = object.getSnapshot();
 
     return DatabaseStorageObjectEntity.builder()
-      .state(mapState(object))
+      .state(object.getSnapshot().computeState())
       .tagList(fromTags(object.getTags()))
       .sizeInByte(snapshot.getSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
       .progressingSizeInByte(snapshot.getProgressingSize())
@@ -60,23 +59,6 @@ class DatabaseStorageObjectEntity {
       .created(object.getCreated())
       .updated(OffsetDateTime.now())
       .build();
-  }
-
-  private static State mapState(Object object) {
-    final Snapshot snapshot = object.getSnapshot();
-
-    if (snapshot.isCompletedNormally()) {
-      return State.FULFILLED;
-    }
-    if (snapshot.isCompletedExceptionally()) {
-      if (snapshot.getProgressingSize() > 0) {
-        return State.PENDING;
-      }
-      if (snapshot.getProgressingSize() == 0) {
-        return State.INITIAL;
-      }
-    }
-    throw new UnknownException("illegal state");
   }
 
   private static String fromTags(Tags tags) {
