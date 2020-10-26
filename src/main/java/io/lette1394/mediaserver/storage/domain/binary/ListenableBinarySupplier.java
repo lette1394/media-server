@@ -24,16 +24,11 @@ public class ListenableBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getLength() {
-    return binarySupplier.getLength();
-  }
-
-  @Override
   public InputStream getSync() {
     final InputStream sync = binarySupplier.getSync();
     return new InputStream() {
       private boolean isFirstRead = true;
-      private long accumulate = 0L;
+      private long acc = 0L;
 
       @Override
       public int read() throws IOException {
@@ -61,12 +56,12 @@ public class ListenableBinarySupplier implements BinarySupplier {
       }
 
       private void notifyMiddle() {
-        accumulate += 1;
-        listener.duringTransferring(accumulate, getLength());
+        acc += 1;
+        listener.duringTransferring(acc);
       }
 
       private void notifyLast() {
-        listener.afterTransferred(getLength());
+        listener.afterTransferred(acc);
       }
 
       private void notifyAborted(Throwable throwable) {
@@ -79,7 +74,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
   public Publisher<ByteBuffer> getAsync() {
     final Publisher<ByteBuffer> async = binarySupplier.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
-      private long accumulate = 0L;
+      private long acc = 0L;
 
       @Override
       public void onSubscribe(Subscription s) {
@@ -93,8 +88,8 @@ public class ListenableBinarySupplier implements BinarySupplier {
         subscriber.onNext(byteBuffer);
 
         if (remaining > 0) {
-          accumulate += remaining;
-          listener.duringTransferring(accumulate, getLength());
+          acc += remaining;
+          listener.duringTransferring(acc);
         }
       }
 
@@ -107,7 +102,7 @@ public class ListenableBinarySupplier implements BinarySupplier {
       @Override
       public void onComplete() {
         subscriber.onComplete();
-        listener.afterTransferred(accumulate);
+        listener.afterTransferred(acc);
       }
     });
   }
@@ -116,13 +111,16 @@ public class ListenableBinarySupplier implements BinarySupplier {
     default void beforeTransfer() {
     }
 
-    default void duringTransferring(long currentLength, long totalLength) {
+    default void duringTransferring(long currentLength) {
     }
 
+    // TODO: auto close resource
     default void afterTransferred(long totalLength) {
     }
 
-    // 한 번만 실행된다는 걸 보장 해야 한다.
+    // TODO: auto close resource
+    //  AND
+    //  한 번만 실행된다는 걸 보장 해야 한다.
     default void transferAborted(Throwable throwable) {
     }
   }

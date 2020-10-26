@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage;
 
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -10,7 +11,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.reactivestreams.Publisher;
 
 @Value
-public class TestBinarySupplier implements BinarySupplier {
+public class TestBinarySupplier implements LengthAwareBinarySupplier {
   private final static int CHUNK_SIZE = 1024;
   byte[] binary;
 

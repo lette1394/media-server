@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.AutoClosableBinaryRepository;
 import io.lette1394.mediaserver.storage.domain.DeleteAllBinaryWhenClosedBinaryRepository;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.object.Factory;
 import java.io.InputStream;
@@ -20,11 +21,11 @@ class FileSystemBinaryRepositoryTest {
   private static final int CHUNK = 10;
   private static final String BASE_DIR = "out/binaries";
 
-  private AutoClosableBinaryRepository binaryRepository;
+  private AutoClosableBinaryRepository<BinarySupplier> binaryRepository;
 
   @BeforeEach
   void beforeEach() {
-    binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository(
+    binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository<>(
       new FileSystemBinaryRepository(BASE_DIR));
   }
 

@@ -26,16 +26,11 @@ public class ControllableBinarySupplier implements BinarySupplier {
   }
 
   @Override
-  public long getLength() {
-    return binarySupplier.getLength();
-  }
-
-  @Override
   public InputStream getSync() {
     final InputStream sync = binarySupplier.getSync();
     return new InputStream() {
       boolean isFirstRead = true;
-      private long accumulate = 0L;
+      private long acc = 0L;
 
       @Override
       public int read() throws IOException {
@@ -62,12 +57,12 @@ public class ControllableBinarySupplier implements BinarySupplier {
       }
 
       private void checkMiddle() {
-        accumulate += 1;
-        checkSucceed(policy.duringTransferring(accumulate, getLength()));
+        acc += 1;
+        checkSucceed(policy.duringTransferring(acc));
       }
 
       private void checkLast() {
-        checkSucceed(policy.afterTransferred(getLength()));
+        checkSucceed(policy.afterTransferred(acc));
       }
 
       private void checkSucceed(Try<?> result) {
@@ -83,7 +78,7 @@ public class ControllableBinarySupplier implements BinarySupplier {
   public Publisher<ByteBuffer> getAsync() {
     final Publisher<ByteBuffer> async = binarySupplier.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
-      private long accumulate = 0L;
+      private long acc = 0L;
 
       @Override
       public void onSubscribe(Subscription s) {
@@ -98,8 +93,8 @@ public class ControllableBinarySupplier implements BinarySupplier {
         subscriber.onNext(byteBuffer);
 
         if (remaining > 0) {
-          accumulate += remaining;
-          checkSucceed(policy.duringTransferring(accumulate, getLength()));
+          acc += remaining;
+          checkSucceed(policy.duringTransferring(acc));
         }
       }
 
@@ -111,7 +106,7 @@ public class ControllableBinarySupplier implements BinarySupplier {
       @Override
       public void onComplete() {
         subscriber.onComplete();
-        checkSucceed(policy.afterTransferred(accumulate));
+        checkSucceed(policy.afterTransferred(acc));
       }
 
       private void checkSucceed(Try<?> result) {
@@ -128,7 +123,7 @@ public class ControllableBinarySupplier implements BinarySupplier {
       return Tries.SUCCEED;
     }
 
-    default Try<Void> duringTransferring(long currentSize, long total) {
+    default Try<Void> duringTransferring(long currentLength) {
       return Tries.SUCCEED;
     }
 

@@ -1,7 +1,6 @@
 package io.lette1394.mediaserver;
 
 import io.lette1394.mediaserver.storage.infrastructure.springweb.StorageConfiguration;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -12,6 +11,5 @@ public class App {
     new SpringApplicationBuilder()
       .parent(StorageConfiguration.class).web(WebApplicationType.SERVLET)
       .run(args);
-
   }
 }

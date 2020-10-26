@@ -4,7 +4,7 @@ import static io.lette1394.mediaserver.common.Contracts.require;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -14,11 +14,11 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-public class BrokenBinarySupplier implements BinarySupplier {
-  BinarySupplier delegate;
+public class BrokenBinarySupplier implements LengthAwareBinarySupplier {
+  LengthAwareBinarySupplier delegate;
   long exceptionAt;
 
-  public BrokenBinarySupplier(BinarySupplier delegate, long exceptionAt) {
+  public BrokenBinarySupplier(LengthAwareBinarySupplier delegate, long exceptionAt) {
     require(nonNull(delegate), "require: nonNull(binarySupplier)");
     require(exceptionAt >= 0, "require: exceptionAt >= 0");
     require(delegate.getLength() > exceptionAt, "require: delegate.getSize() > exceptionAt");

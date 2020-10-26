@@ -51,13 +51,11 @@ public abstract class Object extends AggregateRoot {
   }
 
   public CompletableFuture<Object> upload(BinarySupplier binarySupplier) {
-    final long length = binarySupplier.getLength();
-
     return checkBeforeUpload().toCompletableFuture()
       .thenCompose(__ -> upload0(wrap(binarySupplier)))
       .thenCompose(__1 ->
-        // TODO: 실제 올라간 사이즈로 체크해야 하지 않나?
-        checkAfterUploaded(binarySupplier.getLength()).map(__2 -> this).toCompletableFuture());
+        checkAfterUploaded(currentSnapshot.getProgressingSize())
+          .map(__2 -> this).toCompletableFuture());
   }
 
   public CompletableFuture<BinarySupplier> download() {
@@ -125,16 +123,21 @@ public abstract class Object extends AggregateRoot {
       }
 
       @Override
-      public void duringTransferring(long currentLength, long totalLength) {
+      public void duringTransferring(long currentLength) {
         currentSnapshot.update(currentLength);
+      }
+
+      @Override
+      public void afterTransferred(long totalLength) {
+        currentSnapshot.update(totalLength);
       }
     });
 
     return new ControllableBinarySupplier(
       listenableBinarySupplier, new ControllableBinarySupplier.Policy() {
       @Override
-      public Try<Void> duringTransferring(long currentSize, long total) {
-        return checkDuringUploading(currentSize);
+      public Try<Void> duringTransferring(long currentLength) {
+        return checkDuringUploading(currentLength);
       }
     });
   }

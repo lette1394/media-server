@@ -20,7 +20,7 @@ import org.reactivestreams.Publisher;
  * @author Jae eun Na
  * @see ListenableBinarySupplier
  * @see ControllableBinarySupplier
- * @see DelegatingBinarySupplier
+ * @see BaseBinarySupplier
  */
 public interface BinarySupplier {
   /**
@@ -36,14 +36,6 @@ public interface BinarySupplier {
    * @return whether this binary supported in async way
    */
   boolean isAsyncSupported();
-
-  /**
-   * Represents total binary length.
-   *
-   * @return binary length
-   */
-  long getLength();
-
 
   /**
    * @return InputStream: sync way binary

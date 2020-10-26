@@ -4,14 +4,13 @@ package io.lette1394.mediaserver.storage.infrastructure.springweb;
 import io.lette1394.mediaserver.storage.domain.Storage;
 import io.lette1394.mediaserver.storage.domain.Storage.StorageBuilder;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemBinaryRepository;
-import io.lette1394.mediaserver.storage.usecase.Downloading;
+import io.lette1394.mediaserver.storage.usecase.DownloadingBinary;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 
 @SpringBootConfiguration
 @ComponentScan("io.lette1394.mediaserver.storage.infrastructure.springweb")
@@ -28,8 +27,8 @@ public class StorageConfiguration {
   }
 
   @Bean
-  Downloading downloading() {
-    return new Downloading(springWebStorage);
+  DownloadingBinary downloading() {
+    return new DownloadingBinary(springWebStorage);
   }
 
   @Bean

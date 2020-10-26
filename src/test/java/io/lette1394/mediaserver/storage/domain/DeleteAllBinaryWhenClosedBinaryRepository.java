@@ -10,26 +10,24 @@ import java.util.stream.Collectors;
 import lombok.Value;
 
 @Value
-public class DeleteAllBinaryWhenClosedBinaryRepository implements AutoClosableBinaryRepository {
+public class DeleteAllBinaryWhenClosedBinaryRepository<T extends BinarySupplier> implements
+  AutoClosableBinaryRepository<T> {
   Set<Identifier> createdObjects = new HashSet<>();
-  BinaryRepository repository;
+  BinaryRepository<T> repository;
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
-    Identifier identifier) {
+  public CompletableFuture<T> findBinary(Identifier identifier) {
     return repository.findBinary(identifier);
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> saveBinary(Identifier identifier, T binarySupplier) {
     return repository.saveBinary(identifier, binarySupplier)
       .thenAccept(__ -> memory(identifier));
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> appendBinary(Identifier identifier, T binarySupplier) {
     return repository.appendBinary(identifier, binarySupplier);
   }
 

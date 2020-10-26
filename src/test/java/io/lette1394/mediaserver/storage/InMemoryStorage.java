@@ -6,6 +6,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.Storage;
@@ -100,7 +101,7 @@ public class InMemoryStorage implements Storage {
     Identifier identifier) {
     final byte[] binaries = binaryHolder.get(identifier);
     return completedFuture(
-      new BinarySupplier() {
+      new LengthAwareBinarySupplier() {
         @Override
         public boolean isSyncSupported() {
           return true;

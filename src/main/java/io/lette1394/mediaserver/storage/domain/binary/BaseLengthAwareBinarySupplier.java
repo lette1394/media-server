@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 
-public class BaseBinarySupplier implements BinarySupplier {
+public class BaseLengthAwareBinarySupplier implements LengthAwareBinarySupplier {
   @Override
   public boolean isSyncSupported() {
     return false;
@@ -13,6 +13,11 @@ public class BaseBinarySupplier implements BinarySupplier {
   @Override
   public boolean isAsyncSupported() {
     return false;
+  }
+
+  @Override
+  public long getLength() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

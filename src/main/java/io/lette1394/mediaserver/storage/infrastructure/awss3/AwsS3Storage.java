@@ -1,14 +1,14 @@
 package io.lette1394.mediaserver.storage.infrastructure.awss3;
 
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.Storage;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.Storage;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;
 
 @Value
-public class AwsS3Storage implements Storage {
+public class AwsS3Storage implements Storage<LengthAwareBinarySupplier> {
   AwsClient client;
 
   @Override
@@ -32,20 +32,20 @@ public class AwsS3Storage implements Storage {
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
+  public CompletableFuture<LengthAwareBinarySupplier> findBinary(
     Identifier identifier) {
     return CompletableFuture.failedFuture(new RuntimeException());
   }
 
   @Override
   public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    LengthAwareBinarySupplier binarySupplier) {
     return client.put(new AwsObjectPath(identifier), binarySupplier);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    LengthAwareBinarySupplier binarySupplier) {
     return null;
   }
 

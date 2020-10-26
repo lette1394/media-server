@@ -9,9 +9,10 @@ import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.domain.object.Policy;
 import io.vavr.control.Try;
 
@@ -20,7 +21,7 @@ public class ObjectFixture {
     return new Identifier(randomAlphanumeric(5), randomAlphanumeric(5));
   }
 
-  public static BinaryRepository memory() {
+  public static BinaryRepository<?> memory() {
     return new InMemoryStorage();
   }
 
@@ -32,7 +33,7 @@ public class ObjectFixture {
     final int start = 1024;
     final int size = nextInt(start, start * 10);
 
-    final BinarySupplier binarySupplier = new TestBinarySupplier(nextBytes(size + 1));
+    final LengthAwareBinarySupplier binarySupplier = new TestBinarySupplier(nextBytes(size + 1));
     return new BrokenBinarySupplier(binarySupplier, nextInt(start, size));
   }
 

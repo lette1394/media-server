@@ -5,6 +5,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.object.ObjectRepository;
@@ -27,7 +28,7 @@ import lombok.Value;
 import org.reactivestreams.Publisher;
 
 @Value
-public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepository {
+public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepository<BinarySupplier> {
   String baseDir;
 
   private static boolean isEmptyDirectory(Path path) throws IOException {
@@ -40,15 +41,6 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
       }
     }
     return false;
-  }
-
-  private static CompletableFuture<Void> wrap(Runnable runnable) {
-    try {
-      runnable.run();
-      return completedFuture(null);
-    } catch (Exception e) {
-      return failedFuture(e);
-    }
   }
 
   private static <T> CompletableFuture<T> wrap(Callable<T> callable) {
@@ -151,11 +143,11 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
     }
   }
 
-  private BinarySupplier readBinary(Identifier identifier) throws IOException {
+  private LengthAwareBinarySupplier readBinary(Identifier identifier) throws IOException {
     final Path objectPath = createPath(identifier, "");
     final InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
 
-    return new BinarySupplier() {
+    return new LengthAwareBinarySupplier() {
       @Override
       public boolean isSyncSupported() {
         return true;
