@@ -28,7 +28,8 @@ import lombok.Value;
 import org.reactivestreams.Publisher;
 
 @Value
-public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepository<BinarySupplier> {
+public class FileSystemBinaryRepository implements ObjectRepository,
+  BinaryRepository<LengthAwareBinarySupplier> {
   String baseDir;
 
   private static boolean isEmptyDirectory(Path path) throws IOException {
@@ -82,8 +83,7 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
-    Identifier identifier) {
+  public CompletableFuture<LengthAwareBinarySupplier> findBinary(Identifier identifier) {
     try {
       return completedFuture(readBinary(identifier));
     } catch (IOException e) {
@@ -93,14 +93,14 @@ public class FileSystemBinaryRepository implements ObjectRepository, BinaryRepos
 
   @Override
   public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    LengthAwareBinarySupplier binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    LengthAwareBinarySupplier binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
   }
 

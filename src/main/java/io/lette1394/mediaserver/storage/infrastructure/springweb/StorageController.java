@@ -37,7 +37,7 @@ public class StorageController {
 
   @GetMapping("/{area}/{key}")
   StreamingResponseBody getStreamingObject(@PathVariable String area, @PathVariable String key) {
-    final CompletableFuture<BinarySupplier> binaries = downloadingChunked
+    final CompletableFuture<? extends BinarySupplier> binaries = downloadingChunked
       .download(new Identifier(area, key));
 
     // TODO: presentation layer

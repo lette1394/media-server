@@ -29,11 +29,11 @@ public abstract class Object extends AggregateRoot {
   protected final TimeStamp timeStamp;
 
   protected final Policy policy;
-  protected final BinaryRepository binaryRepository;
+  protected final BinaryRepository<? super BinarySupplier> binaryRepository;
 
   protected Object(
     Identifier identifier,
-    BinaryRepository binaryRepository,
+    BinaryRepository<? super BinarySupplier> binaryRepository,
     Policy policy, TimeStamp timeStamp, Tags tags) {
 
     this.identifier = identifier;
@@ -58,7 +58,7 @@ public abstract class Object extends AggregateRoot {
           .map(__2 -> this).toCompletableFuture());
   }
 
-  public CompletableFuture<BinarySupplier> download() {
+  public CompletableFuture<? extends BinarySupplier> download() {
     return checkBeforeDownload().toCompletableFuture()
       .thenCompose(__ -> binaryRepository.findBinary(identifier));
   }

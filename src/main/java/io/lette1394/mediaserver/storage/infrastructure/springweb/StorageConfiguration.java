@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.storage.infrastructure.springweb;
 
 import io.lette1394.mediaserver.storage.domain.Storage;
 import io.lette1394.mediaserver.storage.domain.Storage.StorageBuilder;
+import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemBinaryRepository;
 import io.lette1394.mediaserver.storage.usecase.DownloadingBinary;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
@@ -16,10 +17,10 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan("io.lette1394.mediaserver.storage.infrastructure.springweb")
 @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
 public class StorageConfiguration {
-  private final static Storage springWebStorage;
+  private final static Storage<LengthAwareBinarySupplier> springWebStorage;
 
   static {
-    springWebStorage = StorageBuilder.builder()
+    springWebStorage = StorageBuilder.<LengthAwareBinarySupplier>builder()
       .objects(new FileSystemBinaryRepository("objects"))
       .binaries(new FileSystemBinaryRepository("binaries"))
       .build()

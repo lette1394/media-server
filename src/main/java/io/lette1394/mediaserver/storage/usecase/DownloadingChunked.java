@@ -9,10 +9,10 @@ import lombok.Value;
 
 @Value
 public class DownloadingChunked {
-  Storage<BinarySupplier> storage;
+  Storage<? extends BinarySupplier> storage;
 
   // TODO: checked exception
-  public CompletableFuture<BinarySupplier> download(Identifier identifier) {
+  public CompletableFuture<? extends BinarySupplier> download(Identifier identifier) {
     return storage.findObject(identifier)
       .thenCompose(Object::download);
   }

@@ -25,7 +25,7 @@ public interface Storage<T extends BinarySupplier> extends ObjectRepository, Bin
     public Storage<T> toStorage() {
       return new Storage<>() {
         @Override
-        public CompletableFuture<T> findBinary(Identifier identifier) {
+        public CompletableFuture<? extends T> findBinary(Identifier identifier) {
           return binaries.findBinary(identifier);
         }
 

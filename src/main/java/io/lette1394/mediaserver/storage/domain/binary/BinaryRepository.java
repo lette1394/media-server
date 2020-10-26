@@ -10,7 +10,7 @@ public interface BinaryRepository<T extends BinarySupplier> {
       .exceptionally(__ -> false);
   }
 
-  CompletableFuture<T> findBinary(Identifier identifier);
+  CompletableFuture<? extends T> findBinary(Identifier identifier);
 
   CompletableFuture<Void> saveBinary(Identifier identifier, T binarySupplier);
 
