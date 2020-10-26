@@ -19,6 +19,15 @@ import java.util.concurrent.CompletableFuture;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+
+// TODO:
+//  Async 방식만 지원 -> Async는 Sync의 super set 이라는 판단
+//  -->> async -> sync (can) / sync -> async (can't)
+//  Async/Sync를 모두 지원할 수 없음 -> 이런 경우는 결국 usecase에서도 갈라지는데 이러면 Object가 이렇게 handling 하는 이유를 찾을 수 없다
+//  1. Object<BUFFER_TYPE> 으로 변경
+//  2. BinarySupplier는 async 모드만 지원, 아마도 단순한 Publisher supplier가 될 듯
+//  3. (이거 필요한지 검토) 그러나 테스트의 용이성을 위해 기존 sync 방식은 지원
+//    --> 이거그냥 AsyncAggregateReader 이랑 SingleThreadInputStreamPublisher 이거 쓰면 되는거 아니냐?
 @EqualsAndHashCode(of = "identifier", callSuper = false)
 public abstract class Object extends AggregateRoot {
   @Getter
