@@ -5,6 +5,7 @@ import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
 import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
@@ -69,7 +70,7 @@ class DatabaseStorageObjectEntity {
       .collect(Collectors.joining(TAG_DELIMITER));
   }
 
-  Object toObject(BinaryRepository binaryRepository) {
+  Object toObject(BinaryRepository<? super BinarySupplier> binaryRepository) {
     if (state == State.PENDING) {
       return createPendingObject(binaryRepository);
     }
@@ -81,7 +82,7 @@ class DatabaseStorageObjectEntity {
     throw new IllegalStateException();
   }
 
-  private FulfilledObject createFulfilledObject(BinaryRepository binaryRepository) {
+  private FulfilledObject createFulfilledObject(BinaryRepository<? super BinarySupplier> binaryRepository) {
     return FulfilledObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
@@ -95,7 +96,7 @@ class DatabaseStorageObjectEntity {
       .build();
   }
 
-  private PendingObject createPendingObject(BinaryRepository binaryRepository) {
+  private PendingObject createPendingObject(BinaryRepository<? super BinarySupplier> binaryRepository) {
     return PendingObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))

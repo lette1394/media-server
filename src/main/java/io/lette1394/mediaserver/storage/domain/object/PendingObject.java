@@ -12,7 +12,7 @@ public class PendingObject extends Object {
 
   @Builder
   public PendingObject(Identifier identifier,
-    BinaryRepository binaryRepository, Policy policy,
+    BinaryRepository<? super BinarySupplier> binaryRepository, Policy policy,
     TimeStamp timeStamp,
     Tags tags, PositiveLong size) {
     super(identifier, binaryRepository, policy, timeStamp, tags);

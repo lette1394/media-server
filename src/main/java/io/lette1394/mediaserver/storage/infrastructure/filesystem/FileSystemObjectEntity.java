@@ -7,6 +7,7 @@ import static java.lang.String.format;
 
 import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
@@ -30,7 +31,7 @@ public class FileSystemObjectEntity {
   private static final String LINE_SEPARATOR = "\n";
   Object object;
 
-  public static FileSystemObjectEntity fromBytes(byte[] bytes, BinaryRepository binaryRepository) {
+  public static FileSystemObjectEntity fromBytes(byte[] bytes, BinaryRepository<? super BinarySupplier> binaryRepository) {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
