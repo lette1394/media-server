@@ -1,7 +1,11 @@
 package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 
+import static io.vavr.API.$;
+import static io.vavr.API.Case;
+import static io.vavr.API.Match;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static reactor.core.publisher.SignalType.ON_COMPLETE;
 
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
@@ -13,11 +17,12 @@ import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPu
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -26,10 +31,13 @@ import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import lombok.Value;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.SignalType;
 
 @Value
 public class FileSystemBinaryRepository implements ObjectRepository,
-  BinaryRepository<LengthAwareBinarySupplier> {
+  BinaryRepository {
+
   String baseDir;
 
   private static boolean isEmptyDirectory(Path path) throws IOException {
@@ -92,15 +100,14 @@ public class FileSystemBinaryRepository implements ObjectRepository,
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier,
-    LengthAwareBinarySupplier binarySupplier) {
+  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    LengthAwareBinarySupplier binarySupplier) {
+    BinarySupplier binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
   }
 
@@ -133,13 +140,25 @@ public class FileSystemBinaryRepository implements ObjectRepository,
         return failedFuture(new RuntimeException("parent not exists"));
       }
       parent.toFile().mkdirs();
-      Files.copy(binarySupplier.getSync(), path, StandardCopyOption.REPLACE_EXISTING);
 
-      return completedFuture(null);
-    } catch (IOException e) {
-      return failedFuture(e);
-    } finally {
-      executorService.shutdownNow();
+      final WritableByteChannel channel = Channels
+        .newChannel(Files.newOutputStream(path));
+      // TODO: impl
+      CompletableFuture<Void> ret = new CompletableFuture<>();
+
+      Flux.from(binarySupplier.getAsync())
+        .doOnComplete(() -> ret.complete(null))
+        .doOnError(e -> ret.completeExceptionally(e))
+        .subscribe(byteBuffer -> {
+          try {
+            channel.write(byteBuffer);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+      return ret;
+    } catch (Exception e) {
+      return CompletableFuture.failedFuture(e);
     }
   }
 
@@ -149,23 +168,8 @@ public class FileSystemBinaryRepository implements ObjectRepository,
 
     return new LengthAwareBinarySupplier() {
       @Override
-      public boolean isSyncSupported() {
-        return true;
-      }
-
-      @Override
-      public boolean isAsyncSupported() {
-        return true;
-      }
-
-      @Override
       public long getLength() {
         return objectPath.toFile().length();
-      }
-
-      @Override
-      public InputStream getSync() {
-        return inputStream;
       }
 
       @Override

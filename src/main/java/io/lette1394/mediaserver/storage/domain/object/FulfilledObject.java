@@ -12,7 +12,7 @@ public class FulfilledObject extends Object {
 
   @Builder
   public FulfilledObject(Identifier identifier,
-    BinaryRepository<? super BinarySupplier> binaryRepository, Policy policy,
+    BinaryRepository binaryRepository, Policy policy,
     TimeStamp timeStamp,
     Tags tags, PositiveLong size) {
     super(identifier, binaryRepository, policy, timeStamp, tags);

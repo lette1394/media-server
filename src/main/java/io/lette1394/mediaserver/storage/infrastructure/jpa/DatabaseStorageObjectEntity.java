@@ -70,7 +70,7 @@ class DatabaseStorageObjectEntity {
       .collect(Collectors.joining(TAG_DELIMITER));
   }
 
-  Object toObject(BinaryRepository<? super BinarySupplier> binaryRepository) {
+  Object toObject(BinaryRepository binaryRepository) {
     if (state == State.PENDING) {
       return createPendingObject(binaryRepository);
     }
@@ -82,7 +82,7 @@ class DatabaseStorageObjectEntity {
     throw new IllegalStateException();
   }
 
-  private FulfilledObject createFulfilledObject(BinaryRepository<? super BinarySupplier> binaryRepository) {
+  private FulfilledObject createFulfilledObject(BinaryRepository binaryRepository) {
     return FulfilledObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))
@@ -96,7 +96,7 @@ class DatabaseStorageObjectEntity {
       .build();
   }
 
-  private PendingObject createPendingObject(BinaryRepository<? super BinarySupplier> binaryRepository) {
+  private PendingObject createPendingObject(BinaryRepository binaryRepository) {
     return PendingObject.builder()
       .binaryRepository(binaryRepository)
       .identifier(new Identifier(objectId.area, objectId.key))

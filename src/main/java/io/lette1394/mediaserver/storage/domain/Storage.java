@@ -8,34 +8,34 @@ import io.lette1394.mediaserver.storage.domain.object.ObjectRepository;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
-public interface Storage<T extends BinarySupplier> extends ObjectRepository, BinaryRepository<T> {
+public interface Storage extends ObjectRepository, BinaryRepository {
 
-  class StorageBuilder<T extends BinarySupplier> {
+  class StorageBuilder {
     ObjectRepository objects;
-    BinaryRepository<T> binaries;
+    BinaryRepository binaries;
 
     @Builder
     public StorageBuilder(
       ObjectRepository objects,
-      BinaryRepository<T> binaries) {
+      BinaryRepository binaries) {
       this.objects = objects;
       this.binaries = binaries;
     }
 
-    public Storage<T> toStorage() {
-      return new Storage<>() {
+    public Storage toStorage() {
+      return new Storage() {
         @Override
-        public CompletableFuture<? extends T> findBinary(Identifier identifier) {
+        public CompletableFuture<? extends BinarySupplier> findBinary(Identifier identifier) {
           return binaries.findBinary(identifier);
         }
 
         @Override
-        public CompletableFuture<Void> saveBinary(Identifier identifier, T binarySupplier) {
+        public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier binarySupplier) {
           return binaries.saveBinary(identifier, binarySupplier);
         }
 
         @Override
-        public CompletableFuture<Void> appendBinary(Identifier identifier, T binarySupplier) {
+        public CompletableFuture<Void> appendBinary(Identifier identifier, BinarySupplier binarySupplier) {
           return binaries.appendBinary(identifier, binarySupplier);
         }
 

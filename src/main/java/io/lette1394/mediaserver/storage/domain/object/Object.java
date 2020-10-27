@@ -38,11 +38,11 @@ public abstract class Object extends AggregateRoot {
   protected final TimeStamp timeStamp;
 
   protected final Policy policy;
-  protected final BinaryRepository<? super BinarySupplier> binaryRepository;
+  protected final BinaryRepository binaryRepository;
 
   protected Object(
     Identifier identifier,
-    BinaryRepository<? super BinarySupplier> binaryRepository,
+    BinaryRepository binaryRepository,
     Policy policy, TimeStamp timeStamp, Tags tags) {
 
     this.identifier = identifier;

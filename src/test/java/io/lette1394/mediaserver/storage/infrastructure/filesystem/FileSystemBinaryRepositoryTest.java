@@ -6,26 +6,28 @@ import static org.hamcrest.Matchers.is;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.AutoClosableBinaryRepository;
 import io.lette1394.mediaserver.storage.domain.DeleteAllBinaryWhenClosedBinaryRepository;
-import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import java.io.InputStream;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
+import java.nio.ByteBuffer;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Publisher;
 
 class FileSystemBinaryRepositoryTest {
+
   private static final int EOF = -1;
   private static final int CHUNK = 10;
   private static final String BASE_DIR = "out/binaries";
 
-  private AutoClosableBinaryRepository<LengthAwareBinarySupplier> binaryRepository;
+  private AutoClosableBinaryRepository binaryRepository;
 
   @BeforeEach
   void beforeEach() {
-    binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository<>(
+    binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository(
       new FileSystemBinaryRepository(BASE_DIR));
   }
 
@@ -49,16 +51,16 @@ class FileSystemBinaryRepositoryTest {
       .saveBinary(object.getIdentifier(), new TestBinarySupplier(binary))
       .join();
 
-    final byte[] holder = new byte[CHUNK];
-    final InputStream inputStream = binaryRepository
+    final Publisher<ByteBuffer> async = binaryRepository
       .findBinary(object.getIdentifier())
       .join()
-      .getSync();
-    final int readLength = inputStream.read(holder);
-    final int expectEOF = inputStream.read();
+      .getAsync();
 
-    assertThat(readLength, is(CHUNK));
-    assertThat(expectEOF, is(EOF));
-    assertThat(holder, is(binary));
+    final ByteBufferToByteArrayAsyncAggregateReader reader
+      = new ByteBufferToByteArrayAsyncAggregateReader(1);
+    final byte[] afterRead = reader.read(async).join();
+
+    assertThat(afterRead.length, is(CHUNK));
+    assertThat(afterRead, is(binary));
   }
 }

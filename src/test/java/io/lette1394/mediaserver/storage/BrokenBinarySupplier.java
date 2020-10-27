@@ -5,8 +5,6 @@ import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
 import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import lombok.Value;
 import org.reactivestreams.Publisher;
@@ -15,6 +13,7 @@ import org.reactivestreams.Subscription;
 
 @Value
 public class BrokenBinarySupplier implements LengthAwareBinarySupplier {
+
   LengthAwareBinarySupplier delegate;
   long exceptionAt;
 
@@ -28,37 +27,8 @@ public class BrokenBinarySupplier implements LengthAwareBinarySupplier {
   }
 
   @Override
-  public boolean isSyncSupported() {
-    return delegate.isSyncSupported();
-  }
-
-  @Override
-  public boolean isAsyncSupported() {
-    return delegate.isAsyncSupported();
-  }
-
-  @Override
   public long getLength() {
     return delegate.getLength();
-  }
-
-  @Override
-  public InputStream getSync() {
-    final InputStream sync = delegate.getSync();
-    return new InputStream() {
-      private long position = 0;
-
-      @Override
-      public int read() throws IOException {
-        if (position == exceptionAt) {
-          throw new BrokenIOException(
-            format("broken read triggered, size:[%s], exceptionAt:[%s]",
-              getLength(), exceptionAt));
-        }
-        position += 1;
-        return sync.read();
-      }
-    };
   }
 
   @Override

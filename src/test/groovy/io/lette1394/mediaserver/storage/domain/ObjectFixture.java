@@ -21,7 +21,7 @@ public class ObjectFixture {
     return new Identifier(randomAlphanumeric(5), randomAlphanumeric(5));
   }
 
-  public static BinaryRepository<?> memory() {
+  public static BinaryRepository memory() {
     return new InMemoryStorage();
   }
 

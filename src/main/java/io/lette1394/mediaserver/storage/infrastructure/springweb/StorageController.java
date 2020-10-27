@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.storage.infrastructure.springweb;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
+import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import io.lette1394.mediaserver.storage.usecase.DownloadingBinary;
 import io.lette1394.mediaserver.storage.usecase.DownloadingChunked;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
@@ -26,17 +27,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import reactor.core.publisher.Flux;
-import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 
 @RestController
 @RequiredArgsConstructor
 public class StorageController {
+
   private final DownloadingBinary downloadingBinary;
   private final DownloadingChunked downloadingChunked;
   private final Uploading uploading;
 
   @GetMapping("/{area}/{key}")
-  StreamingResponseBody getStreamingObject(@PathVariable String area, @PathVariable String key) {
+  StreamingResponseBody getObject(@PathVariable String area, @PathVariable String key) {
     final CompletableFuture<? extends BinarySupplier> binaries = downloadingChunked
       .download(new Identifier(area, key));
 
@@ -45,66 +46,18 @@ public class StorageController {
       WritableByteChannel channel = Channels.newChannel(outputStream);
 
       binaries.thenAccept(binarySupplier -> {
-        if (binarySupplier.isAsyncSupported()) {
-          System.out.println("async download");
-          Flux.from(binarySupplier.getAsync())
-            .subscribe(byteBuffer -> {
-              try {
-                channel.write(byteBuffer);
-              } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-              }
-            });
-        }
-        if (binarySupplier.isSyncSupported()) {
-          System.out.println("sync download");
-          try {
-            IOUtils.copy(binarySupplier.getSync(), outputStream);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-        throw new RuntimeException();
+        System.out.println("async download");
+        Flux.from(binarySupplier.getAsync())
+          .subscribe(byteBuffer -> {
+            try {
+              channel.write(byteBuffer);
+            } catch (IOException e) {
+              e.printStackTrace();
+              throw new RuntimeException(e);
+            }
+          });
       });
     };
-  }
-
-  @GetMapping("/{area}/{key}")
-  CompletableFuture<?> getObject(
-    @PathVariable String area,
-    @PathVariable String key) {
-
-    // TODO: presentation layer
-    return downloadingBinary.download(new Identifier(area, key))
-      .thenApply(binarySupplier -> {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        final long length = binarySupplier.getLength();
-        final InputStream sync = binarySupplier.getSync();
-        final InputStreamResource inputStreamResource = new InputStreamResource(sync);
-
-        httpHeaders.setContentLength(length);
-        return new ResponseEntity<>(inputStreamResource, httpHeaders, HttpStatus.OK);
-      });
-  }
-
-
-  @PostMapping("/{area}/{key}")
-  CompletableFuture<?> putStreamingObject(
-    @PathVariable String area,
-    @PathVariable String key,
-    HttpServletRequest request) throws IOException {
-
-
-    final ServletInputStream inputStream = request.getInputStream();
-    final int contentLength = request.getContentLength();
-
-    return uploading.upload(Uploading.Command.builder()
-      .identifier(new Identifier(area, key))
-      .binarySupplier(BinarySupplierFactory.from(inputStream, contentLength))
-      .tags(Map.of())
-      .build())
-      .thenApply(object -> String.format("uploaded! length:[%s]", contentLength));
   }
 
   @PostMapping("/{area}/{key}")
@@ -118,7 +71,7 @@ public class StorageController {
 
     return uploading.upload(Uploading.Command.builder()
       .identifier(new Identifier(area, key))
-      .binarySupplier(BinarySupplierFactory.from(inputStream, contentLength))
+      .binarySupplier(BinarySupplierFactory.from(new SingleThreadInputStreamPublisher(inputStream, 10), contentLength))
       .tags(Map.of())
       .build())
       .thenApply(object -> String.format("uploaded! length:[%s]", contentLength));

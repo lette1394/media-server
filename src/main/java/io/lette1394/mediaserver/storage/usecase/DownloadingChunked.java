@@ -9,7 +9,7 @@ import lombok.Value;
 
 @Value
 public class DownloadingChunked {
-  Storage<? extends BinarySupplier> storage;
+  Storage storage;
 
   // TODO: checked exception
   public CompletableFuture<? extends BinarySupplier> download(Identifier identifier) {

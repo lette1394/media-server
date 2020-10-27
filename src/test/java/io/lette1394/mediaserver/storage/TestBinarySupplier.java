@@ -4,7 +4,6 @@ import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import lombok.Value;
 import org.apache.commons.lang3.RandomUtils;
@@ -12,6 +11,7 @@ import org.reactivestreams.Publisher;
 
 @Value
 public class TestBinarySupplier implements LengthAwareBinarySupplier {
+
   private final static int CHUNK_SIZE = 1024;
   byte[] binary;
 
@@ -24,23 +24,8 @@ public class TestBinarySupplier implements LengthAwareBinarySupplier {
   }
 
   @Override
-  public boolean isSyncSupported() {
-    return true;
-  }
-
-  @Override
-  public boolean isAsyncSupported() {
-    return true;
-  }
-
-  @Override
   public long getLength() {
     return binary.length;
-  }
-
-  @Override
-  public InputStream getSync() {
-    return new ByteArrayInputStream(binary);
   }
 
   @Override

@@ -10,7 +10,7 @@ public class InitialObject extends Object {
 
   @Builder
   public InitialObject(Identifier identifier,
-    BinaryRepository<? super BinarySupplier> binaryRepository, Policy policy,
+    BinaryRepository binaryRepository, Policy policy,
     TimeStamp timeStamp,
     Tags tags) {
     super(identifier, binaryRepository, policy, timeStamp, tags);

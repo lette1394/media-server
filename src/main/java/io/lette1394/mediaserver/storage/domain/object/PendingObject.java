@@ -8,11 +8,12 @@ import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 
 public class PendingObject extends Object {
+
   private final PositiveLong size;
 
   @Builder
   public PendingObject(Identifier identifier,
-    BinaryRepository<? super BinarySupplier> binaryRepository, Policy policy,
+    BinaryRepository binaryRepository, Policy policy,
     TimeStamp timeStamp,
     Tags tags, PositiveLong size) {
     super(identifier, binaryRepository, policy, timeStamp, tags);

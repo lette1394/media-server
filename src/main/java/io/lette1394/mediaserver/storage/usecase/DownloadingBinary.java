@@ -10,7 +10,7 @@ import lombok.Value;
 
 @Value
 public class DownloadingBinary {
-  Storage<LengthAwareBinarySupplier> storage;
+  Storage storage;
 
   public CompletableFuture<LengthAwareBinarySupplier> download(Identifier identifier)
     throws ObjectNotFoundException {

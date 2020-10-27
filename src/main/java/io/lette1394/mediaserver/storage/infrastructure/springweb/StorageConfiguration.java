@@ -17,7 +17,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan("io.lette1394.mediaserver.storage.infrastructure.springweb")
 @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
 public class StorageConfiguration {
-  private final static Storage<LengthAwareBinarySupplier> springWebStorage;
+  private final static Storage springWebStorage;
 
   static {
     springWebStorage = StorageBuilder.<LengthAwareBinarySupplier>builder()
