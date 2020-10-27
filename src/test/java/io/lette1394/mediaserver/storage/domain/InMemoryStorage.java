@@ -6,7 +6,7 @@ import lombok.Value;
 import reactor.core.publisher.Flux;
 
 @Value
-public class InMemoryStorage<T extends StringLike> implements BinaryRepository<T> {
+public class InMemoryStorage implements BinaryRepository<StringLike> {
 
   int chunkSize;
 
@@ -19,16 +19,20 @@ public class InMemoryStorage<T extends StringLike> implements BinaryRepository<T
   }
 
   @Override
-  public CompletableFuture<? extends BinarySupplier<T>> find(
+  public CompletableFuture<BinarySupplier<StringLike>> find(
     BinaryPath binaryPath) {
     return null;
   }
 
   @Override
   public CompletableFuture<Void> save(BinaryPath key,
-    BinarySupplier<? extends T> binarySupplier) {
+    BinarySupplier<StringLike> binarySupplier) {
     CompletableFuture<Void> future = new CompletableFuture<>();
-    final Flux<? extends StringLike> from = Flux.from(binarySupplier.getAsync());
+
+    final Flux<StringLike> from1 = Flux.from(binarySupplier.getAsync());
+    from1.subscribe(t -> t.getValue());
+
+    final Flux<StringLike> from = Flux.from(binarySupplier.getAsync());
     from
       .doOnComplete(() -> future.complete(null))
       .subscribe(o -> System.out.println(o.getValue()));
@@ -37,7 +41,7 @@ public class InMemoryStorage<T extends StringLike> implements BinaryRepository<T
 
   @Override
   public CompletableFuture<Void> append(BinaryPath key,
-    BinarySupplier<? extends T> binarySupplier) {
+    BinarySupplier<StringLike> binarySupplier) {
     return null;
   }
 

@@ -11,12 +11,12 @@ import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public abstract class Binary {
+public abstract class Binary<BUFFER extends SizeAware> {
 
   protected final Notifiable root;
   protected final BinaryPolicy policy;
-  protected final BinarySupplier<? extends SizeAware> binarySupplier;
-  protected final BinaryRepository binaryRepository;
+  protected final BinarySupplier<BUFFER> binarySupplier;
+  protected final BinaryRepository<BUFFER> binaryRepository;
 
   private final BinarySnapshot snapshot = BinarySnapshot.builder()
     .build();
@@ -25,7 +25,7 @@ public abstract class Binary {
     return binaryRepository.save(path, binarySupplier);
   }
 
-  public CompletableFuture<Void> upload(BinarySupplier<? extends SizeAware> binarySupplier) {
+  public CompletableFuture<Void> upload(BinarySupplier<BUFFER> binarySupplier) {
     return checkBeforeUpload().toCompletableFuture()
       .thenCompose(__ -> doUpload(wrap(binarySupplier)))
       .thenCompose(__1 ->
@@ -34,7 +34,7 @@ public abstract class Binary {
   }
 
   // TODO: rename
-  protected abstract CompletableFuture<Void> doUpload(BinarySupplier<? extends SizeAware> binarySupplier);
+  protected abstract CompletableFuture<Void> doUpload(BinarySupplier<BUFFER> binarySupplier);
 
   private Try<Void> checkBeforeUpload() {
     root.notify(uploadingTriggered());
@@ -65,8 +65,8 @@ public abstract class Binary {
     root.notify(uploadingAborted(throwable));
   }
 
-  private BinarySupplier<? extends SizeAware> wrap(BinarySupplier<? extends SizeAware> binarySupplier) {
-    final BinarySupplier<? extends SizeAware> listenableBinarySupplier = new ListenableBinarySupplier<>(
+  private BinarySupplier<BUFFER> wrap(BinarySupplier<BUFFER> binarySupplier) {
+    final BinarySupplier<BUFFER> listenableBinarySupplier = new ListenableBinarySupplier<>(
       binarySupplier, new Listener() {
       //TODO: 클래스로 빼자
       private boolean aborted = false;
