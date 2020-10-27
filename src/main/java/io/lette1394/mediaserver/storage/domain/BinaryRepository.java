@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import java.util.concurrent.CompletableFuture;
 
 public interface BinaryRepository<BUFFER extends SizeAware> {

@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.experimental.Delegate;
 
 @Getter
-public class BinarySnapshot {
+class BinarySnapshot {
   @Delegate(excludes = Enum.class)
   private Type type;
   private long progressingSize;

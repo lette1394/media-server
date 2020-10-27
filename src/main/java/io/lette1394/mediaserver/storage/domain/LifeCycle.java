@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public enum LifeCycle {
+enum LifeCycle {
   NO_OPERATION,
 
   OPERATION_ABORTED {
