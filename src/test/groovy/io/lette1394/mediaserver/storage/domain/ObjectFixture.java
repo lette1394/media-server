@@ -39,14 +39,16 @@ public class ObjectFixture {
 
   public static Object anyObject(Policy policy) {
     final Identifier identifier = anyIdentifier();
-    return new Factory(memory(), policy)
+    return new Factory(policy)
       .create(identifier.getArea(), identifier.getKey());
   }
 
   public static Object anyObject() {
     final Policy allow = current -> Try.success(null);
     final Identifier identifier = anyIdentifier();
-    return new Factory(memory(), allow).create(identifier.getArea(), identifier.getKey());
+//    return new Factory(memory(), allow).create(identifier.getArea(), identifier.getKey());
+
+    return null;
   }
 
   public static Object the(Object object) {

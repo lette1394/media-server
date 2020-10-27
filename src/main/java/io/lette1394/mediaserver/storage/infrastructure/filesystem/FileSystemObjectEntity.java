@@ -11,8 +11,6 @@ import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.object.Policy;
-import io.lette1394.mediaserver.storage.domain.object.Snapshot;
-import io.lette1394.mediaserver.storage.domain.object.State;
 import io.lette1394.mediaserver.storage.domain.object.Tag;
 import io.lette1394.mediaserver.storage.domain.object.Tags;
 import java.nio.charset.StandardCharsets;
@@ -56,7 +54,7 @@ public class FileSystemObjectEntity {
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
-        .binaryRepository(binaryRepository)
+//        .binaryRepository(binaryRepository)
         .build();
 
       return new FileSystemObjectEntity(object);
@@ -70,9 +68,8 @@ public class FileSystemObjectEntity {
       identifier(),
       tags(),
       size(),
-      progressingSize(),
       timestamp(),
-      state());
+      type());
 
     return strings
       .stream()
@@ -102,18 +99,11 @@ public class FileSystemObjectEntity {
       + format("updated:%s,", object.getUpdated());
   }
 
-  private String state() {
-    final State state = object.getSnapshot().computeState();
-    return format("state:%s", state);
+  private String type() {
+    return format("type:%s", object.getType());
   }
 
   private String size() {
-    final Snapshot snapshot = object.getSnapshot();
-    return format("size:%s", snapshot.getSize());
-  }
-
-  private String progressingSize() {
-    final Snapshot snapshot = object.getSnapshot();
-    return format("progressingSize:%s", snapshot.getProgressingSize());
+    return format("size:%s", object.getSize());
   }
 }

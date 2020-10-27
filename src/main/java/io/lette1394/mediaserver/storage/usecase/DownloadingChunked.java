@@ -13,7 +13,8 @@ public class DownloadingChunked {
 
   // TODO: checked exception
   public CompletableFuture<? extends BinarySupplier> download(Identifier identifier) {
-    return storage.findObject(identifier)
-      .thenCompose(Object::download);
+//    return storage.findObject(identifier)
+//      .thenCompose(Object::download);
+    return null;
   }
 }

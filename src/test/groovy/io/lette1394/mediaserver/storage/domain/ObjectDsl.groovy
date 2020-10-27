@@ -6,14 +6,14 @@ import io.lette1394.mediaserver.storage.domain.object.Identifier
 import io.lette1394.mediaserver.storage.domain.object.Object
 import io.lette1394.mediaserver.storage.domain.object.Factory
 import io.lette1394.mediaserver.storage.domain.object.Policy
-import io.lette1394.mediaserver.storage.domain.object.State
+import io.lette1394.mediaserver.storage.domain.object.Type
 
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiFunction
 
 class ObjectDsl {
   Identifier identifier
-  State state
+  Type state
   Policy policy
   BinaryRepository binaryRepository
   BiFunction<Object, BinarySupplier, CompletableFuture<Object>> method
@@ -27,7 +27,7 @@ class ObjectDsl {
 
   static ObjectDsl aInitialObject() {
     final ObjectDsl objectDsl = new ObjectDsl()
-    objectDsl.state = State.INITIAL
+    objectDsl.state = Type.INITIAL
     return objectDsl
   }
 

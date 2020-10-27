@@ -4,7 +4,7 @@ import io.vavr.control.Try;
 import java.util.function.BinaryOperator;
 
 public class Tries {
-  public static final Try<Void> SUCCEED = Try.success(null);
+  public static final Try<Void> SUCCESS = Try.success(null);
 
   public static BinaryOperator<Try<Void>> mergeAllMatch() {
     return Tries::mergeAllMatch;
@@ -12,7 +12,7 @@ public class Tries {
 
   private static Try<Void> mergeAllMatch(Try<Void> result1, Try<Void> result2) {
     if (result1.isSuccess() && result2.isSuccess()) {
-      return Tries.SUCCEED;
+      return Tries.SUCCESS;
     }
 
     // TODO: multi reason container

@@ -15,40 +15,40 @@ class InMemoryStorageTest {
   private final static int ITEM_LENGTH = 100;
 
   private final static byte[] testBinary = RandomUtils.nextBytes(1024);
-
-  @Test
-  void sync() {
-    runSync(new Factory(new InMemoryStorage(CHUNK_SIZE)));
-  }
-
-  @Test
-  void async() {
-    runAsync(new Factory(new InMemoryStorage(CHUNK_SIZE)));
-  }
-
-  private void runSync(Factory factory) {
-    final Object object = factory.create("1", "2")
-      .upload(new TestBinarySupplier(testBinary))
-      .join();
-
-    final BinarySupplier download = object.download().join();
-
-    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
-      .read(download.getAsync())
-      .join();
-
-    assertThat(downloadedBinary, is(testBinary));
-  }
-
-  private void runAsync(Factory factory) {
-    final Object object = factory.create("1", "2")
-      .upload(new TestBinarySupplier(testBinary))
-      .join();
-    final BinarySupplier download = object.download().join();
-    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
-      .read(download.getAsync())
-      .join();
-
-    assertThat(downloadedBinary, is(testBinary));
-  }
+//
+//  @Test
+//  void sync() {
+//    runSync(new Factory(new InMemoryStorage(CHUNK_SIZE)));
+//  }
+//
+//  @Test
+//  void async() {
+//    runAsync(new Factory(new InMemoryStorage(CHUNK_SIZE)));
+//  }
+//
+//  private void runSync(Factory factory) {
+//    final Object object = factory.create("1", "2")
+//      .upload(new TestBinarySupplier(testBinary))
+//      .join();
+//
+//    final BinarySupplier download = object.download().join();
+//
+//    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
+//      .read(download.getAsync())
+//      .join();
+//
+//    assertThat(downloadedBinary, is(testBinary));
+//  }
+//
+//  private void runAsync(Factory factory) {
+//    final Object object = factory.create("1", "2")
+//      .upload(new TestBinarySupplier(testBinary))
+//      .join();
+//    final BinarySupplier download = object.download().join();
+//    final byte[] downloadedBinary = new ByteBufferToByteArrayAsyncAggregateReader(ITEM_LENGTH)
+//      .read(download.getAsync())
+//      .join();
+//
+//    assertThat(downloadedBinary, is(testBinary));
+//  }
 }

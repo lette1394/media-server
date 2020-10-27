@@ -1,50 +1,53 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
+import static io.lette1394.mediaserver.common.Tries.SUCCESS;
 import static io.lette1394.mediaserver.common.Violations.violation;
-import static io.lette1394.mediaserver.storage.domain.object.LifeCycle.*;
-import static java.lang.String.format;
+import static io.lette1394.mediaserver.storage.domain.object.Command.DOWNLOAD;
+import static io.lette1394.mediaserver.storage.domain.object.Command.UPLOAD;
+import static io.lette1394.mediaserver.storage.domain.object.Type.FULFILLED;
+import static io.lette1394.mediaserver.storage.domain.object.Type.PENDING;
+import static io.vavr.control.Try.failure;
 
 import io.lette1394.mediaserver.common.Testable;
-import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
 import java.util.Set;
 
 public interface Policy extends Testable<Snapshot> {
 
-  Policy REJECT_RESUME_UPLOAD = current -> {
-    if (current.is(BEFORE_UPLOAD) && current.isPending()) {
-      return Try.failure(violation("reject resume upload"));
+  Policy REJECT_RESUME_UPLOAD = object -> {
+    if (object.is(UPLOAD) && object.is(PENDING)) {
+      return failure(violation("reject resume upload"));
     }
-    return Tries.SUCCEED;
+    return SUCCESS;
   };
 
-  Policy REJECT_OVERWRITE_UPLOAD = current -> {
-    if (current.is(BEFORE_UPLOAD) && current.isFulfilled()) {
-      return Try.failure(violation("reject resume upload"));
+  Policy REJECT_OVERWRITE_UPLOAD = object -> {
+    if (object.is(UPLOAD) && object.is(FULFILLED)) {
+      return failure(violation("reject overwrite upload"));
     }
-    return Tries.SUCCEED;
+    return SUCCESS;
   };
 
-  Policy REJECT_10MB_SIZE_OVER = current -> {
-    if (current.is(DURING_UPLOADING) && current.getProgressingSize() > 1024*1024*10) {
-      return Try.failure(
-        violation(format("Allow under 1K, got: [%s] bytes", current.getProgressingSize())));
-    }
-    return Tries.SUCCEED;
-  };
+  // TODO: binary policy로 빼기
+//  Policy REJECT_10MB_SIZE_OVER = current -> {
+//    if (current.is(DURING_UPLOADING) && current.getProgressingSize() > 1024 * 1024 * 10) {
+//      return failure(
+//        violation(format("Allow under 1K, got: [%s] bytes", current.getProgressingSize())));
+//    }
+//    return SUCCESS;
+//  };
 
-  Policy REJECT_PENDING_OBJECT = current -> {
-    if (current.is(BEFORE_DOWNLOAD) && current.isPending()) {
-      return Try.failure(violation("Reject pending object download"));
+  Policy REJECT_PARTIAL_DOWNLOAD = object -> {
+    if (object.is(DOWNLOAD) && object.is(PENDING)) {
+      return failure(violation("Reject pending object download"));
     }
-    return Tries.SUCCEED;
+    return SUCCESS;
   };
 
   Policy ALL_POLICY = snapshot -> AllMatch.allMatch(Set.of(
     REJECT_RESUME_UPLOAD,
     REJECT_OVERWRITE_UPLOAD,
-    REJECT_10MB_SIZE_OVER,
-    REJECT_PENDING_OBJECT
+    REJECT_PARTIAL_DOWNLOAD
   ))
     .test(snapshot);
 

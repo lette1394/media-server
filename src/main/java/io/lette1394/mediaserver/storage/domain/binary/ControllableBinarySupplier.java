@@ -61,15 +61,15 @@ public class ControllableBinarySupplier implements BinarySupplier {
   public interface Policy {
 
     default Try<Void> beforeTransfer() {
-      return Tries.SUCCEED;
+      return Tries.SUCCESS;
     }
 
     default Try<Void> duringTransferring(long currentLength) {
-      return Tries.SUCCEED;
+      return Tries.SUCCESS;
     }
 
     default Try<Void> afterTransferred(long totalLength) {
-      return Tries.SUCCEED;
+      return Tries.SUCCESS;
     }
   }
 }

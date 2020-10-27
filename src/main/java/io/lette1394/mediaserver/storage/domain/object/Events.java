@@ -1,57 +1,26 @@
 package io.lette1394.mediaserver.storage.domain.object;
 
 import io.lette1394.mediaserver.common.Event;
-import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
-import lombok.RequiredArgsConstructor;
+import io.lette1394.mediaserver.common.Event.FailureEvent;
+import lombok.Value;
 
 public interface Events {
 
-  @RequiredArgsConstructor
-  class UploadingTriggered extends Event {
-    public final Object object;
-    public final BinaryRepository binaryRepository;
-
-    public static Event uploadingTriggered(Object object, BinaryRepository binaryRepository) {
-      return new UploadingTriggered(object, binaryRepository);
-    }
+  @Value(staticConstructor = "uploadRejected")
+  class UploadRejected implements FailureEvent {
+    Throwable throwable;
   }
 
-  @RequiredArgsConstructor
-  class Uploaded extends Event {
-    public final Object object;
-    public final BinaryRepository binaryRepository;
-
-    public static Event uploaded(Object object, BinaryRepository binaryRepository) {
-      return new Uploaded(object, binaryRepository);
-    }
+  @Value(staticConstructor = "downloadRejected")
+  class DownloadRejected implements FailureEvent {
+    Throwable throwable;
   }
 
-  @RequiredArgsConstructor
-  class UploadAborted extends Event {
-    public final Object object;
-    public final Throwable throwable;
-
-    public static Event uploadAborted(Object object, Throwable throwable) {
-      return new UploadAborted(object, throwable);
-    }
+  @Value(staticConstructor = "uploadingTriggered")
+  class UploadingTriggered implements Event {
   }
 
-  @RequiredArgsConstructor
-  class DownloadingTriggered extends Event {
-    public final Object object;
-
-    public static Event downloadingTriggered(Object object) {
-      return new DownloadingTriggered(object);
-    }
-  }
-
-  @RequiredArgsConstructor
-  class DownloadAborted extends Event {
-    public final Object object;
-    public final Throwable throwable;
-
-    public static Event downloadAborted(Object object, Throwable throwable) {
-      return new DownloadAborted(object, throwable);
-    }
+  @Value(staticConstructor = "downloadingTriggered")
+  class DownloadingTriggered implements Event {
   }
 }

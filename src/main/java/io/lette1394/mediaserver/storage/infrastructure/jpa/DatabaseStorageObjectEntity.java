@@ -5,14 +5,13 @@ import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
 import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.object.PendingObject;
 import io.lette1394.mediaserver.storage.domain.object.Policy;
 import io.lette1394.mediaserver.storage.domain.object.Snapshot;
-import io.lette1394.mediaserver.storage.domain.object.State;
+import io.lette1394.mediaserver.storage.domain.object.Type;
 import io.lette1394.mediaserver.storage.domain.object.Tag;
 import io.lette1394.mediaserver.storage.domain.object.Tags;
 import java.io.Serializable;
@@ -38,7 +37,7 @@ class DatabaseStorageObjectEntity {
 
   @EmbeddedId
   ObjectId objectId;
-  State state;
+  Type type;
   long sizeInByte;
   long progressingSizeInByte;
 
@@ -49,17 +48,18 @@ class DatabaseStorageObjectEntity {
   OffsetDateTime updated;
 
   static DatabaseStorageObjectEntity fromObject(Object object) {
-    final Snapshot snapshot = object.getSnapshot();
-
-    return DatabaseStorageObjectEntity.builder()
-      .state(object.getSnapshot().computeState())
-      .tagList(fromTags(object.getTags()))
-      .sizeInByte(snapshot.getSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
-      .progressingSizeInByte(snapshot.getProgressingSize())
-      .objectId(new ObjectId(object.getIdentifier()))
-      .created(object.getCreated())
-      .updated(OffsetDateTime.now())
-      .build();
+//    final Snapshot snapshot = object.getSnapshot();
+//
+//    return DatabaseStorageObjectEntity.builder()
+//      .type(object.getSnapshot().computeState())
+//      .tagList(fromTags(object.getTags()))
+//      .sizeInByte(snapshot.getSize()) // TODO: 이거 필드를 두 개 들고 있어야 할 거 같은데...
+//      .progressingSizeInByte(snapshot.getProgressingSize())
+//      .objectId(new ObjectId(object.getIdentifier()))
+//      .created(object.getCreated())
+//      .updated(OffsetDateTime.now())
+//      .build();
+    return null;
   }
 
   private static String fromTags(Tags tags) {
@@ -71,11 +71,11 @@ class DatabaseStorageObjectEntity {
   }
 
   Object toObject(BinaryRepository binaryRepository) {
-    if (state == State.PENDING) {
+    if (type == Type.PENDING) {
       return createPendingObject(binaryRepository);
     }
 
-    if (state == State.FULFILLED) {
+    if (type == Type.FULFILLED) {
       return createFulfilledObject(binaryRepository);
     }
 
@@ -83,31 +83,35 @@ class DatabaseStorageObjectEntity {
   }
 
   private FulfilledObject createFulfilledObject(BinaryRepository binaryRepository) {
-    return FulfilledObject.builder()
-      .binaryRepository(binaryRepository)
-      .identifier(new Identifier(objectId.area, objectId.key))
-      .policy(Policy.ALL_POLICY)
-      .size(positiveLong(sizeInByte))
-      .timeStamp(TimeStamp.builder()
-        .created(created)
-        .updated(updated)
-        .build())
-      .tags(toTags())
-      .build();
+//    return FulfilledObject.builder()
+//      .binaryRepository(binaryRepository)
+//      .identifier(new Identifier(objectId.area, objectId.key))
+//      .policy(Policy.ALL_POLICY)
+//      .size(positiveLong(sizeInByte))
+//      .timeStamp(TimeStamp.builder()
+//        .created(created)
+//        .updated(updated)
+//        .build())
+//      .tags(toTags())
+//      .build();
+
+    return null;
   }
 
   private PendingObject createPendingObject(BinaryRepository binaryRepository) {
-    return PendingObject.builder()
-      .binaryRepository(binaryRepository)
-      .identifier(new Identifier(objectId.area, objectId.key))
-      .policy(Policy.ALL_POLICY)
-      .size(positiveLong(sizeInByte))
-      .timeStamp(TimeStamp.builder()
-        .created(created)
-        .updated(updated)
-        .build())
-      .tags(toTags())
-      .build();
+//    return PendingObject.builder()
+//      .binaryRepository(binaryRepository)
+//      .identifier(new Identifier(objectId.area, objectId.key))
+//      .policy(Policy.ALL_POLICY)
+//      .size(positiveLong(sizeInByte))
+//      .timeStamp(TimeStamp.builder()
+//        .created(created)
+//        .updated(updated)
+//        .build())
+//      .tags(toTags())
+//      .build();
+
+    return null;
   }
 
   private Tags toTags() {

@@ -22,7 +22,7 @@ public interface Testable<T> {
         .stream()
         .map(policy -> policy.test(t))
         .reduce(
-          Tries.SUCCEED,
+          Tries.SUCCESS,
           Tries.mergeAllMatch());
     }
   }

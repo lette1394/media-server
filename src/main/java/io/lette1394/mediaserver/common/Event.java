@@ -2,19 +2,18 @@ package io.lette1394.mediaserver.common;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.Instant;
 import java.util.EventListener;
-import java.util.UUID;
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 
-@AllArgsConstructor
-public class Event {
-  protected final Instant when = Instant.now();
-  protected final UUID eventId = UUID.randomUUID();
+public interface Event {
+
+  interface FailureEvent extends Event {
+    Throwable getThrowable();
+  }
 
   @FunctionalInterface
-  public interface Listener<T extends Event> extends EventListener {
+  interface Listener<T extends Event> extends EventListener {
+
     @SneakyThrows
     default boolean canListen(T event) {
       Type mySuperclass = getClass().getGenericSuperclass();
@@ -28,7 +27,8 @@ public class Event {
     void handle(T event);
   }
 
-  public interface Publisher<T extends Event> {
+  interface Publisher<T extends Event> {
+
     void publish(Event event);
   }
 }

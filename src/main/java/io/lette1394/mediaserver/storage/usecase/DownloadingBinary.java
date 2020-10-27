@@ -14,10 +14,11 @@ public class DownloadingBinary {
 
   public CompletableFuture<LengthAwareBinarySupplier> download(Identifier identifier)
     throws ObjectNotFoundException {
-    return storage
-      .findObject(identifier)
-      .thenCompose(object -> object.download()
-        .thenApply(binarySupplier ->
-          convert(binarySupplier, object.getSnapshot().getSize())));
+//    return storage
+//      .findObject(identifier)
+//      .thenCompose(object -> object.download()
+//        .thenApply(binarySupplier ->
+//          convert(binarySupplier, object.getSnapshot().getSize())));
+    return null;
   }
 }

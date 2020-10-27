@@ -23,9 +23,9 @@ class AwsS3StorageTest {
 
     final BinarySupplier binarySupplier = new TestBinarySupplier("hello world!!!".getBytes(
       StandardCharsets.UTF_8));
-    final Factory factory = new Factory(awsS3Storage);
-    final Object object = factory.create("h", "123");
-    object.upload(binarySupplier).join();
+//    final Factory factory = new Factory(awsS3Storage);
+//    final Object object = factory.create("h", "123");
+//    object.upload(binarySupplier).join();
   }
 
 }

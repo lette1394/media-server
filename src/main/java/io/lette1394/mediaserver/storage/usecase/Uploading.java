@@ -2,9 +2,13 @@ package io.lette1394.mediaserver.storage.usecase;
 
 import io.lette1394.mediaserver.storage.domain.Storage;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.object.Events.UploadRejected;
+import io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.object.Policy;
+import io.vavr.control.Either;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
@@ -15,13 +19,12 @@ public class Uploading {
   Storage storage;
 
   public CompletableFuture<Object> upload(Command command) {
-    final Factory factory = new Factory(storage);
+    final Factory factory = new Factory(Policy.ALL_POLICY);
     final Identifier identifier = command.identifier;
     final Object object = factory.create(identifier.getArea(), identifier.getKey());
 
-    return object
-      .upload(command.binarySupplier)
-      .thenCompose(storage::saveObject);
+    final Either<UploadRejected, UploadingTriggered> upload = object.upload();
+    return null;
   }
 
   @Value
