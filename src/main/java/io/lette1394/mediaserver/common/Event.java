@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.common;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.EventListener;
+import java.util.List;
 import lombok.SneakyThrows;
 
 public interface Event {
@@ -30,5 +31,9 @@ public interface Event {
   interface Publisher<T extends Event> {
 
     void publish(Event event);
+
+    default void publish(List<Event> events) {
+      events.forEach(event -> publish(event));
+    }
   }
 }

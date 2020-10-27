@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.storage.usecase;
 
 import io.lette1394.mediaserver.storage.domain.Storage;
-import io.lette1394.mediaserver.storage.domain.binary.Binary;
+import io.lette1394.mediaserver.storage.domain.Binary;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.object.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered;
@@ -33,8 +33,8 @@ public class Uploading {
 
   public void upload() {
     Object object;
-    Binary<String> binary = new Binary<>(null, null);
-//    object.upload(binary);
+//    Binary<String> binary = new Binary<>(null, null);
+//    object.upload(binary);.
 
 
     // object를 메서드로 동작을 여러개로 해야 할까...?

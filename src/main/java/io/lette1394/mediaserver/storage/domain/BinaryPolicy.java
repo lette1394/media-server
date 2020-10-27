@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.domain.binary;
+package io.lette1394.mediaserver.storage.domain;
 
 import static io.lette1394.mediaserver.common.Violations.violation;
 
@@ -7,18 +7,18 @@ import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
 import java.util.Set;
 
-public interface Policy extends Testable<Snapshot> {
+public interface BinaryPolicy extends Testable<BinarySnapshot> {
 
-  Policy REJECT_10MB_OVER = binary -> {
+  BinaryPolicy REJECT_10MB_OVER = binary -> {
     if (binary.isOver(10 * 1024 * 1024)) {
       return Try.failure(violation("reject 10MB over binary"));
     }
     return Tries.SUCCESS;
   };
 
-  Policy ALL_POLICY = snapshot -> AllMatch.allMatch(
+  BinaryPolicy ALL_BINARY_POLICY = binarySnapshot -> AllMatch.allMatch(
     Set.of(
       REJECT_10MB_OVER
     ))
-    .test(snapshot);
+    .test(binarySnapshot);
 }
