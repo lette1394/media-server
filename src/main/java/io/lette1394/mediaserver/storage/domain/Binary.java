@@ -11,12 +11,12 @@ import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public abstract class Binary<BUFFER extends SizeAware> {
+public abstract class Binary {
 
-  private final Notifiable root;
-  private final BinaryPolicy policy;
-  private final BinarySupplier<BUFFER> binarySupplier;
-  private final BinaryRepository<BUFFER> binaryRepository;
+  protected final Notifiable root;
+  protected final BinaryPolicy policy;
+  protected final BinarySupplier<? extends SizeAware> binarySupplier;
+  protected final BinaryRepository binaryRepository;
 
   private final BinarySnapshot snapshot = BinarySnapshot.builder()
     .build();
@@ -25,7 +25,7 @@ public abstract class Binary<BUFFER extends SizeAware> {
     return binaryRepository.save(path, binarySupplier);
   }
 
-  public CompletableFuture<Void> upload(BinarySupplier<BUFFER> binarySupplier) {
+  public CompletableFuture<Void> upload(BinarySupplier<? extends SizeAware> binarySupplier) {
     return checkBeforeUpload().toCompletableFuture()
       .thenCompose(__ -> doUpload(wrap(binarySupplier)))
       .thenCompose(__1 ->
@@ -34,7 +34,7 @@ public abstract class Binary<BUFFER extends SizeAware> {
   }
 
   // TODO: rename
-  protected abstract CompletableFuture<Void> doUpload(BinarySupplier<BUFFER> binarySupplier);
+  protected abstract CompletableFuture<Void> doUpload(BinarySupplier<? extends SizeAware> binarySupplier);
 
   private Try<Void> checkBeforeUpload() {
     root.notify(uploadingTriggered());
@@ -65,8 +65,8 @@ public abstract class Binary<BUFFER extends SizeAware> {
     root.notify(uploadingAborted(throwable));
   }
 
-  private BinarySupplier<BUFFER> wrap(BinarySupplier<BUFFER> binarySupplier) {
-    final BinarySupplier<BUFFER> listenableBinarySupplier = new ListenableBinarySupplier<>(
+  private BinarySupplier<? extends SizeAware> wrap(BinarySupplier<? extends SizeAware> binarySupplier) {
+    final BinarySupplier<? extends SizeAware> listenableBinarySupplier = new ListenableBinarySupplier<>(
       binarySupplier, new Listener() {
       //TODO: 클래스로 빼자
       private boolean aborted = false;

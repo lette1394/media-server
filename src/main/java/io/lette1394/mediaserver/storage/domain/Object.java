@@ -12,7 +12,9 @@ public class Object extends AggregateRoot implements Notifiable {
   protected final Policy policy;
 
 
-  public <T extends SizeAware> CompletableFuture<Object> upload(Binary<T> binary) {
+  public <T extends SizeAware> CompletableFuture<Object> upload(Binary binary) {
+
+
 //    binary.upload();
 
     return null;
