@@ -9,6 +9,7 @@ import static io.lette1394.mediaserver.storage.domain.object.Events.UploadingTri
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.storage.domain.binary.Binary;
 import io.lette1394.mediaserver.storage.domain.object.Events.DownloadRejected;
 import io.lette1394.mediaserver.storage.domain.object.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.object.Events.UploadRejected;
