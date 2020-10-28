@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import com.google.common.base.Supplier;
 import io.lette1394.mediaserver.storage.domain.BinaryFactory.StringLike;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;

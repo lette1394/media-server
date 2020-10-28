@@ -2,8 +2,6 @@ package io.lette1394.mediaserver.storage.infrastructure;
 
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Factory;
 import io.lette1394.mediaserver.storage.infrastructure.awss3.AwsClient;
 import io.lette1394.mediaserver.storage.infrastructure.awss3.AwsS3Storage;
 import java.nio.charset.StandardCharsets;

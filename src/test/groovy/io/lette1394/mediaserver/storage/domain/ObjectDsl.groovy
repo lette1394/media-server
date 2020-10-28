@@ -4,7 +4,7 @@ import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier
 import io.lette1394.mediaserver.storage.domain.object.Identifier
 import io.lette1394.mediaserver.storage.domain.object.Object
-import io.lette1394.mediaserver.storage.domain.object.Factory
+import io.lette1394.mediaserver.storage.domain.object.ObjectFactory
 import io.lette1394.mediaserver.storage.domain.object.Policy
 import io.lette1394.mediaserver.storage.domain.object.Type
 
@@ -63,7 +63,7 @@ class ObjectDsl {
   }
 
   private Object toObject(BinaryRepository binaryRepository) {
-    return new Factory(binaryRepository, policy)
+    return new ObjectFactory(binaryRepository, policy)
       .create(identifier.area, identifier.key)
   }
 

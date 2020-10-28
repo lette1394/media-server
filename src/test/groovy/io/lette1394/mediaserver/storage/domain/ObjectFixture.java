@@ -10,7 +10,7 @@ import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Factory;
+import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.object.Identifier;
 import io.lette1394.mediaserver.storage.domain.object.Object;
 import io.lette1394.mediaserver.storage.domain.object.Policy;
@@ -39,7 +39,7 @@ public class ObjectFixture {
 
   public static Object anyObject(Policy policy) {
     final Identifier identifier = anyIdentifier();
-    return new Factory(policy)
+    return new ObjectFactory(policy)
       .create(identifier.getArea(), identifier.getKey());
   }
 

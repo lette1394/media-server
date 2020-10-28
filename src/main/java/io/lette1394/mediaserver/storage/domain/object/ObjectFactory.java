@@ -5,7 +5,7 @@ import java.time.OffsetDateTime;
 import lombok.Value;
 
 @Value
-public class Factory {
+public class ObjectFactory {
 
   Policy policy;
 

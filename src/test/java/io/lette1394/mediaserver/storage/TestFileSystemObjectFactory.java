@@ -3,8 +3,6 @@ package io.lette1394.mediaserver.storage;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Factory;
-import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemBinaryRepository;
 import lombok.Value;
 
 @Value
