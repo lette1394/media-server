@@ -9,7 +9,7 @@
  
  
 ### Requirements 2
-- [storage] Support content-type 
+- [storage] Support content-objectType 
 
 ### Requirements 3
 ### Requirements 4
