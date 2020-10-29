@@ -1,20 +1,13 @@
 package io.lette1394.mediaserver.storage.domain
 
-import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier
-import io.lette1394.mediaserver.storage.domain.object.Identifier
-import io.lette1394.mediaserver.storage.domain.object.Object
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory
-import io.lette1394.mediaserver.storage.domain.object.Policy
-import io.lette1394.mediaserver.storage.domain.object.Type
 
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiFunction
 
 class ObjectDsl {
   Identifier identifier
-  Type state
-  Policy policy
+  ObjectType state
+  ObjectPolicy policy
   BinaryRepository binaryRepository
   BiFunction<Object, BinarySupplier, CompletableFuture<Object>> method
 
@@ -27,7 +20,7 @@ class ObjectDsl {
 
   static ObjectDsl aInitialObject() {
     final ObjectDsl objectDsl = new ObjectDsl()
-    objectDsl.state = Type.INITIAL
+    objectDsl.state = ObjectType.INITIAL
     return objectDsl
   }
 
@@ -36,7 +29,7 @@ class ObjectDsl {
     return this
   }
 
-  ObjectDsl obey(Policy objectPolicy) {
+  ObjectDsl obey(ObjectPolicy objectPolicy) {
     this.policy = objectPolicy
     return this
   }

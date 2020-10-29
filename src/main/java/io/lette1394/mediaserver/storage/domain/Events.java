@@ -11,23 +11,13 @@ public interface Events {
     Throwable throwable;
   }
 
-  @Value(staticConstructor = "uploadingTriggered")
-  class UploadingTriggered implements Event {
-  }
-
-  @Value(staticConstructor = "uploadingAborted")
-  class UploadingAborted implements FailureEvent {
-    Throwable throwable;
-  }
-
-  @Value(staticConstructor = "uploaded")
-  class Uploaded implements Event {
-  }
-
-
   @Value(staticConstructor = "downloadRejected")
   class DownloadRejected implements FailureEvent {
     Throwable throwable;
+  }
+
+  @Value(staticConstructor = "uploadingTriggered")
+  class UploadingTriggered implements Event {
   }
 
   @Value(staticConstructor = "downloadingTriggered")

@@ -1,30 +1,24 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public enum LifeCycle {
+enum BinaryLifecycle {
   NO_OPERATION,
-
-  OPERATION_ABORTED {
-    @Override
-    public boolean isCompletedExceptionally() {
-      return true;
-    }
-  },
-
-  BEFORE_UPLOAD,
-
-  DURING_UPLOADING,
-
-  AFTER_UPLOADED {
+  BEFORE_TRANSFER,
+  DURING_TRANSFERRING,
+  AFTER_TRANSFERRED {
     @Override
     public boolean isCompletedNormally() {
       return true;
     }
   },
+  TRANSFER_ABORTED {
+    @Override
+    public boolean isCompletedExceptionally() {
+      return true;
+    }
+  };
 
-  BEFORE_DOWNLOAD;
-
-  public boolean is(LifeCycle lifeCycle) {
-    return this == lifeCycle;
+  public boolean is(BinaryLifecycle binaryLifecycle) {
+    return this == binaryLifecycle;
   }
 
   public boolean isCompletedExceptionally() {

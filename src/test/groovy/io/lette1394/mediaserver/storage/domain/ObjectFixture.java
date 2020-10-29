@@ -7,13 +7,6 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
 import io.lette1394.mediaserver.storage.BrokenBinarySupplier;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Policy;
 import io.vavr.control.Try;
 
 public class ObjectFixture {
@@ -37,14 +30,14 @@ public class ObjectFixture {
     return new BrokenBinarySupplier(binarySupplier, nextInt(start, size));
   }
 
-  public static Object anyObject(Policy policy) {
+  public static Object anyObject(ObjectPolicy objectPolicy) {
     final Identifier identifier = anyIdentifier();
-    return new ObjectFactory(policy)
+    return new ObjectFactory(objectPolicy)
       .create(identifier.getArea(), identifier.getKey());
   }
 
   public static Object anyObject() {
-    final Policy allow = current -> Try.success(null);
+    final ObjectPolicy allow = current -> Try.success(null);
     final Identifier identifier = anyIdentifier();
 //    return new Factory(memory(), allow).create(identifier.getArea(), identifier.getKey());
 

@@ -1,19 +1,15 @@
 package io.lette1394.mediaserver.storage.infrastructure.jpa;
 
 import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
-import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 
-import io.lette1394.mediaserver.common.TimeStamp;
-import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.PendingObject;
-import io.lette1394.mediaserver.storage.domain.object.Policy;
-import io.lette1394.mediaserver.storage.domain.object.Snapshot;
-import io.lette1394.mediaserver.storage.domain.object.Type;
-import io.lette1394.mediaserver.storage.domain.object.Tag;
-import io.lette1394.mediaserver.storage.domain.object.Tags;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.FulfilledObject;
+import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.PendingObject;
+import io.lette1394.mediaserver.storage.domain.ObjectType;
+import io.lette1394.mediaserver.storage.domain.Tag;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -37,7 +33,7 @@ class DatabaseStorageObjectEntity {
 
   @EmbeddedId
   ObjectId objectId;
-  Type type;
+  ObjectType objectType;
   long sizeInByte;
   long progressingSizeInByte;
 
@@ -71,11 +67,11 @@ class DatabaseStorageObjectEntity {
   }
 
   Object toObject(BinaryRepository binaryRepository) {
-    if (type == Type.PENDING) {
+    if (objectType == ObjectType.PENDING) {
       return createPendingObject(binaryRepository);
     }
 
-    if (type == Type.FULFILLED) {
+    if (objectType == ObjectType.FULFILLED) {
       return createFulfilledObject(binaryRepository);
     }
 

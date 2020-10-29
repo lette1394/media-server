@@ -1,12 +1,12 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.storage.domain.BinaryFactory.StringLike;
+import io.lette1394.mediaserver.storage.infrastructure.StringAware;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;
 import reactor.core.publisher.Flux;
 
 @Value
-public class InMemoryStorage implements BinaryRepository<StringLike> {
+public class InMemoryStorage implements BinaryRepository<StringAware> {
 
   int chunkSize;
 
@@ -19,34 +19,25 @@ public class InMemoryStorage implements BinaryRepository<StringLike> {
   }
 
   @Override
-  public CompletableFuture<BinarySupplier<StringLike>> find(
-    BinaryPath binaryPath) {
+  public CompletableFuture<? extends BinarySupplier<StringAware>> findBinary(
+    Identifier identifier) {
     return null;
   }
 
   @Override
-  public CompletableFuture<Void> save(BinaryPath key,
-    BinarySupplier<StringLike> binarySupplier) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-
-    final Flux<StringLike> from1 = Flux.from(binarySupplier.getAsync());
-    from1.subscribe(t -> t.getValue());
-
-    final Flux<StringLike> from = Flux.from(binarySupplier.getAsync());
-    from
-      .doOnComplete(() -> future.complete(null))
-      .subscribe(o -> System.out.println(o.getValue()));
-    return future;
-  }
-
-  @Override
-  public CompletableFuture<Void> append(BinaryPath key,
-    BinarySupplier<StringLike> binarySupplier) {
+  public CompletableFuture<Void> saveBinary(Identifier identifier,
+    BinarySupplier<StringAware> binarySupplier) {
     return null;
   }
 
   @Override
-  public CompletableFuture<Void> delete(BinaryPath key) {
+  public CompletableFuture<Void> appendBinary(Identifier identifier,
+    BinarySupplier<StringAware> binarySupplier) {
+    return null;
+  }
+
+  @Override
+  public CompletableFuture<Void> deleteBinary(Identifier identifier) {
     return null;
   }
 }

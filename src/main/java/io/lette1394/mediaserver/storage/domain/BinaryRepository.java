@@ -4,11 +4,17 @@ import java.util.concurrent.CompletableFuture;
 
 public interface BinaryRepository<BUFFER extends SizeAware> {
 
-  CompletableFuture<BinarySupplier<BUFFER>> find(BinaryPath binaryPath);
+  default CompletableFuture<Boolean> binaryExists(Identifier identifier) {
+    return findBinary(identifier)
+      .thenApply(__ -> true)
+      .exceptionally(__ -> false);
+  }
 
-  CompletableFuture<Void> save(BinaryPath key, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<? extends BinarySupplier<BUFFER>> findBinary(Identifier identifier);
 
-  CompletableFuture<Void> append(BinaryPath key, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<BUFFER> binarySupplier);
 
-  CompletableFuture<Void> delete(BinaryPath key);
+  CompletableFuture<Void> appendBinary(Identifier identifier, BinarySupplier<BUFFER> binarySupplier);
+
+  CompletableFuture<Void> deleteBinary(Identifier identifier);
 }

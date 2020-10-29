@@ -8,14 +8,14 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-class ControllableBinarySupplier<T extends SizeAware> implements BinarySupplier<T> {
+class ControllableBinarySupplier<BUFFER extends SizeAware> implements BinarySupplier<BUFFER> {
 
-  BinarySupplier<T> binarySupplier;
+  BinarySupplier<BUFFER> binarySupplier;
   Policy policy;
 
   @Override
-  public Publisher<T> getAsync() {
-    final Publisher<T> async = binarySupplier.getAsync();
+  public Publisher<BUFFER> getAsync() {
+    final Publisher<BUFFER> async = binarySupplier.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
       private long acc = 0L;
 
@@ -27,12 +27,12 @@ class ControllableBinarySupplier<T extends SizeAware> implements BinarySupplier<
       }
 
       @Override
-      public void onNext(T item) {
-        final long remaining = item.getSize();
+      public void onNext(BUFFER item) {
+        final long size = item.getSize();
         subscriber.onNext(item);
 
-        if (remaining > 0) {
-          acc += remaining;
+        if (size > 0) {
+          acc += size;
           checkSucceed(policy.duringTransferring(acc));
         }
       }

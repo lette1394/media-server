@@ -6,13 +6,14 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 
 import io.lette1394.mediaserver.common.TimeStamp;
-import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.object.FulfilledObject;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Policy;
-import io.lette1394.mediaserver.storage.domain.object.Tag;
-import io.lette1394.mediaserver.storage.domain.object.Tags;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.FulfilledObject;
+import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
+import io.lette1394.mediaserver.storage.domain.SizeAware;
+import io.lette1394.mediaserver.storage.domain.Tag;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -24,11 +25,11 @@ import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
 @Value
-public class FileSystemObjectEntity {
+public class FileSystemObjectEntity<BUFFER extends SizeAware> {
   private static final String LINE_SEPARATOR = "\n";
-  Object object;
+  Object<BUFFER> object;
 
-  public static FileSystemObjectEntity fromBytes(byte[] bytes, BinaryRepository binaryRepository) {
+  public static <BUFFER extends SizeAware> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, BinarySupplier<BUFFER> binarySupplier) {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
@@ -47,17 +48,17 @@ public class FileSystemObjectEntity {
         .map(entry -> new Tag(nonBlankString(entry.getKey().substring(3)), entry.getValue()))
         .collect(Collectors.toList());
 
-      final FulfilledObject object = FulfilledObject.builder()
+      final FulfilledObject<BUFFER> object = FulfilledObject.<BUFFER>builder()
         .identifier(new Identifier(map.get("area"), map.get("key")))
         .size(positiveLong(parseLong(map.get("size"))))
-        .policy(Policy.ALL_POLICY)
+        .objectPolicy(ObjectPolicy.ALL_OBJECT_POLICY)
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
-//        .binaryRepository(binaryRepository)
+        .binarySupplier(binarySupplier)
         .build();
 
-      return new FileSystemObjectEntity(object);
+      return new FileSystemObjectEntity<>(object);
     } catch (Exception e) {
       throw new RuntimeException();
     }

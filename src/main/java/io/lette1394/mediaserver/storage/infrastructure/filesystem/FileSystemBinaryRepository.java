@@ -3,20 +3,21 @@ package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 import static io.vavr.API.$;
 import static io.vavr.API.Case;
 import static io.vavr.API.Match;
+import static io.vavr.API.TODO;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static reactor.core.publisher.SignalType.ON_COMPLETE;
 
-import io.lette1394.mediaserver.storage.domain.binary.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.ObjectRepository;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.ObjectRepository;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferAware;
+import io.lette1394.mediaserver.storage.infrastructure.Publishers;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
@@ -32,11 +33,11 @@ import java.util.stream.Stream;
 import lombok.Value;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.SignalType;
 
 @Value
-public class FileSystemBinaryRepository implements ObjectRepository,
-  BinaryRepository {
+public class FileSystemBinaryRepository implements
+  ObjectRepository<ByteBufferAware>,
+  BinaryRepository<ByteBufferAware> {
 
   String baseDir;
 
@@ -66,16 +67,22 @@ public class FileSystemBinaryRepository implements ObjectRepository,
   }
 
   @Override
-  public CompletableFuture<Object> findObject(Identifier identifier) {
+  public CompletableFuture<Object<ByteBufferAware>> findObject(Identifier identifier) {
     return wrap(() -> {
-      final byte[] bytes = Files.readAllBytes(createPath(identifier, ".txt"));
-      return FileSystemObjectEntity.fromBytes(bytes, this).getObject();
+      final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".txt"));
+      final InputStream inputStream = Files.newInputStream(createPath(identifier, ""));
+      final SingleThreadInputStreamPublisher publisher = new SingleThreadInputStreamPublisher(
+        inputStream, 10);
+
+      final Publisher<ByteBufferAware> convert = Publishers
+        .convert(publisher, byteBuffer -> new ByteBufferAware(byteBuffer));
+      return FileSystemObjectEntity.fromBytes(objectBytes, () -> convert).getObject();
     });
   }
 
   @Override
-  public CompletableFuture<Object> saveObject(Object object) {
-    final byte[] bytes = new FileSystemObjectEntity(object).toBytes();
+  public CompletableFuture<Object<ByteBufferAware>> saveObject(Object<ByteBufferAware> object) {
+    final byte[] bytes = new FileSystemObjectEntity<>(object).toBytes();
     return wrap(() -> {
       Files.write(ensureDirectory(createPath(object.getIdentifier(), ".txt")), bytes);
       return object;
@@ -90,8 +97,9 @@ public class FileSystemBinaryRepository implements ObjectRepository,
     });
   }
 
+
   @Override
-  public CompletableFuture<LengthAwareBinarySupplier> findBinary(Identifier identifier) {
+  public CompletableFuture<? extends BinarySupplier<ByteBufferAware>> findBinary(Identifier identifier) {
     try {
       return completedFuture(readBinary(identifier));
     } catch (IOException e) {
@@ -100,14 +108,15 @@ public class FileSystemBinaryRepository implements ObjectRepository,
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> saveBinary(Identifier identifier,
+    BinarySupplier<ByteBufferAware> binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    BinarySupplier<ByteBufferAware> binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
   }
 
@@ -129,7 +138,8 @@ public class FileSystemBinaryRepository implements ObjectRepository,
     });
   }
 
-  private CompletableFuture<Void> writeOp(Identifier identifier, BinarySupplier binarySupplier,
+  private CompletableFuture<Void> writeOp(Identifier identifier,
+    BinarySupplier<ByteBufferAware> binarySupplier,
     OpenOption... openOption) {
     final ExecutorService executorService = Executors.newSingleThreadExecutor();
     final Path path = createPath(identifier, "");
@@ -151,7 +161,7 @@ public class FileSystemBinaryRepository implements ObjectRepository,
         .doOnError(e -> ret.completeExceptionally(e))
         .subscribe(byteBuffer -> {
           try {
-            channel.write(byteBuffer);
+            channel.write(byteBuffer.getValue());
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
@@ -162,19 +172,22 @@ public class FileSystemBinaryRepository implements ObjectRepository,
     }
   }
 
-  private LengthAwareBinarySupplier readBinary(Identifier identifier) throws IOException {
+  private LengthAwareBinarySupplier<ByteBufferAware> readBinary(Identifier identifier)
+    throws IOException {
     final Path objectPath = createPath(identifier, "");
     final InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
 
-    return new LengthAwareBinarySupplier() {
+    return new LengthAwareBinarySupplier<>() {
       @Override
       public long getLength() {
         return objectPath.toFile().length();
       }
 
       @Override
-      public Publisher<ByteBuffer> getAsync() {
-        return new SingleThreadInputStreamPublisher(inputStream, 1024);
+      public Publisher<ByteBufferAware> getAsync() {
+        return Publishers.convert(
+          new SingleThreadInputStreamPublisher(inputStream, 1024),
+          byteBuffer -> new ByteBufferAware(byteBuffer));
       }
     };
   }

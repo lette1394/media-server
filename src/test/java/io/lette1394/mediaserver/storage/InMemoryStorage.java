@@ -5,13 +5,16 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
-import io.lette1394.mediaserver.storage.domain.Storage;
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
+import io.lette1394.mediaserver.storage.infrastructure.Publishers;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferAware;
 import io.lette1394.mediaserver.storage.usecase.ObjectNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
@@ -22,9 +25,11 @@ import lombok.Value;
 import org.reactivestreams.Publisher;
 
 @Value
-public class InMemoryStorage implements Storage {
+public class InMemoryStorage implements
+  ObjectRepository<ByteBufferAware>,
+  BinaryRepository<ByteBufferAware> {
 
-  static Map<Identifier, Object> objectHolder = new ConcurrentHashMap<>();
+  static Map<Identifier, Object<ByteBufferAware>> objectHolder = new ConcurrentHashMap<>();
   static Map<Identifier, byte[]> binaryHolder = new ConcurrentHashMap<>();
 
   int chunkSize;
@@ -47,7 +52,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Object> findObject(Identifier identifier)
+  public CompletableFuture<Object<ByteBufferAware>> findObject(Identifier identifier)
     throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(objectHolder.get(identifier));
@@ -56,7 +61,7 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Object> saveObject(Object object) {
+  public CompletableFuture<Object<ByteBufferAware>> saveObject(Object<ByteBufferAware> object) {
     return findObject(object.getIdentifier())
       .thenApply(found -> objectHolder.put(found.getIdentifier(), object));
   }
@@ -67,13 +72,13 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier binarySupplier) {
+  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<ByteBufferAware> binarySupplier) {
     return uploadBinaryAsync(identifier, binarySupplier);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    BinarySupplier<ByteBufferAware> binarySupplier) {
     final byte[] bytes = binaryHolder.get(identifier);
 
     // TODO: implements
@@ -81,19 +86,20 @@ public class InMemoryStorage implements Storage {
   }
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(
+  public CompletableFuture<BinarySupplier<ByteBufferAware>> findBinary(
     Identifier identifier) {
     final byte[] binaries = binaryHolder.get(identifier);
-    return completedFuture(new LengthAwareBinarySupplier() {
+    return completedFuture(new LengthAwareBinarySupplier<>() {
       @Override
       public long getLength() {
         return binaries.length;
       }
 
       @Override
-      public Publisher<ByteBuffer> getAsync() {
-        return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
-          chunkSize);
+      public Publisher<ByteBufferAware> getAsync() {
+        return
+          Publishers.convert(new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
+          chunkSize), byteBuffer -> new ByteBufferAware(byteBuffer));
       }
     });
   }
@@ -105,9 +111,11 @@ public class InMemoryStorage implements Storage {
   }
 
   private CompletableFuture<Void> uploadBinaryAsync(Identifier identifier,
-    BinarySupplier binarySupplier) {
+    BinarySupplier<ByteBufferAware> binarySupplier) {
+    final Publisher<ByteBuffer> convert = Publishers
+      .convert(binarySupplier.getAsync(), byteBufferAware -> byteBufferAware.getValue());
     return new ByteBufferToByteArrayAsyncAggregateReader(500)
-      .read(binarySupplier.getAsync())
+      .read(convert)
       .thenAccept(bytes -> binaryHolder.put(identifier, bytes));
   }
 }

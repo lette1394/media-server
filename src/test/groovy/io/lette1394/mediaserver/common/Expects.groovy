@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.common
 
-import io.lette1394.mediaserver.storage.domain.object.Object
+import io.lette1394.mediaserver.storage.domain.Object
 import io.lette1394.mediaserver.storage.domain.ObjectExpectDsl
 
 import java.util.concurrent.CompletableFuture

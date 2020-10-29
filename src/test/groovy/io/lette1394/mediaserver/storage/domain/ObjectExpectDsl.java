@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 import io.lette1394.mediaserver.common.Event;
-import io.lette1394.mediaserver.storage.domain.object.Object;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hamcrest.Description;

@@ -22,7 +22,7 @@
 - [processing] object handling pipeline 
 - [delivery] cache layer
 - [monitoring] up/download statistics 
-- [security] object access policy  
+- [security] object access objectPolicy  
 
 ...
 

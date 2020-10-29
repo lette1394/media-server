@@ -1,26 +1,32 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.storage.domain.binary.Type;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 
 @Getter
 class BinarySnapshot {
-  @Delegate(excludes = Enum.class)
-  private Type type;
+
   private long progressingSize;
   @Delegate(excludes = Enum.class)
-  private LifeCycle lifeCycle;
+  private BinaryLifecycle binaryLifecycle;
 
   @Builder
-  public BinarySnapshot(Type type, long progressingSize) {
-    this.type = type;
+  BinarySnapshot(long progressingSize,
+    BinaryLifecycle binaryLifecycle) {
     this.progressingSize = progressingSize;
+    this.binaryLifecycle = binaryLifecycle;
   }
 
-  boolean isOver(long size) {
-    return size > this.progressingSize;
+  static BinarySnapshot initial() {
+    return BinarySnapshot.builder()
+      .progressingSize(0)
+      .binaryLifecycle(BinaryLifecycle.NO_OPERATION)
+      .build();
+  }
+
+  boolean isOver(long progressingSize) {
+    return progressingSize > this.progressingSize;
   }
 
   BinarySnapshot update(long progressingSize) {
@@ -28,13 +34,8 @@ class BinarySnapshot {
     return this;
   }
 
-  BinarySnapshot update(Type type) {
-    this.type = type;
-    return this;
-  }
-
-  BinarySnapshot update(LifeCycle lifeCycle) {
-    this.lifeCycle = lifeCycle;
+  BinarySnapshot update(BinaryLifecycle binaryLifecycle) {
+    this.binaryLifecycle = binaryLifecycle;
     return this;
   }
 }

@@ -6,14 +6,14 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-class ListenableBinarySupplier<T extends SizeAware> implements BinarySupplier<T> {
+class ListenableBinarySupplier<BUFFER extends SizeAware> implements BinarySupplier<BUFFER> {
 
-  BinarySupplier<T> binarySupplier;
-  ListenableBinarySupplier.Listener listener;
+  BinarySupplier<BUFFER> binarySupplier;
+  Listener listener;
 
   @Override
-  public Publisher<T> getAsync() {
-    final Publisher<T> async = binarySupplier.getAsync();
+  public Publisher<BUFFER> getAsync() {
+    final Publisher<BUFFER> async = binarySupplier.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
       private long acc = 0L;
 
@@ -24,12 +24,12 @@ class ListenableBinarySupplier<T extends SizeAware> implements BinarySupplier<T>
       }
 
       @Override
-      public void onNext(T item) {
-        final long remaining = item.getSize();
+      public void onNext(BUFFER item) {
+        final long size = item.getSize();
         subscriber.onNext(item);
 
-        if (remaining > 0) {
-          acc += remaining;
+        if (size > 0) {
+          acc += size;
           listener.duringTransferring(acc);
         }
       }
@@ -48,7 +48,7 @@ class ListenableBinarySupplier<T extends SizeAware> implements BinarySupplier<T>
     });
   }
 
-  interface Listener {
+  public interface Listener {
 
     default void beforeTransfer() {
     }

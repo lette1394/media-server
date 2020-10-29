@@ -2,7 +2,7 @@ package io.lette1394.mediaserver.storage;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
-import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.Object;
 import lombok.Value;
 
 @Value

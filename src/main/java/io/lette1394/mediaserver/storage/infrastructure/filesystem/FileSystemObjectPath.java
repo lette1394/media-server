@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 
 import io.lette1394.mediaserver.storage.infrastructure.ObjectPath;
-import io.lette1394.mediaserver.storage.domain.object.Object;
+import io.lette1394.mediaserver.storage.domain.Object;
 import lombok.Value;
 
 @Value

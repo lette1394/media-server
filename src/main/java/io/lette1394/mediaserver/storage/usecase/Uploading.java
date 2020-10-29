@@ -1,13 +1,12 @@
 package io.lette1394.mediaserver.storage.usecase;
 
-import io.lette1394.mediaserver.storage.domain.Storage;
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.object.Events.UploadRejected;
-import io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered;
-import io.lette1394.mediaserver.storage.domain.object.ObjectFactory;
-import io.lette1394.mediaserver.storage.domain.object.Identifier;
-import io.lette1394.mediaserver.storage.domain.object.Object;
-import io.lette1394.mediaserver.storage.domain.object.Policy;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
+import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
+import io.lette1394.mediaserver.storage.domain.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
 import io.vavr.control.Either;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -16,14 +15,12 @@ import lombok.Value;
 
 @Value
 public class Uploading {
-  Storage storage;
 
   public CompletableFuture<Object> upload(Command command) {
-    final ObjectFactory objectFactory = new ObjectFactory(Policy.ALL_POLICY);
+    final ObjectFactory objectFactory = new ObjectFactory(ObjectPolicy.ALL_OBJECT_POLICY);
     final Identifier identifier = command.identifier;
     final Object object = objectFactory.create(identifier.getArea(), identifier.getKey());
 
-    final Either<UploadRejected, UploadingTriggered> upload = object.upload();
 
     return null;
   }

@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.storage;
 
-import io.lette1394.mediaserver.storage.domain.binary.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.binary.LengthAwareBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
