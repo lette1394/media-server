@@ -7,6 +7,7 @@ import static io.lette1394.mediaserver.storage2.domain.BinaryLifecycle.TRANSFER_
 
 import io.vavr.control.Try;
 import lombok.Builder;
+import org.reactivestreams.Publisher;
 
 public class Binary<BUFFER extends SizeAware> {
 
@@ -23,6 +24,14 @@ public class Binary<BUFFER extends SizeAware> {
     this.binaryPolicy = binaryPolicy;
     this.binaryPath = binaryPath;
     this.binarySupplier = binarySupplier;
+  }
+
+  public static <BUFFER extends SizeAware> Binary<BUFFER> from(BinaryPath binaryPath, Publisher<BUFFER> publisher) {
+    return Binary.<BUFFER>builder()
+      .binaryPolicy(BinaryPolicy.ALL_BINARY_POLICY)
+      .binarySupplier(() -> publisher)
+      .binaryPath(binaryPath)
+      .build();
   }
 
   BinaryPath getBinaryPath() {

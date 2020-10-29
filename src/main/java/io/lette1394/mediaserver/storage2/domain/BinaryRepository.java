@@ -8,7 +8,7 @@ public interface BinaryRepository<BUFFER extends SizeAware> {
 
   CompletableFuture<BinarySupplier<BUFFER>> find(BinaryPath binaryPath);
 
-  CompletableFuture<Void> save(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<Void> save(Binary<BUFFER> binary);
 
   CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);
 

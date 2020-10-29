@@ -4,12 +4,9 @@ import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingAborted;
 import io.lette1394.mediaserver.storage.domain.object.Events.UploadingTriggered;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 import org.reactivestreams.Publisher;
 
-@Builder
-@RequiredArgsConstructor
 public class Object<BUFFER extends SizeAware> extends AggregateRoot {
 
   private final ObjectPolicy objectPolicy;
@@ -23,6 +20,17 @@ public class Object<BUFFER extends SizeAware> extends AggregateRoot {
 
   private final long size;
 
+  @Builder
+  public Object(ObjectPolicy objectPolicy,
+    ObjectPath objectPath, ObjectSnapshot objectSnapshot,
+    Binary<BUFFER> binary, ObjectType objectType, long size) {
+    this.objectPolicy = objectPolicy;
+    this.objectPath = objectPath;
+    this.objectSnapshot = objectSnapshot;
+    this.binary = binary;
+    this.objectType = objectType;
+    this.size = size;
+  }
 
   public BinarySupplier<BUFFER> download() {
     return wrap(binary.getBinarySupplier());
@@ -46,7 +54,7 @@ public class Object<BUFFER extends SizeAware> extends AggregateRoot {
   }
 
   public BinaryPath getBinaryPath() {
-    return new BinaryPath();
+    return new BinaryPath() {};
   }
 
   public static Object<SizeAware> create(ObjectPath objectPath, Binary<SizeAware> binary) {

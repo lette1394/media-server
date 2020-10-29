@@ -1,8 +1,12 @@
 package io.lette1394.mediaserver.storage2.usecase;
 
+import io.lette1394.mediaserver.storage2.domain.Binary;
+import io.lette1394.mediaserver.storage2.domain.BinaryPath;
+import io.lette1394.mediaserver.storage2.domain.BinaryPathFactory;
 import io.lette1394.mediaserver.storage2.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage2.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage2.domain.Object;
+import io.lette1394.mediaserver.storage2.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage2.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage2.domain.ObjectPath;
 import io.lette1394.mediaserver.storage2.domain.ObjectRepository;
@@ -64,15 +68,18 @@ public class Uploading<BUFFER extends SizeAware> {
   }
 
   private CompletableFuture<Void> create(ObjectPath objectPath, Publisher<BUFFER> publisher) {
-    final Object<BUFFER> object = null; // TODO: object factory
-    final BinarySupplier<BUFFER> binary = object.upload(publisher);
+    final BinaryPath binaryPath = BinaryPathFactory.from(objectPath);
+    final Binary<BUFFER> binary = Binary.from(binaryPath, publisher);
+    final Object<BUFFER> object = ObjectFactory.create(objectPath, binary);
 
-    return binaryRepository.save(object.getBinaryPath(), binary);
+    final BinarySupplier<BUFFER> binarySupplier = object.upload(publisher);
+
+    return binaryRepository.save(binary);
   }
 
   private CompletableFuture<Void> overwrite(Object<BUFFER> object, Publisher<BUFFER> publisher) {
-    final BinarySupplier<BUFFER> binary = object.upload(publisher);
-    return binaryRepository.save(object.getBinaryPath(), binary);
+//    final BinarySupplier<BUFFER> binary = object.upload(publisher);
+    return binaryRepository.save(null);
   }
 
   private CompletableFuture<Void> abortUpload(Throwable e) {
