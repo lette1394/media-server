@@ -1,16 +1,12 @@
 package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 
-import static io.vavr.API.$;
-import static io.vavr.API.Case;
-import static io.vavr.API.Match;
-import static io.vavr.API.TODO;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferAware;

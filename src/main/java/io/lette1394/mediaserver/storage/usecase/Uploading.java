@@ -17,10 +17,10 @@ import lombok.Value;
 public class Uploading {
 
   public CompletableFuture<Object> upload(Command command) {
-    final ObjectFactory objectFactory = new ObjectFactory(ObjectPolicy.ALL_OBJECT_POLICY);
-    final Identifier identifier = command.identifier;
-    final Object object = objectFactory.create(identifier.getArea(), identifier.getKey());
-
+//    final ObjectFactory objectFactory = new ObjectFactory(ObjectPolicy.ALL_OBJECT_POLICY);
+//    final Identifier identifier = command.identifier;
+//    final Object object = objectFactory.create(identifier.getArea(), identifier.getKey());
+//
 
     return null;
   }

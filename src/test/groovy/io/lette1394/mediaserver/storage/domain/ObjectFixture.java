@@ -8,8 +8,12 @@ import io.lette1394.mediaserver.storage.BrokenBinarySupplier;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.vavr.control.Try;
+import java.util.function.Function;
+import javax.websocket.Decoder.Binary;
+import org.reactivestreams.Publisher;
 
 public class ObjectFixture {
+
   public static Identifier anyIdentifier() {
     return new Identifier(randomAlphanumeric(5), randomAlphanumeric(5));
   }
@@ -30,10 +34,14 @@ public class ObjectFixture {
     return new BrokenBinarySupplier(binarySupplier, nextInt(start, size));
   }
 
-  public static Object anyObject(ObjectPolicy objectPolicy) {
+  public static <T, R extends SizeAware> Object<R> anyObject(
+    ObjectPolicy objectPolicy,
+    BinaryPolicy binaryPolicy,
+    Publisher<T> publisher,
+    Function<T, R> mapper) {
     final Identifier identifier = anyIdentifier();
-    return new ObjectFactory(objectPolicy)
-      .create(identifier.getArea(), identifier.getKey());
+    return new ObjectFactory<R>(objectPolicy, binaryPolicy)
+      .create(identifier.getArea(), identifier.getKey(), publisher, mapper);
   }
 
   public static Object anyObject() {
@@ -44,7 +52,7 @@ public class ObjectFixture {
     return null;
   }
 
-  public static Object the(Object object) {
+  public static <T extends SizeAware> Object<T> the(Object<T> object) {
     return object;
   }
 }

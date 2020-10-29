@@ -11,7 +11,6 @@ import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.vavr.control.Try;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
