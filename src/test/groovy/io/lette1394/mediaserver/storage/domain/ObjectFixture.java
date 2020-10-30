@@ -9,7 +9,6 @@ import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.vavr.control.Try;
 import java.util.function.Function;
-import javax.websocket.Decoder.Binary;
 import org.reactivestreams.Publisher;
 
 public class ObjectFixture {
@@ -42,6 +41,25 @@ public class ObjectFixture {
     final Identifier identifier = anyIdentifier();
     return new ObjectFactory<R>(objectPolicy, binaryPolicy)
       .create(identifier.getArea(), identifier.getKey(), publisher, mapper);
+  }
+
+  public static <T extends SizeAware> Object<T> anyObject(ObjectPolicy objectPolicy) {
+    return new ObjectFactory(
+      objectPolicy,
+      anyBinaryPolicy())
+      .create("null", "null", anyBinary(), null);
+  }
+
+  public static <T extends SizeAware> Publisher<T> anyBinary() {
+    return s -> {
+      throw new RuntimeException();
+    };
+  }
+
+  public static BinaryPolicy anyBinaryPolicy() {
+    return binarySnapshot -> {
+      throw new RuntimeException();
+    };
   }
 
   public static Object anyObject() {
