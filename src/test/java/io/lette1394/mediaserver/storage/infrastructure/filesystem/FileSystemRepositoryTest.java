@@ -10,7 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class FileSystemBinaryRepositoryTest {
+class FileSystemRepositoryTest {
 
   private static final int EOF = -1;
   private static final int CHUNK = 10;
@@ -21,7 +21,7 @@ class FileSystemBinaryRepositoryTest {
   @BeforeEach
   void beforeEach() {
     binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository(
-      new FileSystemBinaryRepository(BASE_DIR));
+      new FileSystemRepository(BASE_DIR));
   }
 
   @AfterEach

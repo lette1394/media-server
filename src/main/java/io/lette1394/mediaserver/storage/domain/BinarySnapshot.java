@@ -26,7 +26,7 @@ class BinarySnapshot {
   }
 
   boolean isOver(long progressingSize) {
-    return progressingSize > this.progressingSize;
+    return this.progressingSize > progressingSize;
   }
 
   BinarySnapshot update(long progressingSize) {

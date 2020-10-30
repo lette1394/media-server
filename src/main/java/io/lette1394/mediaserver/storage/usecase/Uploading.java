@@ -18,23 +18,28 @@ import lombok.Value;
 import org.reactivestreams.Publisher;
 
 @RequiredArgsConstructor
-public class Uploading<T, BUFFER extends SizeAware> {
+public class Uploading<BUFFER extends SizeAware> {
   private final BinaryRepository<BUFFER> binaryRepository;
   private final ObjectRepository<BUFFER> objectRepository;
 
-  public CompletableFuture<Object<BUFFER>> upload(Command<T, BUFFER> command) {
+  public <T> CompletableFuture<Object<BUFFER>> upload(Command<T, BUFFER> command) {
     final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
     final Object<BUFFER> object = objectFactory.create(command.identifier);
 
     final BinarySupplier<BUFFER> binarySupplier = object
       .upload(Publishers.convert(command.upstream, command.mapper));
 
-    return binaryRepository.create(new BinaryPath(), binarySupplier)
+    return binaryRepository.create(new BinaryPath() {
+      @Override
+      public String asString() {
+        return String.format("%s/%s", command.identifier.getArea(), command.identifier.getKey());
+      }
+    }, binarySupplier)
     .thenCompose(__ -> objectRepository.saveObject(object));
   }
 
-  public void upload() {
-    Object object;
+//  public void upload() {
+//    Object object;
 //    Binary<String> binary = new Binary<>(null, null);
 //    object.upload(binary);.
 
@@ -48,8 +53,8 @@ public class Uploading<T, BUFFER extends SizeAware> {
     //   - 이 때 range 업로드면?
     // 2. 업로드 트랜잭션
     // 3. 기타 각종 정책
-
-  }
+//
+//  }
 
   @Value
   @Builder

@@ -1,8 +1,8 @@
 package io.lette1394.mediaserver.storage.infrastructure.springweb;
 
 
-import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
-import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemBinaryRepository;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
+import io.lette1394.mediaserver.storage.infrastructure.filesystem.FileSystemRepository;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -25,8 +25,12 @@ public class StorageConfiguration {
 //  }
 
   @Bean
-  Uploading uploading() {
+  Uploading<ByteBufferPayload> uploading() {
 //    return new Uploading(springWebStorage);
-    return null;
+
+    return new Uploading<>(
+      new FileSystemRepository("out/binaries"),
+      new FileSystemRepository("out/objects")
+    );
   }
 }

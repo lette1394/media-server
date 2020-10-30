@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
+import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
@@ -31,7 +32,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
 @Value
-public class FileSystemBinaryRepository implements
+public class FileSystemRepository implements
   ObjectRepository<ByteBufferPayload>,
   BinaryRepository<ByteBufferPayload> {
 
@@ -106,14 +107,21 @@ public class FileSystemBinaryRepository implements
   @Override
   public CompletableFuture<Void> saveBinary(Identifier identifier,
     BinarySupplier<ByteBufferPayload> binarySupplier) {
-    return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+    return null;
+  }
+
+  @Override
+  public CompletableFuture<Void> create(BinaryPath binaryPath,
+    BinarySupplier<ByteBufferPayload> binarySupplier) {
+    return writeOp(binaryPath, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
     BinarySupplier<ByteBufferPayload> binarySupplier) {
-    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
+//    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
+    return null;
   }
 
   @Override
@@ -134,11 +142,11 @@ public class FileSystemBinaryRepository implements
     });
   }
 
-  private CompletableFuture<Void> writeOp(Identifier identifier,
+  private CompletableFuture<Void> writeOp(BinaryPath binaryPath,
     BinarySupplier<ByteBufferPayload> binarySupplier,
     OpenOption... openOption) {
     final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    final Path path = createPath(identifier, "");
+    final Path path = createPath(binaryPath, "");
     final Path parent = path.getParent();
 
     try {
@@ -186,6 +194,12 @@ public class FileSystemBinaryRepository implements
           byteBuffer -> new ByteBufferPayload(byteBuffer));
       }
     };
+  }
+
+  private Path createPath(BinaryPath binaryPath, String ext) {
+    return Paths.get(
+      baseDir,
+      binaryPath.asString() + ext).toAbsolutePath();
   }
 
   private Path createPath(Identifier identifier, String ext) {
