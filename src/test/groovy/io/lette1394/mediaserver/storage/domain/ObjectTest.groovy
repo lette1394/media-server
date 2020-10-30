@@ -29,14 +29,13 @@ class ObjectTest extends Specification {
 //  def 'upstream 에서 예외가 발생하면, 업로드 중단'() {
 //    given:
 //      Object object = anyObject()
-//    and:
-//      BinarySupplier randomBinary = brokenBinarySupplier()
 //    when:
-//      def future = the object upload randomBinary
-//      future.join()
+//      def binarySupplier = the object upload(anyBinary())
+//
 //    then:
-//      thrown CompletionException
-//      expect future gotCause BrokenIOException
-//      expect object got([UploadingTriggered, UploadAborted])
+//      thrown(OperationCanceled.class)
+//
+//      expect object got UploadRejected.class
+//      expect object gotCause PolicyViolationException.class
 //  }
 }

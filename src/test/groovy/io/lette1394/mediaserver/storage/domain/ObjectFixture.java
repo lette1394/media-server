@@ -44,7 +44,7 @@ public class ObjectFixture {
   }
 
   public static <T extends SizeAware> Object<T> anyObject(ObjectPolicy objectPolicy) {
-    return new ObjectFactory(
+    return new ObjectFactory<T>(
       objectPolicy,
       anyBinaryPolicy())
       .create("null", "null", anyBinary(), null);
@@ -62,12 +62,17 @@ public class ObjectFixture {
     };
   }
 
-  public static Object anyObject() {
-    final ObjectPolicy allow = current -> Try.success(null);
+  public static <T extends SizeAware> Object<T> anyObject() {
+    final ObjectPolicy allowAll = current -> Try.success(null);
     final Identifier identifier = anyIdentifier();
-//    return new Factory(memory(), allow).create(identifier.getArea(), identifier.getKey());
-
-    return null;
+    final ObjectFactory<T> objectFactory = new ObjectFactory<>(
+      allowAll,
+      anyBinaryPolicy());
+    return objectFactory.create(
+      identifier.getArea(),
+      identifier.getKey(),
+      anyBinary(),
+      null);
   }
 
   public static <T extends SizeAware> Object<T> the(Object<T> object) {

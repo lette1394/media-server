@@ -14,8 +14,8 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
-class ObjectExpectDsl {
-  Object object;
+class ObjectExpectDsl<T extends SizeAware> {
+  Object<T> object;
 
   private static <T> Matcher<T> sameClass(Class<T> expectedType) {
     return new TypeSafeMatcher<>() {
