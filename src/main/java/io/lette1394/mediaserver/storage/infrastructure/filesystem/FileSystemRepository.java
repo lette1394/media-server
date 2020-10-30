@@ -7,14 +7,10 @@ import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
-import io.lette1394.mediaserver.storage.infrastructure.Publishers;
-import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
+import io.lette1394.mediaserver.storage.domain.SizeAware;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
@@ -27,16 +23,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-import lombok.Value;
+import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
-@Value
-public class FileSystemRepository implements
-  ObjectRepository<ByteBufferPayload>,
-  BinaryRepository<ByteBufferPayload> {
+@RequiredArgsConstructor
+public abstract class FileSystemRepository<T extends SizeAware> implements
+  ObjectRepository<T>,
+  BinaryRepository<T> {
 
-  String baseDir;
+  private final String baseDir;
 
   private static boolean isEmptyDirectory(Path path) throws IOException {
     if (path == null) {
@@ -64,21 +60,19 @@ public class FileSystemRepository implements
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferPayload>> findObject(Identifier identifier) {
+  public CompletableFuture<Object<T>> findObject(Identifier identifier) {
     return wrap(() -> {
-      final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".txt"));
-      final InputStream inputStream = Files.newInputStream(createPath(identifier, ""));
-      final SingleThreadInputStreamPublisher publisher = new SingleThreadInputStreamPublisher(
-        inputStream, 10);
-
-      final Publisher<ByteBufferPayload> convert = Publishers
-        .convert(publisher, byteBuffer -> new ByteBufferPayload(byteBuffer));
-      return FileSystemObjectEntity.fromBytes(objectBytes, convert).getObject();
+      final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".meta.txt"));
+      final Path binaryPath = createPath(identifier, "");
+      return FileSystemObjectEntity.fromBytes(objectBytes, toBinaryPublisher(binaryPath))
+        .getObject();
     });
   }
 
+  protected abstract Publisher<T> toBinaryPublisher(Path path);
+
   @Override
-  public CompletableFuture<Object<ByteBufferPayload>> saveObject(Object<ByteBufferPayload> object) {
+  public CompletableFuture<Object<T>> saveObject(Object<T> object) {
     final byte[] bytes = new FileSystemObjectEntity<>(object).toBytes();
     return wrap(() -> {
       Files.write(ensureDirectory(createPath(object.getIdentifier(), ".txt")), bytes);
@@ -96,7 +90,7 @@ public class FileSystemRepository implements
 
 
   @Override
-  public CompletableFuture<? extends BinarySupplier<ByteBufferPayload>> findBinary(Identifier identifier) {
+  public CompletableFuture<? extends BinarySupplier<T>> findBinary(Identifier identifier) {
     try {
       return completedFuture(readBinary(identifier));
     } catch (IOException e) {
@@ -106,20 +100,20 @@ public class FileSystemRepository implements
 
   @Override
   public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier<ByteBufferPayload> binarySupplier) {
+    BinarySupplier<T> binarySupplier) {
     return null;
   }
 
   @Override
   public CompletableFuture<Void> create(BinaryPath binaryPath,
-    BinarySupplier<ByteBufferPayload> binarySupplier) {
+    BinarySupplier<T> binarySupplier) {
     return writeOp(binaryPath, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier<ByteBufferPayload> binarySupplier) {
+    BinarySupplier<T> binarySupplier) {
 //    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
     return null;
   }
@@ -143,7 +137,7 @@ public class FileSystemRepository implements
   }
 
   private CompletableFuture<Void> writeOp(BinaryPath binaryPath,
-    BinarySupplier<ByteBufferPayload> binarySupplier,
+    BinarySupplier<T> binarySupplier,
     OpenOption... openOption) {
     final ExecutorService executorService = Executors.newSingleThreadExecutor();
     final Path path = createPath(binaryPath, "");
@@ -163,37 +157,19 @@ public class FileSystemRepository implements
       Flux.from(binarySupplier.getAsync())
         .doOnComplete(() -> ret.complete(null))
         .doOnError(e -> ret.completeExceptionally(e))
-        .subscribe(byteBuffer -> {
-          try {
-            channel.write(byteBuffer.getValue());
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        });
+        .subscribe(item -> write(channel, item));
       return ret;
     } catch (Exception e) {
       return CompletableFuture.failedFuture(e);
     }
   }
 
-  private LengthAwareBinarySupplier<ByteBufferPayload> readBinary(Identifier identifier)
+  protected abstract void write(WritableByteChannel channel, T item);
+
+  private BinarySupplier<T> readBinary(Identifier identifier)
     throws IOException {
-    final Path objectPath = createPath(identifier, "");
-    final InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
-
-    return new LengthAwareBinarySupplier<>() {
-      @Override
-      public long getLength() {
-        return objectPath.toFile().length();
-      }
-
-      @Override
-      public Publisher<ByteBufferPayload> getAsync() {
-        return Publishers.convert(
-          new SingleThreadInputStreamPublisher(inputStream, 1024),
-          byteBuffer -> new ByteBufferPayload(byteBuffer));
-      }
-    };
+    final Path binaryPath = createPath(identifier, "");
+    return () -> toBinaryPublisher(binaryPath);
   }
 
   private Path createPath(BinaryPath binaryPath, String ext) {

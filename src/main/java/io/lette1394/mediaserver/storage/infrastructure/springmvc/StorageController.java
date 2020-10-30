@@ -1,30 +1,20 @@
-package io.lette1394.mediaserver.storage.infrastructure.springweb;
+package io.lette1394.mediaserver.storage.infrastructure.springmvc;
 
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
-import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import reactor.core.publisher.Flux;
 
 @RestController
 @RequiredArgsConstructor
@@ -71,7 +61,7 @@ public class StorageController {
       .mapper(byteBuffer -> new ByteBufferPayload(byteBuffer))
       .tags(new HashMap<>())
       .build())
-      .thenAccept(__ -> System.out.println("done"));
+      .thenAccept(__ -> System.out.println("done mvc"));
 
 //
 //    final ServletInputStream inputStream = request.getInputStream();
