@@ -1,12 +1,11 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import io.lette1394.mediaserver.storage.infrastructure.StringAware;
+import io.lette1394.mediaserver.storage.infrastructure.StringPayload;
 import java.util.concurrent.CompletableFuture;
 import lombok.Value;
-import reactor.core.publisher.Flux;
 
 @Value
-public class InMemoryStorage implements BinaryRepository<StringAware> {
+public class InMemoryStorage implements BinaryRepository<StringPayload> {
 
   int chunkSize;
 
@@ -19,20 +18,20 @@ public class InMemoryStorage implements BinaryRepository<StringAware> {
   }
 
   @Override
-  public CompletableFuture<? extends BinarySupplier<StringAware>> findBinary(
+  public CompletableFuture<? extends BinarySupplier<StringPayload>> findBinary(
     Identifier identifier) {
     return null;
   }
 
   @Override
   public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier<StringAware> binarySupplier) {
+    BinarySupplier<StringPayload> binarySupplier) {
     return null;
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier<StringAware> binarySupplier) {
+    BinarySupplier<StringPayload> binarySupplier) {
     return null;
   }
 

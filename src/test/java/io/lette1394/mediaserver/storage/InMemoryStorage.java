@@ -14,7 +14,7 @@ import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
 import io.lette1394.mediaserver.storage.infrastructure.Publishers;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferAware;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
 import io.lette1394.mediaserver.storage.usecase.ObjectNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
@@ -26,10 +26,10 @@ import org.reactivestreams.Publisher;
 
 @Value
 public class InMemoryStorage implements
-  ObjectRepository<ByteBufferAware>,
-  BinaryRepository<ByteBufferAware> {
+  ObjectRepository<ByteBufferPayload>,
+  BinaryRepository<ByteBufferPayload> {
 
-  static Map<Identifier, Object<ByteBufferAware>> objectHolder = new ConcurrentHashMap<>();
+  static Map<Identifier, Object<ByteBufferPayload>> objectHolder = new ConcurrentHashMap<>();
   static Map<Identifier, byte[]> binaryHolder = new ConcurrentHashMap<>();
 
   int chunkSize;
@@ -52,7 +52,7 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferAware>> findObject(Identifier identifier)
+  public CompletableFuture<Object<ByteBufferPayload>> findObject(Identifier identifier)
     throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(objectHolder.get(identifier));
@@ -61,7 +61,7 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferAware>> saveObject(Object<ByteBufferAware> object) {
+  public CompletableFuture<Object<ByteBufferPayload>> saveObject(Object<ByteBufferPayload> object) {
     return findObject(object.getIdentifier())
       .thenApply(found -> objectHolder.put(found.getIdentifier(), object));
   }
@@ -72,13 +72,13 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<ByteBufferAware> binarySupplier) {
+  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<ByteBufferPayload> binarySupplier) {
     return uploadBinaryAsync(identifier, binarySupplier);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier<ByteBufferAware> binarySupplier) {
+    BinarySupplier<ByteBufferPayload> binarySupplier) {
     final byte[] bytes = binaryHolder.get(identifier);
 
     // TODO: implements
@@ -86,7 +86,7 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<BinarySupplier<ByteBufferAware>> findBinary(
+  public CompletableFuture<BinarySupplier<ByteBufferPayload>> findBinary(
     Identifier identifier) {
     final byte[] binaries = binaryHolder.get(identifier);
     return completedFuture(new LengthAwareBinarySupplier<>() {
@@ -96,10 +96,10 @@ public class InMemoryStorage implements
       }
 
       @Override
-      public Publisher<ByteBufferAware> getAsync() {
+      public Publisher<ByteBufferPayload> getAsync() {
         return
           Publishers.convert(new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
-          chunkSize), byteBuffer -> new ByteBufferAware(byteBuffer));
+          chunkSize), byteBuffer -> new ByteBufferPayload(byteBuffer));
       }
     });
   }
@@ -111,9 +111,9 @@ public class InMemoryStorage implements
   }
 
   private CompletableFuture<Void> uploadBinaryAsync(Identifier identifier,
-    BinarySupplier<ByteBufferAware> binarySupplier) {
+    BinarySupplier<ByteBufferPayload> binarySupplier) {
     final Publisher<ByteBuffer> convert = Publishers
-      .convert(binarySupplier.getAsync(), byteBufferAware -> byteBufferAware.getValue());
+      .convert(binarySupplier.getAsync(), byteBufferPayload -> byteBufferPayload.getValue());
     return new ByteBufferToByteArrayAsyncAggregateReader(500)
       .read(convert)
       .thenAccept(bytes -> binaryHolder.put(identifier, bytes));

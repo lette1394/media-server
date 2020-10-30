@@ -9,7 +9,7 @@ import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferAware;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.Publishers;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
 import java.io.IOException;
@@ -32,8 +32,8 @@ import reactor.core.publisher.Flux;
 
 @Value
 public class FileSystemBinaryRepository implements
-  ObjectRepository<ByteBufferAware>,
-  BinaryRepository<ByteBufferAware> {
+  ObjectRepository<ByteBufferPayload>,
+  BinaryRepository<ByteBufferPayload> {
 
   String baseDir;
 
@@ -63,21 +63,21 @@ public class FileSystemBinaryRepository implements
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferAware>> findObject(Identifier identifier) {
+  public CompletableFuture<Object<ByteBufferPayload>> findObject(Identifier identifier) {
     return wrap(() -> {
       final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".txt"));
       final InputStream inputStream = Files.newInputStream(createPath(identifier, ""));
       final SingleThreadInputStreamPublisher publisher = new SingleThreadInputStreamPublisher(
         inputStream, 10);
 
-      final Publisher<ByteBufferAware> convert = Publishers
-        .convert(publisher, byteBuffer -> new ByteBufferAware(byteBuffer));
+      final Publisher<ByteBufferPayload> convert = Publishers
+        .convert(publisher, byteBuffer -> new ByteBufferPayload(byteBuffer));
       return FileSystemObjectEntity.fromBytes(objectBytes, () -> convert).getObject();
     });
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferAware>> saveObject(Object<ByteBufferAware> object) {
+  public CompletableFuture<Object<ByteBufferPayload>> saveObject(Object<ByteBufferPayload> object) {
     final byte[] bytes = new FileSystemObjectEntity<>(object).toBytes();
     return wrap(() -> {
       Files.write(ensureDirectory(createPath(object.getIdentifier(), ".txt")), bytes);
@@ -95,7 +95,7 @@ public class FileSystemBinaryRepository implements
 
 
   @Override
-  public CompletableFuture<? extends BinarySupplier<ByteBufferAware>> findBinary(Identifier identifier) {
+  public CompletableFuture<? extends BinarySupplier<ByteBufferPayload>> findBinary(Identifier identifier) {
     try {
       return completedFuture(readBinary(identifier));
     } catch (IOException e) {
@@ -105,14 +105,14 @@ public class FileSystemBinaryRepository implements
 
   @Override
   public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier<ByteBufferAware> binarySupplier) {
+    BinarySupplier<ByteBufferPayload> binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
   public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier<ByteBufferAware> binarySupplier) {
+    BinarySupplier<ByteBufferPayload> binarySupplier) {
     return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
   }
 
@@ -135,7 +135,7 @@ public class FileSystemBinaryRepository implements
   }
 
   private CompletableFuture<Void> writeOp(Identifier identifier,
-    BinarySupplier<ByteBufferAware> binarySupplier,
+    BinarySupplier<ByteBufferPayload> binarySupplier,
     OpenOption... openOption) {
     final ExecutorService executorService = Executors.newSingleThreadExecutor();
     final Path path = createPath(identifier, "");
@@ -168,7 +168,7 @@ public class FileSystemBinaryRepository implements
     }
   }
 
-  private LengthAwareBinarySupplier<ByteBufferAware> readBinary(Identifier identifier)
+  private LengthAwareBinarySupplier<ByteBufferPayload> readBinary(Identifier identifier)
     throws IOException {
     final Path objectPath = createPath(identifier, "");
     final InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
@@ -180,10 +180,10 @@ public class FileSystemBinaryRepository implements
       }
 
       @Override
-      public Publisher<ByteBufferAware> getAsync() {
+      public Publisher<ByteBufferPayload> getAsync() {
         return Publishers.convert(
           new SingleThreadInputStreamPublisher(inputStream, 1024),
-          byteBuffer -> new ByteBufferAware(byteBuffer));
+          byteBuffer -> new ByteBufferPayload(byteBuffer));
       }
     };
   }
