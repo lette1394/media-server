@@ -72,7 +72,7 @@ public class FileSystemBinaryRepository implements
 
       final Publisher<ByteBufferPayload> convert = Publishers
         .convert(publisher, byteBuffer -> new ByteBufferPayload(byteBuffer));
-      return FileSystemObjectEntity.fromBytes(objectBytes, () -> convert).getObject();
+      return FileSystemObjectEntity.fromBytes(objectBytes, convert).getObject();
     });
   }
 

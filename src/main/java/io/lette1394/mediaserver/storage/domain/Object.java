@@ -4,13 +4,17 @@ import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.AFTER_TRAN
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.BEFORE_TRANSFER;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.DURING_TRANSFERRING;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.TRANSFER_ABORTED;
+import static io.lette1394.mediaserver.storage.domain.Command.DOWNLOAD;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.storage.domain.Events.DownloadRejected;
+import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.vavr.control.Try;
+import java.util.concurrent.CompletableFuture;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
@@ -23,44 +27,48 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
     ObjectPolicy objectPolicy, BinaryPolicy binaryPolicy,
     Tags tags, TimeStamp timeStamp,
     BinarySnapshot binarySnapshot,
-    BinarySupplier<BUFFER> binarySupplier) {
+    BinaryRepository<BUFFER> binaryRepository) {
     this.identifier = identifier;
     this.objectPolicy = objectPolicy;
     this.binaryPolicy = binaryPolicy;
     this.tags = tags;
     this.timeStamp = timeStamp;
     this.binarySnapshot = binarySnapshot;
-    this.binarySupplier = binarySupplier;
+    this.binaryRepository = binaryRepository;
   }
 
   @Getter
   protected final Identifier identifier;
   protected final ObjectPolicy objectPolicy;
-  private final BinaryPolicy binaryPolicy;
 
   protected final Tags tags;
   @Delegate
   protected final TimeStamp timeStamp;
 
-  private final BinarySnapshot binarySnapshot;
-  private final BinarySupplier<BUFFER> binarySupplier;
 
+  protected final BinaryPolicy binaryPolicy;
+  protected final BinarySnapshot binarySnapshot;
+  protected final BinaryRepository<BUFFER> binaryRepository;
 
   public BinarySupplier<BUFFER> upload(Publisher<BUFFER> upstream) {
     return objectPolicy.test(snapshot(UPLOAD))
-      .onSuccess(__ -> uploadingTriggered())
-      .onFailure(e -> uploadRejected(e))
+      .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
+      .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
       .map(__ -> toSupplier(upstream))
       .getOrElseThrow(() -> new OperationCanceled(UPLOAD));
   }
 
-  private void uploadRejected(Throwable e) {
-    addEvent(UploadRejected.uploadRejected(e));
+  protected abstract CompletableFuture<Void> doUpload(BinarySupplier<BUFFER> binarySupplier);
+
+  public Publisher<BUFFER> download() {
+    return objectPolicy.test(snapshot(DOWNLOAD))
+      .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
+      .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
+      .map(__ -> doDownload())
+      .getOrElseThrow(() -> new OperationCanceled(DOWNLOAD));
   }
 
-  private void uploadingTriggered() {
-    addEvent(UploadingTriggered.uploadingTriggered());
-  }
+  protected abstract Publisher<BUFFER> doDownload();
 
   private ObjectSnapshot snapshot(Command command) {
     return ObjectSnapshot.builder()
@@ -77,6 +85,10 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
 
   public Tags getTags() {
     return tags;
+  }
+
+  Publisher<BUFFER> toPublisher() {
+    return null;
   }
 
   BinarySupplier<BUFFER> toSupplier(Publisher<BUFFER> publisher) {

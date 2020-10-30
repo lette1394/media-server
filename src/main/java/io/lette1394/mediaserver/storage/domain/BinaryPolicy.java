@@ -7,7 +7,7 @@ import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
 import java.util.Set;
 
-interface BinaryPolicy extends Testable<BinarySnapshot> {
+public interface BinaryPolicy extends Testable<BinarySnapshot> {
 
   BinaryPolicy REJECT_10MB_OVER = binary -> {
     if (binary.isOver(10 * 1024 * 1024)) {

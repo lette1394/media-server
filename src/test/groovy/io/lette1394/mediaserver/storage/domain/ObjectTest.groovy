@@ -5,6 +5,8 @@ import io.lette1394.mediaserver.common.PolicyViolationException
 import io.vavr.control.Try
 import spock.lang.Specification
 
+import java.util.concurrent.CompletableFuture
+
 import static io.lette1394.mediaserver.common.Expects.expect
 import static io.lette1394.mediaserver.common.Violations.violation
 import static io.lette1394.mediaserver.storage.domain.Events.*

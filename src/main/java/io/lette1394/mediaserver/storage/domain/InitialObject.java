@@ -1,7 +1,9 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import io.lette1394.mediaserver.common.TimeStamp;
+import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
+import org.reactivestreams.Publisher;
 
 public class InitialObject<BUFFER extends SizeAware> extends Object<BUFFER> {
 
@@ -10,8 +12,19 @@ public class InitialObject<BUFFER extends SizeAware> extends Object<BUFFER> {
     ObjectPolicy objectPolicy, BinaryPolicy binaryPolicy,
     Tags tags, TimeStamp timeStamp,
     BinarySnapshot binarySnapshot,
-    BinarySupplier<BUFFER> binarySupplier) {
-    super(identifier, objectPolicy, binaryPolicy, tags, timeStamp, binarySnapshot, binarySupplier);
+    BinaryRepository<BUFFER> binaryRepository) {
+    super(identifier, objectPolicy, binaryPolicy, tags, timeStamp, binarySnapshot,
+      binaryRepository);
+  }
+
+  @Override
+  protected CompletableFuture<Void> doUpload(BinarySupplier<BUFFER> binarySupplier) {
+    return binaryRepository.create(new BinaryPath(), binarySupplier);
+  }
+
+  @Override
+  protected Publisher<BUFFER> doDownload() {
+    throw new UnsupportedOperationException("cannot download initial object");
   }
 
   @Override

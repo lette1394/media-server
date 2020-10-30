@@ -23,13 +23,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
+import org.reactivestreams.Publisher;
 
 @Value
 public class FileSystemObjectEntity<BUFFER extends SizeAware> {
   private static final String LINE_SEPARATOR = "\n";
   Object<BUFFER> object;
 
-  public static <BUFFER extends SizeAware> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, BinarySupplier<BUFFER> binarySupplier) {
+  public static <BUFFER extends SizeAware> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, Publisher<BUFFER> publisher) {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
@@ -55,7 +56,7 @@ public class FileSystemObjectEntity<BUFFER extends SizeAware> {
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
-        .binarySupplier(binarySupplier)
+        .publisher(publisher)
         .build();
 
       return new FileSystemObjectEntity<>(object);

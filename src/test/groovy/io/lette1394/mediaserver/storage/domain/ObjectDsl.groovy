@@ -56,7 +56,7 @@ class ObjectDsl {
   }
 
   private Object toObject(BinaryRepository binaryRepository) {
-    return new ObjectFactory(binaryRepository, policy)
+    return new ObjectFactory<>(binaryRepository, policy)
       .create(identifier.area, identifier.key)
   }
 

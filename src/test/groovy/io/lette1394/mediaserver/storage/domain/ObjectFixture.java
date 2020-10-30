@@ -8,7 +8,6 @@ import io.lette1394.mediaserver.storage.BrokenBinarySupplier;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.TestBinarySupplier;
 import io.vavr.control.Try;
-import java.util.function.Function;
 import org.reactivestreams.Publisher;
 
 public class ObjectFixture {
@@ -35,19 +34,17 @@ public class ObjectFixture {
 
   public static <T, R extends SizeAware> Object<R> anyObject(
     ObjectPolicy objectPolicy,
-    BinaryPolicy binaryPolicy,
-    Publisher<T> publisher,
-    Function<T, R> mapper) {
+    BinaryPolicy binaryPolicy) {
     final Identifier identifier = anyIdentifier();
     return new ObjectFactory<R>(objectPolicy, binaryPolicy)
-      .create(identifier.getArea(), identifier.getKey(), publisher, mapper);
+      .create(identifier.getArea(), identifier.getKey());
   }
 
   public static <T extends SizeAware> Object<T> anyObject(ObjectPolicy objectPolicy) {
     return new ObjectFactory<T>(
       objectPolicy,
       anyBinaryPolicy())
-      .create("null", "null", anyBinary(), null);
+      .create("null", "null");
   }
 
   public static <T extends SizeAware> Publisher<T> anyBinary() {
@@ -70,9 +67,7 @@ public class ObjectFixture {
       anyBinaryPolicy());
     return objectFactory.create(
       identifier.getArea(),
-      identifier.getKey(),
-      anyBinary(),
-      null);
+      identifier.getKey());
   }
 
   public static <T extends SizeAware> Object<T> the(Object<T> object) {

@@ -17,4 +17,8 @@ public interface BinaryRepository<BUFFER extends SizeAware> {
   CompletableFuture<Void> appendBinary(Identifier identifier, BinarySupplier<BUFFER> binarySupplier);
 
   CompletableFuture<Void> deleteBinary(Identifier identifier);
+
+  default CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier) {
+    throw new UnsupportedOperationException();
+  }
 }

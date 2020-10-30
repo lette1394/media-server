@@ -1,28 +1,36 @@
 package io.lette1394.mediaserver.storage.usecase;
 
+import io.lette1394.mediaserver.storage.domain.BinaryPath;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
-import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
-import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
-import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
-import io.vavr.control.Either;
+import io.lette1394.mediaserver.storage.domain.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.ObjectRepository;
+import io.lette1394.mediaserver.storage.domain.SizeAware;
+import io.lette1394.mediaserver.storage.infrastructure.Publishers;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.reactivestreams.Publisher;
 
-@Value
-public class Uploading {
+@RequiredArgsConstructor
+public class Uploading<T, BUFFER extends SizeAware> {
+  private final BinaryRepository<BUFFER> binaryRepository;
+  private final ObjectRepository<BUFFER> objectRepository;
 
-  public CompletableFuture<Object> upload(Command command) {
-//    final ObjectFactory objectFactory = new ObjectFactory(ObjectPolicy.ALL_OBJECT_POLICY);
-//    final Identifier identifier = command.identifier;
-//    final Object object = objectFactory.create(identifier.getArea(), identifier.getKey());
-//
+  public CompletableFuture<Object<BUFFER>> upload(Command<T, BUFFER> command) {
+    final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
+    final Object<BUFFER> object = objectFactory.create(command.identifier);
 
-    return null;
+    final BinarySupplier<BUFFER> binarySupplier = object
+      .upload(Publishers.convert(command.upstream, command.mapper));
+
+    return binaryRepository.create(new BinaryPath(), binarySupplier)
+    .thenCompose(__ -> objectRepository.saveObject(object));
   }
 
   public void upload() {
@@ -30,10 +38,8 @@ public class Uploading {
 //    Binary<String> binary = new Binary<>(null, null);
 //    object.upload(binary);.
 
-
     // object를 메서드로 동작을 여러개로 해야 할까...?
     //
-
 
     // 요구사항
     // 1. resume 업로드 되는 친구/아예 안되는 친구 효율적인 제어 흐름...
@@ -47,9 +53,11 @@ public class Uploading {
 
   @Value
   @Builder
-  public static class Command {
+  public static class Command<T, BUFFER extends SizeAware> {
+
     Identifier identifier;
     Map<String, String> tags;
-    BinarySupplier binarySupplier;
+    Publisher<T> upstream;
+    Function<T, BUFFER> mapper;
   }
 }
