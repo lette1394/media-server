@@ -22,6 +22,10 @@ public class Uploading<BUFFER extends SizeAware> {
   private final BinaryRepository<BUFFER> binaryRepository;
   private final ObjectRepository<BUFFER> objectRepository;
 
+  // TODO: append, overwrite 등 분기처리는 어디서...?
+  //  presentation layer?
+  //  아니야 이것도 결국에는 control-flow 니까, 또 다른 usecase 에서 써야해.
+  //  facade class: Uploading을 만들자.
   public <T> CompletableFuture<Object<BUFFER>> upload(Command<T, BUFFER> command) {
     final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
     final Object<BUFFER> object = objectFactory.create(command.identifier);
