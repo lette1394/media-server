@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.storage.infrastructure.springwebflux;
 
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
+import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
@@ -30,8 +31,16 @@ public class SpringWebFluxConfiguration {
   @Bean
   Uploading<DataBufferPayload> uploading() {
     return new Uploading<>(
-      new DataBufferFileSystemRepository("out/binaries"),
-      new DataBufferFileSystemRepository("out/objects")
+      new DataBufferFileSystemRepository("out/storage"),
+      new DataBufferFileSystemRepository("out/storage")
+    );
+  }
+
+  @Bean
+  Downloading<DataBufferPayload> downloading() {
+    return new Downloading<>(
+      new DataBufferFileSystemRepository("out/storage"),
+      new DataBufferFileSystemRepository("out/storage")
     );
   }
 

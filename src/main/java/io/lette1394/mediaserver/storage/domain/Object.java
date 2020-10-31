@@ -72,7 +72,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .toCompletableFuture()
       .thenCompose(__ -> binaryRepository.findBinary(identifier))
       .exceptionally(e -> {
-        throw new OperationCanceled(DOWNLOAD);
+        throw new OperationCanceled(DOWNLOAD, e);
       });
   }
 

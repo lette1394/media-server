@@ -22,8 +22,8 @@ public class DataBufferFileSystemRepository extends FileSystemRepository<DataBuf
       final AsynchronousFileChannel channel = AsynchronousFileChannel
         .open(path, StandardOpenOption.READ);
       return DataBufferUtils
-        .readAsynchronousFileChannel(() -> channel, new DefaultDataBufferFactory(), 1024)
-        .map(dataBuffer -> new DataBufferPayload(dataBuffer));
+        .readAsynchronousFileChannel(() -> channel, new DefaultDataBufferFactory(), 1024*1024)
+        .map(DataBufferPayload::new);
 
     } catch (IOException e) {
       e.printStackTrace();

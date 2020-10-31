@@ -62,7 +62,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
   @Override
   public CompletableFuture<Object<T>> findObject(Identifier identifier) {
     return wrap(() -> {
-      final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".meta.txt"));
+      final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".txt"));
       return FileSystemObjectEntity.fromBytes(objectBytes, this).getObject();
     });
   }

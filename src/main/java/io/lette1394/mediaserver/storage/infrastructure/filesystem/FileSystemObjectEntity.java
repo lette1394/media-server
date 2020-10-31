@@ -34,7 +34,7 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
-        .map(line -> line.split(":"))
+        .map(line -> split(line))
         .reduce(new HashMap<>(), (acc, cur) -> {
           final String key = cur[0];
           final String value = cur[1];
@@ -65,8 +65,17 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
 
       return new FileSystemObjectEntity<>(object);
     } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static String[] split(String line) {
+    final int i = line.indexOf(":");
+    if (i == -1) {
       throw new RuntimeException();
     }
+
+    return new String[] {line.substring(0, i), line.substring(i+1)};
   }
 
   byte[] toBytes() {
@@ -102,7 +111,7 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
   private String timestamp() {
     return format("created:%s", object.getCreated())
       + LINE_SEPARATOR
-      + format("updated:%s,", object.getUpdated());
+      + format("updated:%s", object.getUpdated());
   }
 
   private String type() {

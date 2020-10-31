@@ -55,3 +55,46 @@ java.base/java.io=ALL-UNNAMED
 - interface 계층구조에는 적합하지 않다-> 애초에 이런 의도가 아닌듯. 어떤 클래스가 뭐가 구현될지 모르니까 음...
 - sync, async 두 방식을 모두 지원하면서 generic type까지 가져가는 유일한 방법은; sync-object, async-object 각각 나누는 것 밖에 없는 듯...
 - 후.. 근데 sync/async 관계 없이 로직 흐름을 그대로 따라가고 싶은데 그러면 코드 중복을 어떻게 제거하지...
+
+
+
+### notes
+
+mvc
+2831989048 bytes
+
+1k
+unpooled + direct = 33.9s
+unpooled + heap = 25.8s
+
+pooled + direct = 30.0s
+pooled + heap = 28.3s
+
+
+1M
+unpooled + direct = 31.01s 
+unpooled + heap = 37.7s
+
+pooled + direct = 8.3s
+pooled + heap = 7.25s ~ 8.42s
+
+
+2M
+unpooled + direct = 
+unpooled + heap = 
+
+pooled + direct = 8.31s 
+pooled + heap = 7.98s
+
+
+
+
+10M
+unpooled + direct = 
+unpooled + heap = 
+
+pooled + direct = over 120s
+pooled + heap = over 120s
+
+
+
