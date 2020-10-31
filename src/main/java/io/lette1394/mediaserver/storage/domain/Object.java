@@ -14,41 +14,47 @@ import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.vavr.control.Try;
-import java.util.concurrent.CompletableFuture;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import org.reactivestreams.Publisher;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
-public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
+public class Object<BUFFER extends SizeAware> extends AggregateRoot {
 
-  protected Object(Identifier identifier,
-    ObjectPolicy objectPolicy, BinaryPolicy binaryPolicy,
-    Tags tags, TimeStamp timeStamp,
+  @Builder
+  public Object(Identifier identifier,
+    ObjectPolicy objectPolicy,
+    ObjectSnapshot objectSnapshot,
+    Tags tags,
+    TimeStamp timeStamp,
+    BinaryPolicy binaryPolicy,
     BinarySnapshot binarySnapshot,
     BinaryRepository<BUFFER> binaryRepository) {
     this.identifier = identifier;
     this.objectPolicy = objectPolicy;
-    this.binaryPolicy = binaryPolicy;
+    this.objectSnapshot = objectSnapshot;
     this.tags = tags;
     this.timeStamp = timeStamp;
+    this.binaryPolicy = binaryPolicy;
     this.binarySnapshot = binarySnapshot;
     this.binaryRepository = binaryRepository;
   }
 
   @Getter
-  protected final Identifier identifier;
-  protected final ObjectPolicy objectPolicy;
+  private final Identifier identifier;
+  private final ObjectPolicy objectPolicy;
+  private final ObjectSnapshot objectSnapshot;
 
-  protected final Tags tags;
+  private final Tags tags;
   @Delegate
-  protected final TimeStamp timeStamp;
+  private final TimeStamp timeStamp;
 
 
-  protected final BinaryPolicy binaryPolicy;
-  protected final BinarySnapshot binarySnapshot;
-  protected final BinaryRepository<BUFFER> binaryRepository;
+  private final BinaryPolicy binaryPolicy;
+  private final BinarySnapshot binarySnapshot;
+  private final BinaryRepository<BUFFER> binaryRepository;
 
   public BinarySupplier<BUFFER> upload(Publisher<BUFFER> upstream) {
     return objectPolicy.test(snapshot(UPLOAD))
@@ -58,32 +64,29 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
       .getOrElseThrow(() -> new OperationCanceled(UPLOAD));
   }
 
-  // TODO: object type 별 upload 정책은 usecase에서 분기하는거라서
-  //  여기서 상속을 이용해서 로직 분기할 이유가 없다.
-  protected abstract CompletableFuture<Void> doUpload(BinarySupplier<BUFFER> binarySupplier);
-
   public Publisher<BUFFER> download() {
     return objectPolicy.test(snapshot(DOWNLOAD))
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
-      .map(__ -> doDownload())
+      .map(__ -> (Publisher)null)
       .getOrElseThrow(() -> new OperationCanceled(DOWNLOAD));
   }
 
-  protected abstract Publisher<BUFFER> doDownload();
-
   private ObjectSnapshot snapshot(Command command) {
     return ObjectSnapshot.builder()
-      .identifier(identifier)
       .command(command)
       .size(getSize())
       .objectType(getType())
       .build();
   }
 
-  public abstract long getSize();
+  public long getSize() {
+    return objectSnapshot.getSize();
+  }
 
-  public abstract ObjectType getType();
+  public ObjectType getType() {
+    return objectSnapshot.getObjectType();
+  }
 
   public Tags getTags() {
     return tags;
@@ -144,6 +147,8 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
         binarySnapshot
           .update(currentLength)
           .update(DURING_TRANSFERRING);
+        objectSnapshot
+          .update(currentLength);
       }
 
       @Override
@@ -151,6 +156,9 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
         binarySnapshot
           .update(totalLength)
           .update(AFTER_TRANSFERRED);
+        objectSnapshot
+          .update(totalLength)
+          .update(ObjectType.FULFILLED);
       }
 
       @Override
@@ -160,6 +168,7 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
         }
         aborted = true;
         binarySnapshot.update(TRANSFER_ABORTED);
+        objectSnapshot.update(ObjectType.PENDING);
       }
     };
   }

@@ -1,6 +1,8 @@
 package io.lette1394.mediaserver.storage.domain;
 
 public enum Command {
+  NO_OPERATION,
+
   UPLOAD,
   DOWNLOAD,
   COPY;

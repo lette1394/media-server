@@ -7,19 +7,42 @@ import lombok.experimental.Delegate;
 @Getter
 public class ObjectSnapshot {
 
-  private final Identifier identifier;
-  private final long size;
+  private long size;
   @Delegate(excludes = Enum.class)
-  private final ObjectType objectType;
+  private ObjectType objectType;
   @Delegate(excludes = Enum.class)
-  private final Command command;
+  private Command command;
+
+  public static ObjectSnapshot initial(long size) {
+    return ObjectSnapshot.builder()
+      .size(size)
+      .objectType(ObjectType.INITIAL)
+      .command(Command.UPLOAD)
+      .build();
+  }
 
   @Builder
-  public ObjectSnapshot(Identifier identifier, long size,
-    ObjectType objectType, Command command) {
-    this.identifier = identifier;
+  public ObjectSnapshot(
+    long size,
+    ObjectType objectType,
+    Command command) {
     this.size = size;
     this.objectType = objectType;
     this.command = command;
+  }
+
+  ObjectSnapshot update(long size) {
+    this.size = size;
+    return this;
+  }
+
+  ObjectSnapshot update(ObjectType objectType) {
+    this.objectType = objectType;
+    return this;
+  }
+
+  ObjectSnapshot update(Command command) {
+    this.command = command;
+    return this;
   }
 }

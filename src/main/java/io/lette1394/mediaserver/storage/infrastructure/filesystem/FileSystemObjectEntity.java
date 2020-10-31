@@ -6,8 +6,6 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 
 import io.lette1394.mediaserver.common.TimeStamp;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
@@ -49,14 +47,14 @@ public class FileSystemObjectEntity<BUFFER extends SizeAware> {
         .map(entry -> new Tag(nonBlankString(entry.getKey().substring(3)), entry.getValue()))
         .collect(Collectors.toList());
 
-      final FulfilledObject<BUFFER> object = FulfilledObject.<BUFFER>builder()
+      final Object<BUFFER> object = Object.<BUFFER>builder()
         .identifier(new Identifier(map.get("area"), map.get("key")))
-        .size(positiveLong(parseLong(map.get("size"))))
+//        .size(positiveLong(parseLong(map.get("size"))))
         .objectPolicy(ObjectPolicy.ALL_OBJECT_POLICY)
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
-        .publisher(publisher)
+//        .publisher(publisher)
         .build();
 
       return new FileSystemObjectEntity<>(object);

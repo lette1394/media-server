@@ -29,12 +29,11 @@ class ControllableBinarySupplier<BUFFER extends SizeAware> implements BinarySupp
       @Override
       public void onNext(BUFFER item) {
         final long size = item.getSize();
-        subscriber.onNext(item);
-
         if (size > 0) {
           acc += size;
           checkSucceed(policy.duringTransferring(acc));
         }
+        subscriber.onNext(item);
       }
 
       @Override
@@ -44,8 +43,8 @@ class ControllableBinarySupplier<BUFFER extends SizeAware> implements BinarySupp
 
       @Override
       public void onComplete() {
-        subscriber.onComplete();
         checkSucceed(policy.afterTransferred(acc));
+        subscriber.onComplete();
       }
 
       private void checkSucceed(Try<?> result) {

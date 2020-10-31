@@ -25,9 +25,10 @@ public class ObjectFactory<BUFFER extends SizeAware> {
   public <T> Object<BUFFER> create(String area, String key) {
     final Identifier identifier = new Identifier(area, key);
 
-    return InitialObject.<BUFFER>builder()
+    return Object.<BUFFER>builder()
       .identifier(identifier)
       .objectPolicy(objectPolicy)
+      .objectSnapshot(ObjectSnapshot.initial(0))
       .binaryPolicy(binaryPolicy)
       .binarySnapshot(BinarySnapshot.initial())
       .tags(Tags.empty())

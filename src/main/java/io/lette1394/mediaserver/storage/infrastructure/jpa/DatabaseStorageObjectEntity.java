@@ -3,10 +3,8 @@ package io.lette1394.mediaserver.storage.infrastructure.jpa;
 import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.FulfilledObject;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
-import io.lette1394.mediaserver.storage.domain.PendingObject;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
 import io.lette1394.mediaserver.storage.domain.Tag;
 import io.lette1394.mediaserver.storage.domain.Tags;
@@ -68,46 +66,9 @@ class DatabaseStorageObjectEntity {
 
   Object toObject(BinaryRepository binaryRepository) {
     if (objectType == ObjectType.PENDING) {
-      return createPendingObject(binaryRepository);
-    }
 
-    if (objectType == ObjectType.FULFILLED) {
-      return createFulfilledObject(binaryRepository);
     }
-
     throw new IllegalStateException();
-  }
-
-  private FulfilledObject createFulfilledObject(BinaryRepository binaryRepository) {
-//    return FulfilledObject.builder()
-//      .binaryRepository(binaryRepository)
-//      .identifier(new Identifier(objectId.area, objectId.key))
-//      .policy(Policy.ALL_POLICY)
-//      .size(positiveLong(sizeInByte))
-//      .timeStamp(TimeStamp.builder()
-//        .created(created)
-//        .updated(updated)
-//        .build())
-//      .tags(toTags())
-//      .build();
-
-    return null;
-  }
-
-  private PendingObject createPendingObject(BinaryRepository binaryRepository) {
-//    return PendingObject.builder()
-//      .binaryRepository(binaryRepository)
-//      .identifier(new Identifier(objectId.area, objectId.key))
-//      .policy(Policy.ALL_POLICY)
-//      .size(positiveLong(sizeInByte))
-//      .timeStamp(TimeStamp.builder()
-//        .created(created)
-//        .updated(updated)
-//        .build())
-//      .tags(toTags())
-//      .build();
-
-    return null;
   }
 
   private Tags toTags() {

@@ -19,31 +19,30 @@ class ListenableBinarySupplier<BUFFER extends SizeAware> implements BinarySuppli
 
       @Override
       public void onSubscribe(Subscription s) {
-        subscriber.onSubscribe(s);
         listener.beforeTransfer();
+        subscriber.onSubscribe(s);
       }
 
       @Override
       public void onNext(BUFFER item) {
         final long size = item.getSize();
-        subscriber.onNext(item);
-
         if (size > 0) {
           acc += size;
           listener.duringTransferring(acc);
         }
+        subscriber.onNext(item);
       }
 
       @Override
       public void onError(Throwable t) {
-        subscriber.onError(t);
         listener.transferAborted(t);
+        subscriber.onError(t);
       }
 
       @Override
       public void onComplete() {
-        subscriber.onComplete();
         listener.afterTransferred(acc);
+        subscriber.onComplete();
       }
     });
   }

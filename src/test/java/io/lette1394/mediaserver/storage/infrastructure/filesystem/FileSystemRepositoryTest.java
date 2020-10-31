@@ -21,7 +21,7 @@ class FileSystemRepositoryTest {
   @BeforeEach
   void beforeEach() {
     binaryRepository = new DeleteAllBinaryWhenClosedBinaryRepository(
-      new FileSystemRepository(BASE_DIR));
+      new ByteBufferFileSystemRepository(BASE_DIR));
   }
 
   @AfterEach
