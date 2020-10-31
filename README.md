@@ -5,7 +5,8 @@
     - [x] exception callback when uploading is broken
     - [x] Add test for classes
     - [x] Adjust class access modifier level
-    - [ ] Add netty, spring mvc, spring webflux implements
+    - [x] Add netty, spring mvc, spring webflux implements
+    - [ ] Support Copy, Link operation
  
  
 ### Requirements 2
@@ -57,6 +58,7 @@ java.base/java.io=ALL-UNNAMED
 - 후.. 근데 sync/async 관계 없이 로직 흐름을 그대로 따라가고 싶은데 그러면 코드 중복을 어떻게 제거하지...
 
 
+- copy, link는 up/download의 usecase 이므로, LinkAwareBinaryRepository 등을 생성하여 구현한다 
 
 ### notes
 
