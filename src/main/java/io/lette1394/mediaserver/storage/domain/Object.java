@@ -12,6 +12,7 @@ import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
+import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.vavr.control.Try;
 import java.util.concurrent.CompletableFuture;
@@ -163,6 +164,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
         objectSnapshot
           .update(totalLength)
           .update(ObjectType.FULFILLED);
+        addEvent(Uploaded.uploaded());
       }
 
       @Override
@@ -173,6 +175,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
         aborted = true;
         binarySnapshot.update(TRANSFER_ABORTED);
         objectSnapshot.update(ObjectType.PENDING);
+        addEvent(Events.UploadAborted.uploadAborted(throwable));
       }
     };
   }
