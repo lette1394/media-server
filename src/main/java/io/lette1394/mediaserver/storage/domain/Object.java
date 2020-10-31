@@ -62,7 +62,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
       .map(__ -> toSupplier(upstream))
-      .getOrElseThrow(() -> new OperationCanceled(UPLOAD));
+      .getOrElseThrow(e -> new OperationCanceled(UPLOAD, e));
   }
 
   public CompletableFuture<BinarySupplier<BUFFER>> download() {
