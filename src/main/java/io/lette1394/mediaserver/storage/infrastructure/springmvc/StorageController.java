@@ -1,77 +1,42 @@
 package io.lette1394.mediaserver.storage.infrastructure.springmvc;
 
 import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
-import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
+import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import io.netty.buffer.PooledByteBufAllocator;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequiredArgsConstructor
 public class StorageController {
 
-  //  private final DownloadingBinary downloadingBinary;
-//  private final DownloadingChunked downloadingChunked;
-  private final Uploading<ByteBufferPayload> uploading;
-
-//  @GetMapping("/{area}/{key}")
-//  StreamingResponseBody getObject(@PathVariable String area, @PathVariable String key) {
-//
-//
-//    // TODO: presentation layer
-//    return outputStream -> {
-//      WritableByteChannel channel = Channels.newChannel(outputStream);
-//
-//      binaries.thenAccept(binarySupplier -> {
-//        System.out.println("async download");
-//        Flux.from(binarySupplier.getAsync())
-//          .subscribe(byteBuffer -> {
-//            try {
-//              channel.write(byteBuffer);
-//            } catch (IOException e) {
-//              e.printStackTrace();
-//              throw new RuntimeException(e);
-//            }
-//          });
-//      });
-//    };
-//    return null;
-//  }
+  private final Uploading<DataBufferPayload> uploading;
 
   @PostMapping("/{area}/{key}")
   CompletableFuture<?> putObject(
     @PathVariable String area,
     @PathVariable String key,
-    HttpServletRequest request) throws IOException {
-    final ServletInputStream inputStream = request.getInputStream();
+    HttpServletRequest request) {
+    final Flux<DataBufferPayload> body = DataBufferUtils
+      .readInputStream(request::getInputStream, new NettyDataBufferFactory(
+        new PooledByteBufAllocator(false)), 1024 * 1024)
+      .map(DataBufferPayload::new);
 
-    return uploading.upload(Command.<ByteBuffer, ByteBufferPayload>builder()
+    return uploading.upload(Command.<DataBufferPayload>builder()
       .identifier(new Identifier(area, key))
-      .upstream(new SingleThreadInputStreamPublisher(inputStream, 10))
-      .mapper(byteBuffer -> new ByteBufferPayload(byteBuffer))
+      .upstream(body)
       .tags(new HashMap<>())
       .build())
       .thenAccept(__ -> System.out.println("done mvc"));
-
-//
-//    final ServletInputStream inputStream = request.getInputStream();
-//    final int contentLength = request.getContentLength();
-//
-//    return uploading.upload(Uploading.Command.builder()
-//      .identifier(new Identifier(area, key))
-//      .binarySupplier(BinarySupplierFactory.from(new SingleThreadInputStreamPublisher(inputStream, 10), contentLength))
-//      .tags(Map.of())
-//      .build())
-//      .thenApply(object -> String.format("uploaded! length:[%s]", contentLength));
   }
 }

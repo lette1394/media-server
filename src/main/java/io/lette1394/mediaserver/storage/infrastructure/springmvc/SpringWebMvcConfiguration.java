@@ -2,12 +2,16 @@ package io.lette1394.mediaserver.storage.infrastructure.springmvc;
 
 
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
+import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.ByteBufferFileSystemRepository;
-import io.lette1394.mediaserver.storage.infrastructure.spring.YamlPropertySourceFactory;
+import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -21,23 +25,26 @@ import org.springframework.context.annotation.PropertySource;
 })
 @PropertySource(value = "classpath:springwebmvc-application.properties")
 public class SpringWebMvcConfiguration {
-//  private final static Storage springWebStorage;
-//
-//  static {
-//    springWebStorage = StorageBuilder.<LengthAwareBinarySupplier>builder()
-//      .objects(new FileSystemBinaryRepository("objects"))
-//      .binaries(new FileSystemBinaryRepository("binaries"))
-//      .build()
-//      .toStorage();
+//  @Bean
+//  Uploading<ByteBufferPayload> uploading() {
+//    return new Uploading<>(
+//      new ByteBufferFileSystemRepository("out/binaries"),
+//      new ByteBufferFileSystemRepository("out/objects")
+//    );
 //  }
+//
 
   @Bean
-  Uploading<ByteBufferPayload> uploading() {
-//    return new Uploading(springWebStorage);
-
+  Uploading<DataBufferPayload> uploading() {
     return new Uploading<>(
-      new ByteBufferFileSystemRepository("out/binaries"),
-      new ByteBufferFileSystemRepository("out/objects")
+      new DataBufferFileSystemRepository("out/binaries"),
+      new DataBufferFileSystemRepository("out/objects")
     );
+  }
+
+
+  @Bean
+  TomcatServletWebServerFactory webserverNetty() {
+    return new TomcatServletWebServerFactory();
   }
 }

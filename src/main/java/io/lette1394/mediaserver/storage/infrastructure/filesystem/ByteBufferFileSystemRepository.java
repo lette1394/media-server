@@ -40,6 +40,8 @@ public class ByteBufferFileSystemRepository extends FileSystemRepository<ByteBuf
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
+    } finally {
+      item.release();
     }
   }
 }

@@ -10,8 +10,8 @@ import java.util.Set;
 public interface BinaryPolicy extends Testable<BinarySnapshot> {
 
   BinaryPolicy REJECT_10MB_OVER = binary -> {
-    if (binary.isOver(10 * 1024 * 1024)) {
-      return Try.failure(violation("reject 10MB over binary"));
+    if (binary.isOver(5L * 1024 * 1024 * 1024)) {
+      return Try.failure(violation("reject 5GB over binary"));
     }
     return Tries.SUCCESS;
   };

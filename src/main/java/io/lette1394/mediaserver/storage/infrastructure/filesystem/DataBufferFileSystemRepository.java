@@ -38,6 +38,8 @@ public class DataBufferFileSystemRepository extends FileSystemRepository<DataBuf
     } catch (IOException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
+    } finally {
+      item.release();
     }
   }
 }
