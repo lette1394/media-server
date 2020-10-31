@@ -1,9 +1,8 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public interface SizeAware {
+public interface Payload {
 
   long getSize();
 
-  default void release() {
-  }
+  void release();
 }

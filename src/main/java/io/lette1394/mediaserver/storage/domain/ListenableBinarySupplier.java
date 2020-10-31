@@ -6,7 +6,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-class ListenableBinarySupplier<BUFFER extends SizeAware> implements BinarySupplier<BUFFER> {
+class ListenableBinarySupplier<BUFFER extends Payload> implements BinarySupplier<BUFFER> {
 
   BinarySupplier<BUFFER> binarySupplier;
   Listener listener;

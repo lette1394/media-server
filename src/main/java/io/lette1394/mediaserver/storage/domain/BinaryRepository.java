@@ -2,7 +2,7 @@ package io.lette1394.mediaserver.storage.domain;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface BinaryRepository<BUFFER extends SizeAware> {
+public interface BinaryRepository<BUFFER extends Payload> {
 
   default CompletableFuture<Boolean> binaryExists(Identifier identifier) {
     return findBinary(identifier)

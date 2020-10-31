@@ -32,7 +32,7 @@ public class ObjectFixture {
     return new BrokenBinarySupplier(binarySupplier, nextInt(start, size));
   }
 
-  public static <T, R extends SizeAware> Object<R> anyObject(
+  public static <T, R extends Payload> Object<R> anyObject(
     ObjectPolicy objectPolicy,
     BinaryPolicy binaryPolicy) {
     final Identifier identifier = anyIdentifier();
@@ -40,14 +40,14 @@ public class ObjectFixture {
       .create(identifier.getArea(), identifier.getKey());
   }
 
-  public static <T extends SizeAware> Object<T> anyObject(ObjectPolicy objectPolicy) {
+  public static <T extends Payload> Object<T> anyObject(ObjectPolicy objectPolicy) {
     return new ObjectFactory<T>(
       objectPolicy,
       anyBinaryPolicy())
       .create("null", "null");
   }
 
-  public static <T extends SizeAware> Publisher<T> anyBinary() {
+  public static <T extends Payload> Publisher<T> anyBinary() {
     return s -> {
       throw new RuntimeException();
     };
@@ -59,7 +59,7 @@ public class ObjectFixture {
     };
   }
 
-  public static <T extends SizeAware> Object<T> anyObject() {
+  public static <T extends Payload> Object<T> anyObject() {
     final ObjectPolicy allowAll = current -> Try.success(null);
     final Identifier identifier = anyIdentifier();
     final ObjectFactory<T> objectFactory = new ObjectFactory<>(
@@ -70,7 +70,7 @@ public class ObjectFixture {
       identifier.getKey());
   }
 
-  public static <T extends SizeAware> Object<T> the(Object<T> object) {
+  public static <T extends Payload> Object<T> the(Object<T> object) {
     return object;
   }
 }

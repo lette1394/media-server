@@ -3,7 +3,7 @@ package io.lette1394.mediaserver.storage.domain;
 import io.lette1394.mediaserver.common.TimeStamp;
 import java.time.OffsetDateTime;
 
-public class ObjectFactory<BUFFER extends SizeAware> {
+public class ObjectFactory<BUFFER extends Payload> {
 
   ObjectPolicy objectPolicy;
   BinaryPolicy binaryPolicy;

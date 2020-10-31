@@ -8,7 +8,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-class ControllableBinarySupplier<BUFFER extends SizeAware> implements BinarySupplier<BUFFER> {
+class ControllableBinarySupplier<BUFFER extends Payload> implements BinarySupplier<BUFFER> {
 
   BinarySupplier<BUFFER> binarySupplier;
   Policy policy;

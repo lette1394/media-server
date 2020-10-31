@@ -1,7 +1,6 @@
 package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 
 import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
-import static io.lette1394.mediaserver.common.PositiveLong.positiveLong;
 import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 
@@ -9,7 +8,9 @@ import io.lette1394.mediaserver.common.TimeStamp;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
-import io.lette1394.mediaserver.storage.domain.SizeAware;
+import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
+import io.lette1394.mediaserver.storage.domain.ObjectType;
+import io.lette1394.mediaserver.storage.domain.Payload;
 import io.lette1394.mediaserver.storage.domain.Tag;
 import io.lette1394.mediaserver.storage.domain.Tags;
 import java.nio.charset.StandardCharsets;
@@ -24,11 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
 @Value
-public class FileSystemObjectEntity<BUFFER extends SizeAware> {
+public class FileSystemObjectEntity<BUFFER extends Payload> {
   private static final String LINE_SEPARATOR = "\n";
   Object<BUFFER> object;
 
-  public static <BUFFER extends SizeAware> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, Publisher<BUFFER> publisher) {
+  public static <BUFFER extends Payload> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, Publisher<BUFFER> publisher) {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
@@ -49,12 +50,14 @@ public class FileSystemObjectEntity<BUFFER extends SizeAware> {
 
       final Object<BUFFER> object = Object.<BUFFER>builder()
         .identifier(new Identifier(map.get("area"), map.get("key")))
-//        .size(positiveLong(parseLong(map.get("size"))))
         .objectPolicy(ObjectPolicy.ALL_OBJECT_POLICY)
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
-//        .publisher(publisher)
+        .objectSnapshot(ObjectSnapshot.builder()
+          .size(parseLong(map.get("size")))
+          .objectType(ObjectType.valueOf(map.get("")))
+          .build())
         .build();
 
       return new FileSystemObjectEntity<>(object);

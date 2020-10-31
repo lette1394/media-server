@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 
 public class BinarySupplierFactory {
 
-  public static <BUFFER extends SizeAware> BinarySupplier<BUFFER> from(Publisher<BUFFER> publisher, long length) {
+  public static <BUFFER extends Payload> BinarySupplier<BUFFER> from(Publisher<BUFFER> publisher, long length) {
     return new BaseLengthAwareBinarySupplier<>() {
       @Override
       public Publisher<BUFFER> getAsync()

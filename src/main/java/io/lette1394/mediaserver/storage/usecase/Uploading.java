@@ -7,7 +7,7 @@ import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
-import io.lette1394.mediaserver.storage.domain.SizeAware;
+import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
@@ -16,7 +16,7 @@ import lombok.Value;
 import org.reactivestreams.Publisher;
 
 @RequiredArgsConstructor
-public class Uploading<BUFFER extends SizeAware> {
+public class Uploading<BUFFER extends Payload> {
   private final BinaryRepository<BUFFER> binaryRepository;
   private final ObjectRepository<BUFFER> objectRepository;
 
@@ -58,7 +58,7 @@ public class Uploading<BUFFER extends SizeAware> {
 
   @Value
   @Builder
-  public static class Command<BUFFER extends SizeAware> {
+  public static class Command<BUFFER extends Payload> {
     Identifier identifier;
     Publisher<BUFFER> upstream;
     Map<String, String> tags;

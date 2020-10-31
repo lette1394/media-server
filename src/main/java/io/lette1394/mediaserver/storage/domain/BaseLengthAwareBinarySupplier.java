@@ -2,7 +2,7 @@ package io.lette1394.mediaserver.storage.domain;
 
 import org.reactivestreams.Publisher;
 
-class BaseLengthAwareBinarySupplier<BUFFER extends SizeAware> implements LengthAwareBinarySupplier<BUFFER> {
+class BaseLengthAwareBinarySupplier<BUFFER extends Payload> implements LengthAwareBinarySupplier<BUFFER> {
 
   @Override
   public long getLength() {

@@ -9,7 +9,7 @@ import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
-import io.lette1394.mediaserver.storage.domain.SizeAware;
+import io.lette1394.mediaserver.storage.domain.Payload;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
@@ -28,7 +28,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
 @RequiredArgsConstructor
-public abstract class FileSystemRepository<T extends SizeAware> implements
+public abstract class FileSystemRepository<T extends Payload> implements
   ObjectRepository<T>,
   BinaryRepository<T> {
 

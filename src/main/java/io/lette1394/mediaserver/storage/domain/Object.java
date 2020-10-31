@@ -21,7 +21,7 @@ import lombok.experimental.Delegate;
 import org.reactivestreams.Publisher;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
-public class Object<BUFFER extends SizeAware> extends AggregateRoot {
+public class Object<BUFFER extends Payload> extends AggregateRoot {
 
   @Builder
   public Object(Identifier identifier,
