@@ -10,7 +10,7 @@ public interface BinaryRepository<BUFFER extends Payload> {
       .exceptionally(__ -> false);
   }
 
-  CompletableFuture<? extends BinarySupplier<BUFFER>> findBinary(Identifier identifier);
+  CompletableFuture<BinarySupplier<BUFFER>> findBinary(Identifier identifier);
 
   CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<BUFFER> binarySupplier);
 

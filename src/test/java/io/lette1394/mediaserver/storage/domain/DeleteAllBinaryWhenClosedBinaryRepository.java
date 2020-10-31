@@ -14,7 +14,7 @@ public class DeleteAllBinaryWhenClosedBinaryRepository implements
   BinaryRepository repository;
 
   @Override
-  public CompletableFuture<? extends BinarySupplier> findBinary(Identifier identifier) {
+  public CompletableFuture<BinarySupplier> findBinary(Identifier identifier) {
     return repository.findBinary(identifier);
   }
 

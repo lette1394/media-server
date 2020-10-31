@@ -14,6 +14,7 @@ import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.vavr.control.Try;
+import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -64,12 +65,15 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .getOrElseThrow(() -> new OperationCanceled(UPLOAD));
   }
 
-  public Publisher<BUFFER> download() {
+  public CompletableFuture<BinarySupplier<BUFFER>> download() {
     return objectPolicy.test(snapshot(DOWNLOAD))
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
-      .map(__ -> (Publisher)null)
-      .getOrElseThrow(() -> new OperationCanceled(DOWNLOAD));
+      .toCompletableFuture()
+      .thenCompose(__ -> binaryRepository.findBinary(identifier))
+      .exceptionally(e -> {
+        throw new OperationCanceled(DOWNLOAD);
+      });
   }
 
   private ObjectSnapshot snapshot(Command command) {

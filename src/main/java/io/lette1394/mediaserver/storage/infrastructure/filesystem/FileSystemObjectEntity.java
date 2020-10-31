@@ -5,6 +5,8 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
+import io.lette1394.mediaserver.storage.domain.Command;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
@@ -22,14 +24,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
-import org.reactivestreams.Publisher;
 
 @Value
 public class FileSystemObjectEntity<BUFFER extends Payload> {
   private static final String LINE_SEPARATOR = "\n";
   Object<BUFFER> object;
 
-  public static <BUFFER extends Payload> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, Publisher<BUFFER> publisher) {
+  public static <BUFFER extends Payload> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, BinaryRepository<BUFFER> binaryRepository) {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
@@ -56,8 +57,10 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
         .tags(Tags.tags(tags))
         .objectSnapshot(ObjectSnapshot.builder()
           .size(parseLong(map.get("size")))
-          .objectType(ObjectType.valueOf(map.get("")))
+          .objectType(ObjectType.valueOf(map.get("type")))
+          .command(Command.NO_OPERATION)
           .build())
+        .binaryRepository(binaryRepository)
         .build();
 
       return new FileSystemObjectEntity<>(object);

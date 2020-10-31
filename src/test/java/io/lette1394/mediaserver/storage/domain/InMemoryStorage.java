@@ -18,7 +18,7 @@ public class InMemoryStorage implements BinaryRepository<StringPayload> {
   }
 
   @Override
-  public CompletableFuture<? extends BinarySupplier<StringPayload>> findBinary(
+  public CompletableFuture<BinarySupplier<StringPayload>> findBinary(
     Identifier identifier) {
     return null;
   }
