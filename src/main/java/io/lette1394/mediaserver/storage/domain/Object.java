@@ -58,6 +58,8 @@ public abstract class Object<BUFFER extends SizeAware> extends AggregateRoot {
       .getOrElseThrow(() -> new OperationCanceled(UPLOAD));
   }
 
+  // TODO: object type 별 upload 정책은 usecase에서 분기하는거라서
+  //  여기서 상속을 이용해서 로직 분기할 이유가 없다.
   protected abstract CompletableFuture<Void> doUpload(BinarySupplier<BUFFER> binarySupplier);
 
   public Publisher<BUFFER> download() {

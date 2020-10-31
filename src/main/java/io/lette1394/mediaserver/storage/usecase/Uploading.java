@@ -67,6 +67,6 @@ public class Uploading<BUFFER extends SizeAware> {
     Identifier identifier;
     Map<String, String> tags;
     Publisher<T> upstream;
-    Function<T, BUFFER> mapper;
+    Function<T, BUFFER> mapper; // mapper 를 usecase 에서 해야하나? 외부 presentation layer에서 받아야하는거아님?
   }
 }
