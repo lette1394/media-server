@@ -4,21 +4,18 @@ import java.util.concurrent.CompletableFuture;
 
 public interface BinaryRepository<BUFFER extends Payload> {
 
-  default CompletableFuture<Boolean> binaryExists(Identifier identifier) {
-    return findBinary(identifier)
+  default CompletableFuture<Boolean> exists(BinaryPath binaryPath) {
+    return find(binaryPath)
       .thenApply(__ -> true)
       .exceptionally(__ -> false);
   }
 
-  CompletableFuture<BinarySupplier<BUFFER>> findBinary(Identifier identifier);
+  // TODO: BinaryPath
+  CompletableFuture<BinarySupplier<BUFFER>> find(BinaryPath binaryPath);
 
-  CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);
 
-  CompletableFuture<Void> appendBinary(Identifier identifier, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<Void> delete(BinaryPath binaryPath);
 
-  CompletableFuture<Void> deleteBinary(Identifier identifier);
-
-  default CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier) {
-    throw new UnsupportedOperationException();
-  }
+  CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);
 }

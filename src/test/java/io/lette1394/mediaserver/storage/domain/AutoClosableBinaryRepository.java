@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public interface AutoClosableBinaryRepository
-  extends BinaryRepository, AutoCloseable {
+public interface AutoClosableBinaryRepository<T extends Payload>
+  extends BinaryRepository<T>, AutoCloseable {
 
 }

@@ -5,24 +5,25 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
+import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferToByteArrayAsyncAggregateReader;
+import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.Publishers;
 import io.lette1394.mediaserver.storage.infrastructure.SingleThreadInputStreamPublisher;
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
 import io.lette1394.mediaserver.storage.usecase.ObjectNotFoundException;
 import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Value;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
 
 @Value
 public class InMemoryStorage implements
@@ -30,7 +31,7 @@ public class InMemoryStorage implements
   BinaryRepository<ByteBufferPayload> {
 
   static Map<Identifier, Object<ByteBufferPayload>> objectHolder = new ConcurrentHashMap<>();
-  static Map<Identifier, byte[]> binaryHolder = new ConcurrentHashMap<>();
+  static Map<BinaryPath, byte[]> binaryHolder = new ConcurrentHashMap<>();
 
   int chunkSize;
 
@@ -72,23 +73,23 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier<ByteBufferPayload> binarySupplier) {
-    return uploadBinaryAsync(identifier, binarySupplier);
+  public CompletableFuture<Void> create(BinaryPath binaryPath,
+    BinarySupplier<ByteBufferPayload> binarySupplier) {
+    return uploadBinaryAsync(binaryPath, binarySupplier);
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Identifier identifier,
+  public CompletableFuture<Void> append(BinaryPath binaryPath,
     BinarySupplier<ByteBufferPayload> binarySupplier) {
-    final byte[] bytes = binaryHolder.get(identifier);
+    final byte[] bytes = binaryHolder.get(binaryPath);
 
     // TODO: implements
     return completedFuture(null);
   }
 
   @Override
-  public CompletableFuture<BinarySupplier<ByteBufferPayload>> findBinary(
-    Identifier identifier) {
-    final byte[] binaries = binaryHolder.get(identifier);
+  public CompletableFuture<BinarySupplier<ByteBufferPayload>> find(BinaryPath binaryPath) {
+    final byte[] binaries = binaryHolder.get(binaryPath);
     return completedFuture(new LengthAwareBinarySupplier<>() {
       @Override
       public long getLength() {
@@ -98,24 +99,33 @@ public class InMemoryStorage implements
       @Override
       public Publisher<ByteBufferPayload> getAsync() {
         return
-          Publishers.convert(new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
-          chunkSize), byteBuffer -> new ByteBufferPayload(byteBuffer));
+          Publishers
+            .convert(new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binaries),
+              chunkSize), byteBuffer -> new ByteBufferPayload(byteBuffer));
       }
     });
   }
 
   @Override
-  public CompletableFuture<Void> deleteBinary(Identifier identifier) {
-    binaryHolder.remove(identifier);
+  public CompletableFuture<Void> delete(BinaryPath binaryPath) {
+    binaryHolder.remove(binaryPath);
     return completedFuture(null);
   }
 
-  private CompletableFuture<Void> uploadBinaryAsync(Identifier identifier,
+  private CompletableFuture<Void> uploadBinaryAsync(BinaryPath binaryPath,
     BinarySupplier<ByteBufferPayload> binarySupplier) {
-    final Publisher<ByteBuffer> convert = Publishers
-      .convert(binarySupplier.getAsync(), byteBufferPayload -> byteBufferPayload.getValue());
-    return new ByteBufferToByteArrayAsyncAggregateReader(500)
-      .read(convert)
-      .thenAccept(bytes -> binaryHolder.put(identifier, bytes));
+
+    return Flux
+      .from(binarySupplier.getAsync())
+      .map(payload -> payload.getValue())
+      .reduce(new ByteArrayOutputStream(), (acc, cur) -> {
+        byte[] bytes = new byte[cur.remaining()];
+        cur.get(bytes);
+        acc.writeBytes(bytes);
+        return acc;
+      })
+      .map(stream -> stream.toByteArray())
+      .toFuture()
+      .thenAccept(bytes -> binaryHolder.put(binaryPath, bytes));
   }
 }

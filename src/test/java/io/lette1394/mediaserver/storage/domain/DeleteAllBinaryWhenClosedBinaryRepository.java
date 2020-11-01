@@ -7,47 +7,39 @@ import java.util.stream.Collectors;
 import lombok.Value;
 
 @Value
-public class DeleteAllBinaryWhenClosedBinaryRepository implements
-  AutoClosableBinaryRepository {
+public class DeleteAllBinaryWhenClosedBinaryRepository<T extends Payload> implements
+  AutoClosableBinaryRepository<T> {
 
   Set<Identifier> createdObjects = new HashSet<>();
-  BinaryRepository repository;
+  BinaryRepository<T> repository;
 
   @Override
-  public CompletableFuture<BinarySupplier> findBinary(Identifier identifier) {
-    return repository.findBinary(identifier);
+  public CompletableFuture<BinarySupplier<T>> find(BinaryPath binaryPath) {
+    return repository.find(binaryPath);
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier, BinarySupplier binarySupplier) {
-    return repository.saveBinary(identifier, binarySupplier)
-      .thenAccept(__ -> memory(identifier));
+  public CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
+    return repository.append(binaryPath, binarySupplier);
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier binarySupplier) {
-    return repository.appendBinary(identifier, binarySupplier);
+  public CompletableFuture<Void> delete(BinaryPath binaryPath) {
+    return repository.delete(binaryPath);
   }
 
   @Override
-  public CompletableFuture<Void> deleteBinary(Identifier identifier) {
-    return repository
-      .deleteBinary(identifier)
-      .thenAccept(__ -> createdObjects.remove(identifier));
+  public CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
+    return repository.create(binaryPath, binarySupplier);
   }
 
   @Override
   public void close() throws Exception {
     final Set<CompletableFuture<Void>> collect = createdObjects
       .parallelStream()
-      .map(this::deleteBinary)
+      .map((Identifier identifier) -> delete(BinaryPath.from(identifier)))
       .collect(Collectors.toSet());
 
     collect.forEach(CompletableFuture::join);
-  }
-
-  private void memory(Identifier identifier) {
-    createdObjects.add(identifier);
   }
 }

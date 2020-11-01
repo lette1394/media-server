@@ -17,7 +17,7 @@ public class ByteBufferFileSystemRepository extends FileSystemRepository<ByteBuf
   }
 
   @Override
-  protected Publisher<ByteBufferPayload> toBinaryPublisher(Path path) {
+  protected Publisher<ByteBufferPayload> read(Path path) {
     try {
       final AsynchronousFileChannel channel = AsynchronousFileChannel
         .open(path, StandardOpenOption.READ);

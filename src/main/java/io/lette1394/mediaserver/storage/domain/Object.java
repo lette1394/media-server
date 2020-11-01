@@ -68,18 +68,10 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
       .toCompletableFuture()
-      .thenCompose(__ -> binaryRepository.findBinary(identifier))
+      .thenCompose(__ -> binaryRepository.find(binaryPath()))
       .exceptionally(e -> {
         throw new OperationCanceled(DOWNLOAD, e);
       });
-  }
-
-  private ObjectSnapshot snapshot(Command command) {
-    return ObjectSnapshot.builder()
-      .command(command)
-      .size(getSize())
-      .objectType(getType())
-      .build();
   }
 
   public long getSize() {
@@ -100,6 +92,23 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
 
   BinarySupplier<BUFFER> toSupplier(Publisher<BUFFER> publisher) {
     return composeControllable(composeListenable(() -> publisher));
+  }
+
+  private ObjectSnapshot snapshot(Command command) {
+    return ObjectSnapshot.builder()
+      .command(command)
+      .size(getSize())
+      .objectType(getType())
+      .build();
+  }
+
+  private BinaryPath binaryPath() {
+    return new BinaryPath() {
+      @Override
+      public String asString() {
+        return String.format("%s/%s", identifier.getArea(), identifier.getKey());
+      }
+    };
   }
 
   private BinarySupplier<BUFFER> composeControllable(BinarySupplier<BUFFER> binarySupplier) {

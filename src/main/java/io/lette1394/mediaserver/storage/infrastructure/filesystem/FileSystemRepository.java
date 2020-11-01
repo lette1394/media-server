@@ -20,8 +20,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
@@ -56,24 +54,22 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
   @Override
   public CompletableFuture<Boolean> objectExists(Identifier identifier) {
-    return completedFuture(Files.exists(createPath(identifier, ".txt")));
+    return completedFuture(Files.exists(createPath(identifier)));
   }
 
   @Override
   public CompletableFuture<Object<T>> findObject(Identifier identifier) {
     return wrap(() -> {
-      final byte[] objectBytes = Files.readAllBytes(createPath(identifier, ".txt"));
+      final byte[] objectBytes = Files.readAllBytes(createPath(identifier));
       return FileSystemObjectEntity.fromBytes(objectBytes, this).getObject();
     });
   }
-
-  protected abstract Publisher<T> toBinaryPublisher(Path path);
 
   @Override
   public CompletableFuture<Object<T>> saveObject(Object<T> object) {
     final byte[] bytes = new FileSystemObjectEntity<>(object).toBytes();
     return wrap(() -> {
-      Files.write(ensureDirectory(createPath(object.getIdentifier(), ".txt")), bytes);
+      Files.write(ensureDirectory(createPath(object.getIdentifier())), bytes);
       return object;
     });
   }
@@ -81,46 +77,39 @@ public abstract class FileSystemRepository<T extends Payload> implements
   @Override
   public CompletableFuture<Void> deleteObject(Identifier identifier) {
     return wrap(() -> {
-      Files.delete(createPath(identifier, ".txt"));
+      Files.delete(createPath(identifier));
       return null;
     });
   }
 
-
   @Override
-  public CompletableFuture<BinarySupplier<T>> findBinary(Identifier identifier) {
+  public CompletableFuture<BinarySupplier<T>> find(BinaryPath binaryPath) {
     try {
-      return completedFuture(readBinary(identifier));
-    } catch (IOException e) {
+      return completedFuture(readBinary(binaryPath));
+    } catch (Throwable e) {
       return failedFuture(e);
     }
   }
 
   @Override
-  public CompletableFuture<Void> saveBinary(Identifier identifier,
-    BinarySupplier<T> binarySupplier) {
-    return null;
-  }
-
-  @Override
-  public CompletableFuture<Void> create(BinaryPath binaryPath,
-    BinarySupplier<T> binarySupplier) {
-    return writeOp(binaryPath, binarySupplier, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+  public CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
+    return writeBinary(binaryPath, binarySupplier,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.WRITE,
       StandardOpenOption.READ);
   }
 
   @Override
-  public CompletableFuture<Void> appendBinary(Identifier identifier,
-    BinarySupplier<T> binarySupplier) {
-//    return writeOp(identifier, binarySupplier, StandardOpenOption.APPEND);
-    return null;
+  public CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
+    return writeBinary(binaryPath, binarySupplier, StandardOpenOption.APPEND);
   }
 
   @Override
-  public CompletableFuture<Void> deleteBinary(Identifier identifier) {
+  public CompletableFuture<Void> delete(
+    BinaryPath binaryPath) {
     return CompletableFuture.supplyAsync(() -> {
       try {
-        final Path path = createPath(identifier, "");
+        final Path path = createPath(binaryPath);
         final Path parent = path.getParent();
 
         Files.delete(path);
@@ -134,11 +123,19 @@ public abstract class FileSystemRepository<T extends Payload> implements
     });
   }
 
-  private CompletableFuture<Void> writeOp(BinaryPath binaryPath,
+  protected abstract Publisher<T> read(Path path);
+
+  protected abstract void write(WritableByteChannel channel, T item);
+
+  private BinarySupplier<T> readBinary(BinaryPath binaryPath) {
+    return () -> read(createPath(binaryPath));
+  }
+
+  private CompletableFuture<Void> writeBinary(
+    BinaryPath binaryPath,
     BinarySupplier<T> binarySupplier,
     OpenOption... openOption) {
-    final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    final Path path = createPath(binaryPath, "");
+    final Path path = createPath(binaryPath);
     final Path parent = path.getParent();
 
     try {
@@ -148,39 +145,31 @@ public abstract class FileSystemRepository<T extends Payload> implements
       parent.toFile().mkdirs();
 
       final WritableByteChannel channel = Channels
-        .newChannel(Files.newOutputStream(path));
-      // TODO: impl
-      CompletableFuture<Void> ret = new CompletableFuture<>();
+        .newChannel(Files.newOutputStream(path, openOption));
+      final CompletableFuture<Void> ret = new CompletableFuture<>();
 
       Flux.from(binarySupplier.getAsync())
         .doOnComplete(() -> ret.complete(null))
         .doOnError(e -> ret.completeExceptionally(e))
         .subscribe(item -> write(channel, item));
+
       return ret;
     } catch (Exception e) {
       return CompletableFuture.failedFuture(e);
     }
   }
 
-  protected abstract void write(WritableByteChannel channel, T item);
-
-  private BinarySupplier<T> readBinary(Identifier identifier)
-    throws IOException {
-    final Path binaryPath = createPath(identifier, "");
-    return () -> toBinaryPublisher(binaryPath);
-  }
-
-  private Path createPath(BinaryPath binaryPath, String ext) {
+  private Path createPath(BinaryPath binaryPath) {
     return Paths.get(
       baseDir,
-      binaryPath.asString() + ext).toAbsolutePath();
+      binaryPath.asString()).toAbsolutePath();
   }
 
-  private Path createPath(Identifier identifier, String ext) {
+  private Path createPath(Identifier identifier) {
     return Paths.get(
       baseDir,
       identifier.getArea(),
-      identifier.getKey() + ext).toAbsolutePath();
+      identifier.getKey() + ".txt").toAbsolutePath();
   }
 
   private Path ensureDirectory(Path path) throws IOException {

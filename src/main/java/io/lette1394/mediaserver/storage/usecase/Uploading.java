@@ -29,6 +29,9 @@ public class Uploading<BUFFER extends Payload> {
     final Object<BUFFER> object = objectFactory.create(command.identifier);
     final BinarySupplier<BUFFER> binarySupplier = object.upload(command.upstream);
 
+    // TODO: 갈등. binaryPath를 외부에서 생성하게 해야하나?
+    //  지금은 잘 모르겠으니까 최대한 간단하게 두자. => identifier를 그대로 사용하게 두자
+
     return binaryRepository.create(new BinaryPath() {
       @Override
       public String asString() {
