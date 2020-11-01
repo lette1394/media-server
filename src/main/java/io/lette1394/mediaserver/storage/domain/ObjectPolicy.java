@@ -14,15 +14,15 @@ import java.util.Set;
 
 public interface ObjectPolicy extends Testable<ObjectSnapshot> {
 
-  ObjectPolicy REJECT_RESUME_UPLOAD = object -> {
-    if (object.is(UPLOAD) && object.is(PENDING)) {
+  ObjectPolicy REJECT_RESUME_UPLOAD = snapshot -> {
+    if (snapshot.is(UPLOAD) && snapshot.is(PENDING)) {
       return failure(violation("reject resume upload"));
     }
     return SUCCESS;
   };
 
-  ObjectPolicy REJECT_OVERWRITE_UPLOAD = object -> {
-    if (object.is(UPLOAD) && object.is(FULFILLED)) {
+  ObjectPolicy REJECT_OVERWRITE_UPLOAD = snapshot -> {
+    if (snapshot.is(UPLOAD) && snapshot.is(FULFILLED)) {
       return failure(violation("reject overwrite upload"));
     }
     return SUCCESS;
@@ -37,8 +37,8 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
 //    return SUCCESS;
 //  };
 
-  ObjectPolicy REJECT_PARTIAL_DOWNLOAD = object -> {
-    if (object.is(DOWNLOAD) && object.is(PENDING)) {
+  ObjectPolicy REJECT_PARTIAL_DOWNLOAD = snapshot -> {
+    if (snapshot.is(DOWNLOAD) && snapshot.is(PENDING)) {
       return failure(violation("Reject pending object download"));
     }
     return SUCCESS;
@@ -51,5 +51,5 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
   ))
     .test(objectSnapshot);
 
-  Try<Void> test(ObjectSnapshot current);
+  Try<Void> test(ObjectSnapshot snapshot);
 }

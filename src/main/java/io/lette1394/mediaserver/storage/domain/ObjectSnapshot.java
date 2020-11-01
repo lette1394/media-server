@@ -31,6 +31,7 @@ public class ObjectSnapshot {
     this.command = command;
   }
 
+  // Object inner class로 변경하는 것을 검토 (ObjectPolicy에서 update를 수행할 수 있다)
   ObjectSnapshot update(long size) {
     this.size = size;
     return this;

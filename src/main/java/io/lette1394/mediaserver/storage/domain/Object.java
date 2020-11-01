@@ -25,6 +25,17 @@ import org.reactivestreams.Publisher;
 @EqualsAndHashCode(of = "identifier", callSuper = false)
 public class Object<BUFFER extends Payload> extends AggregateRoot {
 
+  @Getter
+  private final Identifier identifier;
+  private final ObjectPolicy objectPolicy;
+  private final ObjectSnapshot objectSnapshot;
+  private final Tags tags;
+  @Delegate
+  private final TimeStamp timeStamp;
+  private final BinaryPolicy binaryPolicy;
+  private final BinarySnapshot binarySnapshot;
+  private final BinaryRepository<BUFFER> binaryRepository;
+
   @Builder
   public Object(Identifier identifier,
     ObjectPolicy objectPolicy,
@@ -43,20 +54,6 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     this.binarySnapshot = binarySnapshot;
     this.binaryRepository = binaryRepository;
   }
-
-  @Getter
-  private final Identifier identifier;
-  private final ObjectPolicy objectPolicy;
-  private final ObjectSnapshot objectSnapshot;
-
-  private final Tags tags;
-  @Delegate
-  private final TimeStamp timeStamp;
-
-
-  private final BinaryPolicy binaryPolicy;
-  private final BinarySnapshot binarySnapshot;
-  private final BinaryRepository<BUFFER> binaryRepository;
 
   public BinarySupplier<BUFFER> upload(Publisher<BUFFER> upstream) {
     return objectPolicy.test(snapshot(UPLOAD))
@@ -117,7 +114,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     return new ControllableBinarySupplier.Policy() {
       @Override
       public Try<Void> beforeTransfer() {
-        return binaryPolicy.test(binarySnapshot.update(BEFORE_TRANSFER));
+        return binaryPolicy.test(
+          binarySnapshot.update(BEFORE_TRANSFER));
       }
 
       @Override

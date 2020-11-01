@@ -12,8 +12,8 @@ import org.hamcrest.TypeSafeMatcher;
 
 public class ObjectMatchers {
 
-  public static <T extends Event, BUFFER extends Payload> Matcher<Object<BUFFER>> got(
-    Class<T> expected) {
+  public static <T extends Event, BUFFER extends Payload>
+  Matcher<Object<BUFFER>> got(Class<T> expected) {
     return new TypeSafeMatcher<>() {
       @Override
       protected boolean matchesSafely(Object<BUFFER> item) {
@@ -38,9 +38,8 @@ public class ObjectMatchers {
     };
   }
 
-  public static <T extends Event, BUFFER extends Payload> Matcher<Object<BUFFER>> got(
-    List<Class<? extends T>> expected) {
-
+  public static <T extends Event, BUFFER extends Payload>
+  Matcher<Object<BUFFER>> got(List<Class<? extends T>> expected) {
     return new TypeSafeMatcher<>() {
       @Override
       protected boolean matchesSafely(Object<BUFFER> item) {
@@ -68,8 +67,8 @@ public class ObjectMatchers {
     };
   }
 
-  public static <T extends Event, BUFFER extends Payload> Matcher<Object<BUFFER>> is(ObjectType expected) {
-
+  public static <T extends Event, BUFFER extends Payload>
+  Matcher<Object<BUFFER>> hasType(ObjectType expected) {
     return new TypeSafeMatcher<>() {
       @Override
       protected boolean matchesSafely(Object<BUFFER> item) {
@@ -83,8 +82,30 @@ public class ObjectMatchers {
 
       @Override
       protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
-        mismatchDescription.appendValue(expected);
+        mismatchDescription.appendValue(item.getType());
       }
     };
   }
+
+  public static <T extends Event, BUFFER extends Payload>
+  Matcher<Object<BUFFER>> hasLength(long expected) {
+    return new TypeSafeMatcher<>() {
+      @Override
+      protected boolean matchesSafely(Object<BUFFER> item) {
+        return item.getSize() == expected;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendValue(expected);
+      }
+
+      @Override
+      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+        mismatchDescription.appendValue(item.getSize());
+      }
+    };
+  }
+
+
 }
