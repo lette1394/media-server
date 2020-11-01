@@ -53,12 +53,12 @@ public abstract class FileSystemRepository<T extends Payload> implements
   }
 
   @Override
-  public CompletableFuture<Boolean> objectExists(Identifier identifier) {
+  public CompletableFuture<Boolean> exists(Identifier identifier) {
     return completedFuture(Files.exists(createPath(identifier)));
   }
 
   @Override
-  public CompletableFuture<Object<T>> findObject(Identifier identifier) {
+  public CompletableFuture<Object<T>> find(Identifier identifier) {
     return wrap(() -> {
       final byte[] objectBytes = Files.readAllBytes(createPath(identifier));
       return FileSystemObjectEntity.fromBytes(objectBytes, this).getObject();
@@ -66,7 +66,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
   }
 
   @Override
-  public CompletableFuture<Object<T>> saveObject(Object<T> object) {
+  public CompletableFuture<Object<T>> save(Object<T> object) {
     final byte[] bytes = new FileSystemObjectEntity<>(object).toBytes();
     return wrap(() -> {
       Files.write(ensureDirectory(createPath(object.getIdentifier())), bytes);
@@ -75,7 +75,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
   }
 
   @Override
-  public CompletableFuture<Void> deleteObject(Identifier identifier) {
+  public CompletableFuture<Void> delete(Identifier identifier) {
     return wrap(() -> {
       Files.delete(createPath(identifier));
       return null;

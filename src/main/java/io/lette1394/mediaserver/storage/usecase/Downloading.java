@@ -18,7 +18,7 @@ public class Downloading<BUFFER extends Payload> {
 
   public CompletableFuture<BinarySupplier<BUFFER>> download(Command<BUFFER> command) {
     return objectRepository
-      .findObject(command.identifier)
+      .find(command.identifier)
       .thenCompose(Object::download);
   }
 

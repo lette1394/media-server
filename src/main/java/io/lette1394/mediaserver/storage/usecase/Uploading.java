@@ -38,7 +38,7 @@ public class Uploading<BUFFER extends Payload> {
         return String.format("%s/%s", command.identifier.getArea(), command.identifier.getKey());
       }
     }, binarySupplier)
-      .thenCompose(__ -> objectRepository.saveObject(object));
+      .thenCompose(__ -> objectRepository.save(object));
   }
 
 //  public void upload() {

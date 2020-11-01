@@ -44,7 +44,7 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Boolean> objectExists(Identifier identifier)
+  public CompletableFuture<Boolean> exists(Identifier identifier)
     throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(true);
@@ -53,7 +53,7 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferPayload>> findObject(Identifier identifier)
+  public CompletableFuture<Object<ByteBufferPayload>> find(Identifier identifier)
     throws ObjectNotFoundException {
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(objectHolder.get(identifier));
@@ -62,14 +62,14 @@ public class InMemoryStorage implements
   }
 
   @Override
-  public CompletableFuture<Object<ByteBufferPayload>> saveObject(Object<ByteBufferPayload> object) {
-    return findObject(object.getIdentifier())
+  public CompletableFuture<Object<ByteBufferPayload>> save(Object<ByteBufferPayload> object) {
+    return find(object.getIdentifier())
       .thenApply(found -> objectHolder.put(found.getIdentifier(), object));
   }
 
   @Override
-  public CompletableFuture<Void> deleteObject(Identifier identifier) {
-    return objectExists(identifier).thenRun(() -> objectHolder.remove(identifier));
+  public CompletableFuture<Void> delete(Identifier identifier) {
+    return exists(identifier).thenRun(() -> objectHolder.remove(identifier));
   }
 
   @Override
