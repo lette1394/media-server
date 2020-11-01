@@ -56,7 +56,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
   }
 
   public BinarySupplier<BUFFER> upload(Publisher<BUFFER> upstream) {
-    return objectPolicy.test(snapshot(UPLOAD))
+    return objectPolicy.test(objectSnapshot.update(UPLOAD))
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
       .map(__ -> toSupplier(upstream))
@@ -64,7 +64,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
   }
 
   public CompletableFuture<BinarySupplier<BUFFER>> download() {
-    return objectPolicy.test(snapshot(DOWNLOAD))
+    return objectPolicy.test(objectSnapshot.update(DOWNLOAD))
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
       .toCompletableFuture()
@@ -86,20 +86,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     return tags;
   }
 
-  Publisher<BUFFER> toPublisher() {
-    return null;
-  }
-
   BinarySupplier<BUFFER> toSupplier(Publisher<BUFFER> publisher) {
     return composeControllable(composeListenable(() -> publisher));
-  }
-
-  private ObjectSnapshot snapshot(Command command) {
-    return ObjectSnapshot.builder()
-      .command(command)
-      .size(getSize())
-      .objectType(getType())
-      .build();
   }
 
   private BinaryPath binaryPath() {
