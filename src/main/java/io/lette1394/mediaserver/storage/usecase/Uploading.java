@@ -1,15 +1,27 @@
 package io.lette1394.mediaserver.storage.usecase;
 
+import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
+import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
+import static io.vavr.API.$;
+import static io.vavr.API.Case;
+import static io.vavr.API.Match;
+import static io.vavr.Predicates.instanceOf;
+import static java.util.Objects.isNull;
+
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
+import io.lette1394.mediaserver.storage.domain.ObjectType;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -20,34 +32,8 @@ public class Uploading<BUFFER extends Payload> {
   private final BinaryRepository<BUFFER> binaryRepository;
   private final ObjectRepository<BUFFER> objectRepository;
 
-  // TODO: append, overwrite 등 분기처리는 어디서...?
-  //  presentation layer?
-  //  아니야 이것도 결국에는 control-flow 니까, 또 다른 usecase 에서 써야해.
-  //  facade class: Uploading을 만들자.
-  public CompletableFuture<Object<BUFFER>> upload(Command<BUFFER> command) {
-    final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
-    final Object<BUFFER> object = objectFactory.create(command.identifier);
-    final BinarySupplier<BUFFER> binarySupplier = object.upload(command.upstream);
+  private final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
 
-    // TODO: 갈등. binaryPath를 외부에서 생성하게 해야하나?
-    //  지금은 잘 모르겠으니까 최대한 간단하게 두자. => identifier를 그대로 사용하게 두자
-
-    return binaryRepository.create(new BinaryPath() {
-      @Override
-      public String asString() {
-        return String.format("%s/%s", command.identifier.getArea(), command.identifier.getKey());
-      }
-    }, binarySupplier)
-      .thenCompose(__ -> objectRepository.save(object));
-  }
-
-//  public void upload() {
-//    Object object;
-//    Binary<String> binary = new Binary<>(null, null);
-//    object.upload(binary);.
-
-  // object를 메서드로 동작을 여러개로 해야 할까...?
-  //
 
   // 요구사항
   // 1. resume 업로드 되는 친구/아예 안되는 친구 효율적인 제어 흐름...
@@ -57,7 +43,68 @@ public class Uploading<BUFFER extends Payload> {
   // 2. 업로드 트랜잭션
   // 3. 기타 각종 정책
 //
-//  }
+
+
+  public CompletableFuture<Void> upload(Command<BUFFER> command) {
+    return objectRepository
+      .find(command.identifier)
+      .handle(dispatch(command))
+      .thenCompose(__ -> __);
+  }
+
+  private BiFunction<Object<BUFFER>, Throwable, CompletableFuture<Void>> dispatch(
+    Command<BUFFER> command) {
+    final Identifier identifier = command.identifier;
+    final Publisher<BUFFER> upstream = command.upstream;
+
+    return (object, e) -> {
+      if (isNull(e)) {
+        return Match(object).of(
+          Case($(is(FULFILLED)), () -> overwrite(object, upstream)),
+          Case($(is(PENDING)), () -> append(object, upstream)));
+      }
+      return Match(e).of(
+        Case($(instanceOf(ObjectNotFoundException.class)), () -> create(identifier, upstream)),
+        Case($(), () -> abortUpload(e)));
+    };
+  }
+
+  private Predicate<Object<BUFFER>> is(ObjectType objectType) {
+    return object -> object.is(objectType);
+  }
+
+  private CompletableFuture<Void> append(Object<BUFFER> object, Publisher<BUFFER> upstream) {
+    final BinarySupplier<BUFFER> binary = object.upload(upstream);
+    final BinaryPath binaryPath = binaryPath(object.getIdentifier());
+
+    return binaryRepository.append(binaryPath, binary)
+      .thenAccept(__ -> objectRepository.save(object));
+  }
+
+  private CompletableFuture<Void> create(Identifier identifier, Publisher<BUFFER> upstream) {
+    final Object<BUFFER> object = objectFactory.create(identifier);
+    final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
+    final BinaryPath binaryPath = binaryPath(identifier);
+
+    return binaryRepository.create(binaryPath, binarySupplier)
+      .thenAccept(__ -> objectRepository.save(object));
+  }
+
+  private CompletableFuture<Void> overwrite(Object<BUFFER> object, Publisher<BUFFER> upstream) {
+    final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
+    final BinaryPath binaryPath = binaryPath(object.getIdentifier());
+
+    return binaryRepository.create(binaryPath, binarySupplier)
+      .thenAccept(__ -> objectRepository.save(object));
+  }
+
+  private CompletableFuture<Void> abortUpload(Throwable e) {
+    return CompletableFuture.failedFuture(e);
+  }
+
+  private BinaryPath binaryPath(Identifier identifier) {
+    return BinaryPath.from(identifier);
+  }
 
   @Value
   @Builder

@@ -82,6 +82,10 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     return objectSnapshot.getObjectType();
   }
 
+  public boolean is(ObjectType objectType) {
+    return objectSnapshot.is(objectType);
+  }
+
   public Tags getTags() {
     return tags;
   }
