@@ -34,7 +34,6 @@ public class Uploading<BUFFER extends Payload> {
 
   private final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
 
-
   // 요구사항
   // 1. resume 업로드 되는 친구/아예 안되는 친구 효율적인 제어 흐름...
   //   - resume 업로드 설정이 되어있는 친구면 이미 올라온게 있는지 찔러보고 이어서 고고
@@ -45,27 +44,31 @@ public class Uploading<BUFFER extends Payload> {
 //
 
 
-  public CompletableFuture<Void> upload(Command<BUFFER> command) {
+  public CompletableFuture<Object<BUFFER>> upload(Command<BUFFER> command) {
     return objectRepository
       .find(command.identifier)
       .handle(dispatch(command))
       .thenCompose(__ -> __);
   }
 
-  private BiFunction<Object<BUFFER>, Throwable, CompletableFuture<Void>> dispatch(
+  private BiFunction<Object<BUFFER>, Throwable, CompletableFuture<Object<BUFFER>>> dispatch(
     Command<BUFFER> command) {
     final Identifier identifier = command.identifier;
     final Publisher<BUFFER> upstream = command.upstream;
 
     return (object, e) -> {
       if (isNull(e)) {
-        return Match(object).of(
-          Case($(is(FULFILLED)), () -> overwrite(object, upstream)),
-          Case($(is(PENDING)), () -> append(object, upstream)));
+        return Match(object)
+          .of(
+            Case($(is(FULFILLED)), () -> overwrite(object, upstream)),
+            Case($(is(PENDING)), () -> append(object, upstream)))
+          .thenApply(__ -> object);
       }
-      return Match(e).of(
-        Case($(instanceOf(ObjectNotFoundException.class)), () -> create(identifier, upstream)),
-        Case($(), () -> abortUpload(e)));
+      return Match(e)
+        .of(
+          Case($(instanceOf(ObjectNotFoundException.class)), () -> create(identifier, upstream)),
+          Case($(), () -> abortUpload(e)))
+        .thenApply(__ -> object);
     };
   }
 

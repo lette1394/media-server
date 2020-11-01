@@ -91,7 +91,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
   }
 
   BinarySupplier<BUFFER> toSupplier(Publisher<BUFFER> publisher) {
-    return composeControllable(composeListenable(() -> publisher));
+    return composeListenable(composeControllable(() -> publisher));
   }
 
   private BinaryPath binaryPath() {

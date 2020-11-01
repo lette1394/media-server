@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.experimental.Delegate;
 
 @Getter
-public class ObjectSnapshot {
+public  class ObjectSnapshot {
 
   private long size;
   @Delegate(excludes = Enum.class)

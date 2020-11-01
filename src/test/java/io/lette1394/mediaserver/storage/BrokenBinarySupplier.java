@@ -5,19 +5,19 @@ import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
 import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
-import java.nio.ByteBuffer;
+import io.lette1394.mediaserver.storage.domain.Payload;
 import lombok.Value;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @Value
-public class BrokenBinarySupplier implements LengthAwareBinarySupplier {
+public class BrokenBinarySupplier<T extends Payload> implements LengthAwareBinarySupplier<T> {
 
-  LengthAwareBinarySupplier delegate;
+  LengthAwareBinarySupplier<T> delegate;
   long exceptionAt;
 
-  public BrokenBinarySupplier(LengthAwareBinarySupplier delegate, long exceptionAt) {
+  public BrokenBinarySupplier(LengthAwareBinarySupplier<T> delegate, long exceptionAt) {
     require(nonNull(delegate), "require: nonNull(binarySupplier)");
     require(exceptionAt >= 0, "require: exceptionAt >= 0");
     require(delegate.getLength() > exceptionAt, "require: delegate.getSize() > exceptionAt");
@@ -32,13 +32,13 @@ public class BrokenBinarySupplier implements LengthAwareBinarySupplier {
   }
 
   @Override
-  public Publisher<ByteBuffer> getAsync() {
-    final Publisher<ByteBuffer> async = delegate.getAsync();
+  public Publisher<T> getAsync() {
+    final Publisher<T> async = delegate.getAsync();
     return new Publisher<>() {
       private long position = 0;
 
       @Override
-      public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+      public void subscribe(Subscriber<? super T> subscriber) {
         async.subscribe(new Subscriber<>() {
           @Override
           public void onSubscribe(Subscription s) {
@@ -46,15 +46,15 @@ public class BrokenBinarySupplier implements LengthAwareBinarySupplier {
           }
 
           @Override
-          public void onNext(ByteBuffer byteBuffer) {
+          public void onNext(T item) {
             if (position >= exceptionAt) {
               onError(new BrokenIOException(
                 format("broken read triggered, size:[%s], exceptionAt:[%s]",
                   getLength(),
                   exceptionAt)));
             } else {
-              position += byteBuffer.remaining();
-              subscriber.onNext(byteBuffer);
+              position += item.getSize();
+              subscriber.onNext(item);
             }
           }
 

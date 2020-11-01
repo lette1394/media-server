@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.experimental.Delegate;
 
 @Getter
-class BinarySnapshot {
+public class BinarySnapshot {
 
   private long progressingSize;
   @Delegate(excludes = Enum.class)
@@ -18,7 +18,7 @@ class BinarySnapshot {
     this.binaryLifecycle = binaryLifecycle;
   }
 
-  static BinarySnapshot initial() {
+  public static BinarySnapshot initial() {
     return BinarySnapshot.builder()
       .progressingSize(0)
       .binaryLifecycle(BinaryLifecycle.NO_OPERATION)
