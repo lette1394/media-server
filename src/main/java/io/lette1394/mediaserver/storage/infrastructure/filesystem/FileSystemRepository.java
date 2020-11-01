@@ -32,26 +32,6 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
   private final String baseDir;
 
-  private static boolean isEmptyDirectory(Path path) throws IOException {
-    if (path == null) {
-      return false;
-    }
-    if (Files.isDirectory(path)) {
-      try (Stream<Path> entries = Files.list(path)) {
-        return entries.findFirst().isEmpty();
-      }
-    }
-    return false;
-  }
-
-  private static <T> CompletableFuture<T> wrap(Callable<T> callable) {
-    try {
-      return completedFuture(callable.call());
-    } catch (Exception e) {
-      return failedFuture(e);
-    }
-  }
-
   @Override
   public CompletableFuture<Boolean> exists(Identifier identifier) {
     return completedFuture(Files.exists(createPath(identifier)));
@@ -156,6 +136,26 @@ public abstract class FileSystemRepository<T extends Payload> implements
       return ret;
     } catch (Exception e) {
       return CompletableFuture.failedFuture(e);
+    }
+  }
+
+  private static boolean isEmptyDirectory(Path path) throws IOException {
+    if (path == null) {
+      return false;
+    }
+    if (Files.isDirectory(path)) {
+      try (Stream<Path> entries = Files.list(path)) {
+        return entries.findFirst().isEmpty();
+      }
+    }
+    return false;
+  }
+
+  private static <T> CompletableFuture<T> wrap(Callable<T> callable) {
+    try {
+      return completedFuture(callable.call());
+    } catch (Exception e) {
+      return failedFuture(e);
     }
   }
 
