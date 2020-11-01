@@ -4,7 +4,6 @@ import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
-import io.lette1394.mediaserver.storage.usecase.Downloading.Command;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -49,9 +48,7 @@ public class StorageController {
     ServerHttpResponse response) {
 
     final CompletableFuture<Mono<Void>> monoCompletableFuture = downloading
-      .download(Command.<DataBufferPayload>builder()
-        .identifier(new Identifier(area, key))
-        .build())
+      .download(new Identifier(area, key))
       .thenApply(BinarySupplier::getAsync)
       .thenApply(Flux::from)
       .thenApply(flux -> flux.map(DataBufferPayload::getValue))
