@@ -6,7 +6,6 @@ import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
-import static java.util.logging.Level.OFF;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,8 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.SignalType;
 
 class UploadingTest {
   Uploading<BytePayload> uploading;
@@ -45,8 +42,12 @@ class UploadingTest {
 
   @BeforeEach
   void beforeEach() {
-    repository.objectHolder.put(pendingIdentifier, pendingObject(pendingIdentifier));
-    repository.binaryHolder.put(BinaryPath.from(pendingIdentifier).asString(), payload(initialPayload));
+    repository.objectHolder.put(
+      pendingIdentifier,
+      pendingObject(pendingIdentifier));
+    repository.binaryHolder.put(
+      BinaryPath.from(pendingIdentifier).asString(),
+      payload(initialPayload));
 
     uploading = new Uploading<>(repository, repository);
   }
@@ -65,6 +66,8 @@ class UploadingTest {
     assertThat(appendedPayload, is("payload appended"));
     assertThat(object, got(List.of(UploadingTriggered.class, Uploaded.class)));
     assertThat(object, hasType(FULFILLED));
+    assertThat(object, hasSize(fullSize()));
+    assertThat(object, hasProgressingSize(0L));
   }
 
   @Test
@@ -81,7 +84,7 @@ class UploadingTest {
     assertThat(getPayload(pendingIdentifier), is("payload ap"));
     assertThat(object, hasType(PENDING));
     assertThat(object, hasSize(0L));
-    assertThat(object, hasProgressingSize(initialPayload.getBytes().length + brokenAt));
+    assertThat(object, hasProgressingSize(brokenSize()));
   }
 
   private Object<BytePayload> pendingObject(Identifier identifier) {
@@ -134,5 +137,13 @@ class UploadingTest {
 
   private Object<BytePayload> getObject(Identifier identifier) {
     return repository.objectHolder.get(identifier);
+  }
+
+  private long fullSize() {
+    return initialPayload.getBytes().length + appendedPayload.getBytes().length;
+  }
+
+  private long brokenSize() {
+    return initialPayload.getBytes().length + brokenAt;
   }
 }
