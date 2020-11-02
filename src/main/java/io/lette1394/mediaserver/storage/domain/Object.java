@@ -28,6 +28,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
   @Getter
   private final Identifier identifier;
   private final ObjectPolicy objectPolicy;
+  @Delegate
   private final ObjectSnapshot objectSnapshot;
   private final Tags tags;
   @Delegate
@@ -72,18 +73,6 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .exceptionally(e -> {
         throw new OperationCanceled(DOWNLOAD, e);
       });
-  }
-
-  public long getSize() {
-    return objectSnapshot.getSize();
-  }
-
-  public ObjectType getType() {
-    return objectSnapshot.getObjectType();
-  }
-
-  public boolean is(ObjectType objectType) {
-    return objectSnapshot.is(objectType);
   }
 
   public Tags getTags() {

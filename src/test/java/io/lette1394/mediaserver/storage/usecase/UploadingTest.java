@@ -1,10 +1,12 @@
 package io.lette1394.mediaserver.storage.usecase;
 
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.got;
-import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasLength;
+import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasProgressingSize;
+import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
+import static java.util.logging.Level.OFF;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,6 +32,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 
 class UploadingTest {
   Uploading<BytePayload> uploading;
@@ -73,19 +77,19 @@ class UploadingTest {
           .build())
         .join());
 
+    final Object<BytePayload> object = getObject(pendingIdentifier);
     assertThat(getPayload(pendingIdentifier), is("payload ap"));
-    assertThat(getObject(pendingIdentifier), hasType(PENDING));
-    assertThat(getObject(pendingIdentifier), hasLength(initialPayload.getBytes().length + brokenAt));
+    assertThat(object, hasType(PENDING));
+    assertThat(object, hasSize(0L));
+    assertThat(object, hasProgressingSize(initialPayload.getBytes().length + brokenAt));
   }
 
   private Object<BytePayload> pendingObject(Identifier identifier) {
     return Object.<BytePayload>builder()
       .identifier(identifier)
-      .objectSnapshot(ObjectSnapshot
-        .builder()
-        .objectType(ObjectType.PENDING)
-        .size(initialPayload.getBytes().length)
-        .build())
+      .objectSnapshot(ObjectSnapshot.byObjectType(
+        ObjectType.PENDING,
+        initialPayload.getBytes().length))
       .binarySnapshot(BinarySnapshot.initial())
       .binaryPolicy(binarySnapshot -> Try.success(null))
       .objectPolicy(snapshot -> Try.success(null))

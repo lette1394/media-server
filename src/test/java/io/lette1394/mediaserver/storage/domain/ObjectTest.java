@@ -3,7 +3,7 @@ package io.lette1394.mediaserver.storage.domain;
 import static io.lette1394.mediaserver.matchers.Matchers.causeIs;
 import static io.lette1394.mediaserver.matchers.Matchers.commandIs;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.got;
-import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasLength;
+import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
@@ -105,7 +105,7 @@ class ObjectTest {
       void it_proper_length() {
         final int length = 10;
         final Object<StringPayload> object = subject(randomAlphanumeric(length));
-        assertThat(object, hasLength(length));
+        assertThat(object, hasSize(length));
       }
 
       private Object<StringPayload> subject() {

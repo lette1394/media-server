@@ -55,11 +55,9 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
-        .objectSnapshot(ObjectSnapshot.builder()
-          .size(parseLong(map.get("size")))
-          .objectType(ObjectType.valueOf(map.get("type")))
-          .command(Command.NO_OPERATION)
-          .build())
+        .objectSnapshot(ObjectSnapshot.byObjectType(
+          ObjectType.valueOf(map.get("type")),
+          Long.parseLong(map.get("size"))))
         .binaryRepository(binaryRepository)
         .build();
 
@@ -115,7 +113,7 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
   }
 
   private String type() {
-    return format("type:%s", object.getType());
+    return format("type:%s", object.getObjectType());
   }
 
   private String size() {

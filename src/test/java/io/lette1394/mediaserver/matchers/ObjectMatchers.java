@@ -72,7 +72,7 @@ public class ObjectMatchers {
     return new TypeSafeMatcher<>() {
       @Override
       protected boolean matchesSafely(Object<BUFFER> item) {
-        return item.getType().is(expected);
+        return item.getObjectType().is(expected);
       }
 
       @Override
@@ -82,13 +82,13 @@ public class ObjectMatchers {
 
       @Override
       protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
-        mismatchDescription.appendValue(item.getType());
+        mismatchDescription.appendValue(item.getObjectType());
       }
     };
   }
 
   public static <T extends Event, BUFFER extends Payload>
-  Matcher<Object<BUFFER>> hasLength(long expected) {
+  Matcher<Object<BUFFER>> hasSize(long expected) {
     return new TypeSafeMatcher<>() {
       @Override
       protected boolean matchesSafely(Object<BUFFER> item) {
@@ -107,5 +107,23 @@ public class ObjectMatchers {
     };
   }
 
+  public static <T extends Event, BUFFER extends Payload>
+  Matcher<Object<BUFFER>> hasProgressingSize(long expected) {
+    return new TypeSafeMatcher<>() {
+      @Override
+      protected boolean matchesSafely(Object<BUFFER> item) {
+        return item.getProgressingSize() == expected;
+      }
 
+      @Override
+      public void describeTo(Description description) {
+        description.appendValue(expected);
+      }
+
+      @Override
+      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+        mismatchDescription.appendValue(item.getProgressingSize());
+      }
+    };
+  }
 }

@@ -28,7 +28,7 @@ public class ObjectFactory<BUFFER extends Payload> {
     return Object.<BUFFER>builder()
       .identifier(identifier)
       .objectPolicy(objectPolicy)
-      .objectSnapshot(ObjectSnapshot.initial(0))
+      .objectSnapshot(ObjectSnapshot.initial())
       .binaryPolicy(binaryPolicy)
       .binarySnapshot(BinarySnapshot.initial())
       .tags(Tags.empty())
