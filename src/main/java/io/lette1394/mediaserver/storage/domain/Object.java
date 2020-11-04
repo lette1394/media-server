@@ -20,7 +20,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-import org.reactivestreams.Publisher;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
 public class Object<BUFFER extends Payload> extends AggregateRoot {
@@ -56,11 +55,11 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     this.binaryRepository = binaryRepository;
   }
 
-  public BinarySupplier<BUFFER> upload(Publisher<BUFFER> upstream) {
+  public BinarySupplier<BUFFER> upload(BinarySupplier<BUFFER> upstream) {
     return objectPolicy.test(objectSnapshot.update(UPLOAD))
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
-      .map(__ -> toSupplier(upstream))
+      .map(__ -> compose(upstream))
       .getOrElseThrow(e -> new OperationCanceled(UPLOAD, e));
   }
 
@@ -79,8 +78,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     return tags;
   }
 
-  BinarySupplier<BUFFER> toSupplier(Publisher<BUFFER> publisher) {
-    return composeListenable(composeControllable(() -> publisher));
+  private BinarySupplier<BUFFER> compose(BinarySupplier<BUFFER> binarySupplier) {
+    return listenable(controllable(binarySupplier));
   }
 
   private BinaryPath binaryPath() {
@@ -92,11 +91,11 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     };
   }
 
-  private BinarySupplier<BUFFER> composeControllable(BinarySupplier<BUFFER> binarySupplier) {
+  private BinarySupplier<BUFFER> controllable(BinarySupplier<BUFFER> binarySupplier) {
     return new ControllableBinarySupplier<>(binarySupplier, policy());
   }
 
-  private BinarySupplier<BUFFER> composeListenable(BinarySupplier<BUFFER> binarySupplier) {
+  private BinarySupplier<BUFFER> listenable(BinarySupplier<BUFFER> binarySupplier) {
     return new ListenableBinarySupplier<>(binarySupplier, listener());
   }
 

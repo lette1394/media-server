@@ -1,19 +1,20 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import lombok.Value;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-@Value
-class ListenableBinarySupplier<BUFFER extends Payload> implements BinarySupplier<BUFFER> {
+class ListenableBinarySupplier<BUFFER extends Payload> extends BaseBinarySupplier<BUFFER> {
+  private final Listener listener;
 
-  BinarySupplier<BUFFER> binarySupplier;
-  Listener listener;
+  ListenableBinarySupplier(BinarySupplier<BUFFER> delegate, Listener listener) {
+    super(delegate);
+    this.listener = listener;
+  }
 
   @Override
   public Publisher<BUFFER> getAsync() {
-    final Publisher<BUFFER> async = binarySupplier.getAsync();
+    final Publisher<BUFFER> async = delegate.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
       private long acc = 0L;
 

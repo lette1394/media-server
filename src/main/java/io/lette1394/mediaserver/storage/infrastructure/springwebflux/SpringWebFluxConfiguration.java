@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.storage.infrastructure.springwebflux;
 
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
+import io.lette1394.mediaserver.storage.usecase.Copying;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -32,20 +33,26 @@ public class SpringWebFluxConfiguration {
   Uploading<DataBufferPayload> uploading() {
     return new Uploading<>(
       new DataBufferFileSystemRepository("out/storage"),
-      new DataBufferFileSystemRepository("out/storage")
-    );
+      new DataBufferFileSystemRepository("out/storage"));
   }
 
   @Bean
   Downloading<DataBufferPayload> downloading() {
     return new Downloading<>(
       new DataBufferFileSystemRepository("out/storage"),
-      new DataBufferFileSystemRepository("out/storage")
-    );
+      new DataBufferFileSystemRepository("out/storage"));
   }
 
   @Bean
-  NettyReactiveWebServerFactory webserverNetty() {
+  Copying<DataBufferPayload> copying() {
+    return new Copying<>(
+      new DataBufferFileSystemRepository("out/storage"),
+      uploading());
+  }
+
+
+  @Bean
+  NettyReactiveWebServerFactory webServerNetty() {
     final NettyReactiveWebServerFactory factory = new NettyReactiveWebServerFactory();
     factory.addServerCustomizers(httpServer -> httpServer.tcpConfiguration(tcpServer -> {
       return tcpServer

@@ -2,27 +2,28 @@ package io.lette1394.mediaserver.storage.domain;
 
 import io.lette1394.mediaserver.common.Tries;
 import io.vavr.control.Try;
-import lombok.Value;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-@Value
-class ControllableBinarySupplier<BUFFER extends Payload> implements BinarySupplier<BUFFER> {
+class ControllableBinarySupplier<BUFFER extends Payload> extends BaseBinarySupplier<BUFFER> {
 
-  BinarySupplier<BUFFER> binarySupplier;
-  Policy policy;
+  private final Policy policy;
+
+  ControllableBinarySupplier(BinarySupplier<BUFFER> delegate, Policy policy) {
+    super(delegate);
+    this.policy = policy;
+  }
 
   @Override
   public Publisher<BUFFER> getAsync() {
-    final Publisher<BUFFER> async = binarySupplier.getAsync();
+    final Publisher<BUFFER> async = delegate.getAsync();
     return subscriber -> async.subscribe(new Subscriber<>() {
       private long acc = 0L;
 
       @Override
       public void onSubscribe(Subscription s) {
         checkSucceed(policy.beforeTransfer());
-
         subscriber.onSubscribe(s);
       }
 

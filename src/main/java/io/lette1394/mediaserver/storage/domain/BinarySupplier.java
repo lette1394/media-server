@@ -21,12 +21,26 @@ import org.reactivestreams.Publisher;
  * @see BaseBinarySupplier
  */
 
-
 // TODO: 이거 package-private 으로 해야만 한다.
 //  core domain 외부에서 직접 생성하는 경우를 방지해야 하는데... 그걸 강제하는게 가능한가?
 //  안될거같다 왜냐면... usecase 에서 써야해서...ㅠ
-@FunctionalInterface
 public interface BinarySupplier<BUFFER extends Payload> {
-
   Publisher<BUFFER> getAsync();
+
+  default Context currentContext() {
+    return Context.empty();
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

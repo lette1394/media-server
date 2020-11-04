@@ -10,7 +10,6 @@ public interface BinaryRepository<BUFFER extends Payload> {
       .exceptionally(__ -> false);
   }
 
-  // TODO: BinaryPath
   CompletableFuture<BinarySupplier<BUFFER>> find(BinaryPath binaryPath);
 
   CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);

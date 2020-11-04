@@ -54,7 +54,7 @@ public class Uploading<BUFFER extends Payload> {
   private BiFunction<Object<BUFFER>, Throwable, CompletableFuture<Object<BUFFER>>> dispatch(
     Command<BUFFER> command) {
     final Identifier identifier = command.identifier;
-    final Publisher<BUFFER> upstream = command.upstream;
+    final BinarySupplier<BUFFER> upstream = command.upstream;
 
     return (object, e) -> {
       if (isNull(e)) {
@@ -76,7 +76,7 @@ public class Uploading<BUFFER extends Payload> {
     return object -> object.is(objectType);
   }
 
-  private CompletableFuture<Void> append(Object<BUFFER> object, Publisher<BUFFER> upstream) {
+  private CompletableFuture<Void> append(Object<BUFFER> object, BinarySupplier<BUFFER> upstream) {
     final BinarySupplier<BUFFER> binary = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
@@ -84,7 +84,7 @@ public class Uploading<BUFFER extends Payload> {
       .thenAccept(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Void> create(Identifier identifier, Publisher<BUFFER> upstream) {
+  private CompletableFuture<Void> create(Identifier identifier, BinarySupplier<BUFFER> upstream) {
     final Object<BUFFER> object = objectFactory.create(identifier);
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(identifier);
@@ -93,7 +93,7 @@ public class Uploading<BUFFER extends Payload> {
       .thenAccept(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Void> overwrite(Object<BUFFER> object, Publisher<BUFFER> upstream) {
+  private CompletableFuture<Void> overwrite(Object<BUFFER> object, BinarySupplier<BUFFER> upstream) {
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
@@ -113,7 +113,7 @@ public class Uploading<BUFFER extends Payload> {
   @Builder
   public static class Command<BUFFER extends Payload> {
     Identifier identifier;
-    Publisher<BUFFER> upstream;
+    BinarySupplier<BUFFER> upstream;
     Map<String, String> tags;
   }
 }

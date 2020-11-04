@@ -34,7 +34,7 @@ public class StorageController {
 
     return uploading.upload(Command.<DataBufferPayload>builder()
       .identifier(new Identifier(area, key))
-      .upstream(body)
+      .upstream(() -> body)
       .tags(new HashMap<>())
       .build())
       .thenAccept(__ -> System.out.println("done mvc"));

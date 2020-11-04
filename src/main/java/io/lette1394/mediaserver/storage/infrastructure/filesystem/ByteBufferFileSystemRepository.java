@@ -22,7 +22,6 @@ public class ByteBufferFileSystemRepository extends FileSystemRepository<ByteBuf
       final AsynchronousFileChannel channel = AsynchronousFileChannel
         .open(path, StandardOpenOption.READ);
 
-
       return DataBufferUtils
         .readAsynchronousFileChannel(() -> channel, new DefaultDataBufferFactory(), 1024)
         .map(buffer -> new ByteBufferPayload(buffer.asByteBuffer()));
