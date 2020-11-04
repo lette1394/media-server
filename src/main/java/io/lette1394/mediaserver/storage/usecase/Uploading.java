@@ -97,6 +97,8 @@ public class Uploading<BUFFER extends Payload> {
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
+    // TODO: 이거 중간에 끊기면 object 저장안됨.
+    //  thenAccept() 가 아니라 handle() 등으로 변경 필요함
     return binaryRepository.create(binaryPath, binarySupplier)
       .thenAccept(__ -> objectRepository.save(object));
   }
