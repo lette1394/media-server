@@ -10,6 +10,7 @@ import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Context;
 import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
@@ -164,68 +165,64 @@ public abstract class FileSystemRepository<T extends Payload> implements
     BinarySupplier<T> binarySupplier,
     OpenOption... openOption) {
     final Path target = createPath(binaryPath);
-    final Path parent = target.getParent();
     final Context context = binarySupplier.currentContext();
 
     try {
-      if (parent == null) {
-        return failedFuture(new RuntimeException("parent not exists"));
-      }
-      parent.toFile().mkdirs();
+      ensureParentExists(target);
 
-      final Path source = context.getOrDefault("filesystem.supplier.source.path", null);
+      final Path source = context.getOrDefault("filesystem.supplier.source", null);
       if (source == null) {
-        final WritableByteChannel channel = Channels
-          .newChannel(Files.newOutputStream(target, openOption));
-        final CompletableFuture<Void> ret = new CompletableFuture<>();
-
-        Flux.from(binarySupplier.getAsync())
-          .doOnComplete(() -> ret.complete(null))
-          .doOnError(e -> ret.completeExceptionally(e))
-          .doFinally(__ -> IOUtils.closeQuietly(channel, null))
-          .subscribe(item -> write(channel, item));
-        return ret;
+        return writeFromUpstream(binarySupplier, target, openOption);
       }
-
-      try {
-        binarySupplier.getAsync().subscribe(new Subscriber<T>() {
-          @Override
-          public void onSubscribe(Subscription s) {
-            System.out.println("hello");
-          }
-
-          @Override
-          public void onNext(T t) {
-
-          }
-
-          @Override
-          public void onError(Throwable t) {
-
-          }
-
-          @Override
-          public void onComplete() {
-
-          }
-        });
-
-        final Path copied = Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-        final long size = Files.size(copied);
-
-
-        Consumer<Long> completeNormally = context
-          .get("filesystem.supplier.source.completeNormally()");
-        completeNormally.accept(size);
-        return completedFuture(null);
-      } catch (IOException e) {
-        Consumer<Throwable> completeExceptionally = context
-          .get("filesystem.supplier.source.completeExceptionally()");
-        completeExceptionally.accept(e);
-        return failedFuture(e);
-      }
-
+      return writeFromFilesystem(binarySupplier, target);
     } catch (Exception e) {
+      return failedFuture(e);
+    }
+  }
+
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  private void ensureParentExists(Path target) {
+    final Path parent = target.getParent();
+    if (parent == null) {
+      throw new RuntimeException("parent not exists");
+    }
+    parent.toFile().mkdirs();
+  }
+
+  private CompletableFuture<Void> writeFromUpstream(BinarySupplier<T> binarySupplier, Path target,
+    OpenOption[] openOption) throws IOException {
+    final WritableByteChannel channel = Channels
+      .newChannel(Files.newOutputStream(target, openOption));
+    final CompletableFuture<Void> ret = new CompletableFuture<>();
+
+    Flux.from(binarySupplier.getAsync())
+      .doOnComplete(() -> ret.complete(null))
+      .doOnError(e -> ret.completeExceptionally(e))
+      .doFinally(__ -> IOUtils.closeQuietly(channel, null))
+      .subscribe(item -> write(channel, item));
+
+    return ret;
+  }
+
+  private CompletableFuture<Void> writeFromFilesystem(BinarySupplier<T> binarySupplier,
+    Path target) {
+    final Context context = binarySupplier.currentContext();
+    try {
+      final Path source = context.getOrDefault("filesystem.supplier.source", null);
+      binarySupplier.getAsync().subscribe(NoOperationSubscriber.instance());
+
+      assert source != null;
+      final Path copied = Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+      final long size = Files.size(copied);
+
+      final Consumer<Long> completeNormally = context
+        .get("filesystem.supplier.completeNormally()");
+      completeNormally.accept(size);
+      return completedFuture(null);
+    } catch (IOException e) {
+      final Consumer<Throwable> completeExceptionally = context
+        .get("filesystem.supplier.completeExceptionally()");
+      completeExceptionally.accept(e);
       return failedFuture(e);
     }
   }
@@ -274,20 +271,9 @@ public abstract class FileSystemRepository<T extends Payload> implements
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Context currentContext() {
       final Consumer<Long> completeNormally = size -> {
-        subscriber.onNext((T) new Payload() {
-          @Override
-          public long getSize() {
-            return size;
-          }
-
-          @Override
-          public void release() {
-
-          }
-        });
+        notifyBinarySize(size);
         subscriber.onComplete();
       };
 
@@ -295,9 +281,24 @@ public abstract class FileSystemRepository<T extends Payload> implements
         = throwable -> subscriber.onError(throwable);
 
       return delegate.currentContext()
-        .put("filesystem.supplier.source.path", source)
-        .put("filesystem.supplier.source.completeNormally()", completeNormally)
-        .put("filesystem.supplier.source.completeExceptionally()", completeExceptionally);
+        .put("filesystem.supplier.source", source)
+        .put("filesystem.supplier.completeNormally()", completeNormally)
+        .put("filesystem.supplier.completeExceptionally()", completeExceptionally);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void notifyBinarySize(Long size) {
+      subscriber.onNext((T) new Payload() {
+        @Override
+        public long getSize() {
+          return size;
+        }
+
+        @Override
+        public void release() {
+
+        }
+      });
     }
   }
 }
