@@ -3,7 +3,7 @@ package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
-import io.lette1394.mediaserver.storage.domain.BaseBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.DelegatingBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.BaseSubscriber;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
@@ -247,7 +247,8 @@ public abstract class FileSystemRepository<T extends Payload> implements
     return path;
   }
 
-  private static class FileSystemBinarySupplier<T extends Payload> extends BaseBinarySupplier<T> {
+  private static class FileSystemBinarySupplier<T extends Payload> extends
+    DelegatingBinarySupplier<T> {
     private final Path source;
 
     private Subscriber<? super T> subscriber;

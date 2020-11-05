@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 
 @RequiredArgsConstructor
-public class BaseBinarySupplier<BUFFER extends Payload> implements BinarySupplier<BUFFER> {
+public class DelegatingBinarySupplier<BUFFER extends Payload> implements BinarySupplier<BUFFER> {
   protected final BinarySupplier<BUFFER> delegate;
 
   @Override

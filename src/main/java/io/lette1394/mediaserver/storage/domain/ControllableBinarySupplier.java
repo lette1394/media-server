@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-class ControllableBinarySupplier<BUFFER extends Payload> extends BaseBinarySupplier<BUFFER> {
+class ControllableBinarySupplier<BUFFER extends Payload> extends DelegatingBinarySupplier<BUFFER> {
 
   private final Policy policy;
 

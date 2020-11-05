@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-class ListenableBinarySupplier<BUFFER extends Payload> extends BaseBinarySupplier<BUFFER> {
+class ListenableBinarySupplier<BUFFER extends Payload> extends DelegatingBinarySupplier<BUFFER> {
   private final Listener listener;
 
   ListenableBinarySupplier(BinarySupplier<BUFFER> delegate, Listener listener) {

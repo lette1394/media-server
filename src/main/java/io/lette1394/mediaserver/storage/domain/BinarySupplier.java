@@ -19,7 +19,7 @@ import org.reactivestreams.Publisher;
  * @author Jae eun Na
  * @see ListenableBinarySupplier
  * @see ControllableBinarySupplier
- * @see BaseBinarySupplier
+ * @see DelegatingBinarySupplier
  */
 
 @FunctionalInterface
