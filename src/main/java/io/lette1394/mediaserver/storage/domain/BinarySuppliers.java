@@ -12,8 +12,8 @@ public class BinarySuppliers {
       }
 
       @Override
-      public Publisher<BUFFER> getAsync() {
-        return binarySupplier.getAsync();
+      public Publisher<BUFFER> publisher() {
+        return binarySupplier.publisher();
       }
     };
   }

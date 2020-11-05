@@ -36,7 +36,7 @@ public class AwsClient {
       .key(objectPath.asString())
       .contentLength(binaries.getLength()) // content-length required
       .build(), AsyncRequestBody
-      .fromPublisher(binaries.getAsync()))
+      .fromPublisher(binaries.publisher()))
       .thenApply(response -> null);
   }
 }

@@ -16,8 +16,8 @@ class ControllableBinarySupplier<BUFFER extends Payload> extends BaseBinarySuppl
   }
 
   @Override
-  public Publisher<BUFFER> getAsync() {
-    final Publisher<BUFFER> async = delegate.getAsync();
+  public Publisher<BUFFER> publisher() {
+    final Publisher<BUFFER> async = delegate.publisher();
     return subscriber -> async.subscribe(new Subscriber<>() {
       private long acc = 0L;
 

@@ -121,11 +121,11 @@ class UploadingTest {
       }
 
       @Override
-      public Publisher<BytePayload> getAsync() {
+      public Publisher<BytePayload> publisher() {
         return publisher;
       }
     }, at)
-      .getAsync();
+      .publisher();
   }
 
   private String getPayload(Identifier identifier) {

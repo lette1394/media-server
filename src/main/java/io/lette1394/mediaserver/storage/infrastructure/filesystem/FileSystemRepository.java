@@ -195,7 +195,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
       .newChannel(Files.newOutputStream(target, openOption));
     final CompletableFuture<Void> ret = new CompletableFuture<>();
 
-    Flux.from(binarySupplier.getAsync())
+    Flux.from(binarySupplier.publisher())
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .doFinally(__ -> IOUtils.closeQuietly(channel, null))
@@ -209,7 +209,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
     final Context context = binarySupplier.currentContext();
     try {
       final Path source = context.getOrDefault("filesystem.supplier.source", null);
-      binarySupplier.getAsync().subscribe(NoOperationSubscriber.instance());
+      binarySupplier.publisher().subscribe(NoOperationSubscriber.instance());
 
       assert source != null;
       final Path copied = Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -258,8 +258,8 @@ public abstract class FileSystemRepository<T extends Payload> implements
     }
 
     @Override
-    public Publisher<T> getAsync() throws UnsupportedOperationException {
-      final Publisher<T> async = delegate.getAsync();
+    public Publisher<T> publisher() throws UnsupportedOperationException {
+      final Publisher<T> async = delegate.publisher();
       return subscriber -> async
         .subscribe(new BaseSubscriber<T>(subscriber) {
           @Override

@@ -32,8 +32,8 @@ public class BrokenBinarySupplier<T extends Payload> implements LengthAwareBinar
   }
 
   @Override
-  public Publisher<T> getAsync() {
-    final Publisher<T> async = delegate.getAsync();
+  public Publisher<T> publisher() {
+    final Publisher<T> async = delegate.publisher();
     return new Publisher<>() {
       private long position = 0;
 

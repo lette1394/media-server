@@ -61,7 +61,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
     BinarySupplier<T> binarySupplier) {
     CompletableFuture<Void> ret = new CompletableFuture<>();
     Flux
-      .from(binarySupplier.getAsync())
+      .from(binarySupplier.publisher())
       .doOnSubscribe(__ -> binaryHolder.put(binaryPath.asString(), new ByteArrayOutputStream()))
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
@@ -74,7 +74,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
   public CompletableFuture<Void> append(BinaryPath binaryPath,
     BinarySupplier<T> binarySupplier) {
     final CompletableFuture<Void> ret = new CompletableFuture<>();
-    Flux.from(binarySupplier.getAsync())
+    Flux.from(binarySupplier.publisher())
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .subscribe(payload -> write(binaryPath, payload));

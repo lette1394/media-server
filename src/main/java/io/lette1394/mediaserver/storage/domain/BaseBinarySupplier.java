@@ -8,8 +8,8 @@ public class BaseBinarySupplier<BUFFER extends Payload> implements BinarySupplie
   protected final BinarySupplier<BUFFER> delegate;
 
   @Override
-  public Publisher<BUFFER> getAsync() throws UnsupportedOperationException {
-    return delegate.getAsync();
+  public Publisher<BUFFER> publisher() throws UnsupportedOperationException {
+    return delegate.publisher();
   }
 
   @Override

@@ -68,7 +68,7 @@ public class StorageController {
 
     final CompletableFuture<Mono<Void>> monoCompletableFuture = downloading
       .download(new Identifier(area, key))
-      .thenApply(BinarySupplier::getAsync)
+      .thenApply(BinarySupplier::publisher)
       .thenApply(Flux::from)
       .thenApply(flux -> flux.map(DataBufferPayload::getValue))
       .thenApply(response::writeWith);

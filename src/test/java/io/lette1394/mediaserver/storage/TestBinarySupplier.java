@@ -29,7 +29,7 @@ public class TestBinarySupplier implements LengthAwareBinarySupplier {
   }
 
   @Override
-  public Publisher<ByteBuffer> getAsync() {
+  public Publisher<ByteBuffer> publisher() {
     return new SingleThreadInputStreamPublisher(new ByteArrayInputStream(binary), CHUNK_SIZE);
   }
 }

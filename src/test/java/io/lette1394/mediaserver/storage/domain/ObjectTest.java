@@ -55,7 +55,7 @@ class ObjectTest {
   }
 
   private <T extends Payload> void subscribe(BinarySupplier<T> binarySupplier) {
-    Flux.from(binarySupplier.getAsync())
+    Flux.from(binarySupplier.publisher())
       .subscribe(__ -> {
       });
   }

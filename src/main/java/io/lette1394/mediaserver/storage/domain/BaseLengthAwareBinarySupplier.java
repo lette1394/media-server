@@ -10,7 +10,7 @@ class BaseLengthAwareBinarySupplier<BUFFER extends Payload> implements LengthAwa
   }
 
   @Override
-  public Publisher<BUFFER> getAsync() throws UnsupportedOperationException {
+  public Publisher<BUFFER> publisher() throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 }

@@ -24,7 +24,7 @@ import org.reactivestreams.Publisher;
 
 @FunctionalInterface
 public interface BinarySupplier<BUFFER extends Payload> {
-  Publisher<BUFFER> getAsync();
+  Publisher<BUFFER> publisher();
 
   default Optional<Long> length() {
     return Optional.empty();

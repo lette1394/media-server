@@ -7,7 +7,7 @@ public class BinarySupplierFactory {
   public static <BUFFER extends Payload> BinarySupplier<BUFFER> from(Publisher<BUFFER> publisher, long length) {
     return new BaseLengthAwareBinarySupplier<>() {
       @Override
-      public Publisher<BUFFER> getAsync()
+      public Publisher<BUFFER> publisher()
         throws UnsupportedOperationException {
         return publisher;
       }
