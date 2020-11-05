@@ -83,7 +83,10 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     return new DelegatingBinarySupplier<>(binarySupplier) {
       @Override
       public Publisher<BUFFER> publisher() {
-        return listenable(controllable(super.publisher()));
+        final Publisher<BUFFER> publisher = super.publisher();
+        return super.length()
+          .map(length -> listenable(controllable(lengthValidatable(length, (publisher)))))
+          .orElseGet(() -> listenable(controllable(publisher)));
       }
     };
   }
@@ -95,6 +98,10 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
         return String.format("%s/%s", identifier.getArea(), identifier.getKey());
       }
     };
+  }
+
+  private Publisher<BUFFER> lengthValidatable(long length, Publisher<BUFFER> publisher) {
+    return new ValidatingLengthPublisher<>(length, publisher);
   }
 
   private Publisher<BUFFER> controllable(Publisher<BUFFER> publisher) {

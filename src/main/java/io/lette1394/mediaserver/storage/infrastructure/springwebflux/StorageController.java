@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.infrastructure.springwebflux;
 
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.usecase.Copying;
@@ -8,6 +9,7 @@ import io.lette1394.mediaserver.storage.usecase.Copying.Command;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
@@ -32,6 +34,7 @@ public class StorageController {
   CompletableFuture<?> putObject(
     @PathVariable String area,
     @PathVariable String key,
+    @RequestHeader(value = "Content-length", required = false) Optional<Long> contentLength,
     ServerHttpRequest request) {
     final Publisher<DataBufferPayload> body = request
       .getBody()
@@ -39,7 +42,7 @@ public class StorageController {
 
     return uploading.upload(Uploading.Command.<DataBufferPayload>builder()
       .identifier(new Identifier(area, key))
-      .upstream(() -> body)
+      .upstream(BinarySupplierFactory.from(body, contentLength))
       .tags(new HashMap<>())
       .build())
       .thenAccept(__ -> System.out.println("done flux"));

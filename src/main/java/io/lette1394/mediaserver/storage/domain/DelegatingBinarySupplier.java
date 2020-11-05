@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 
@@ -15,5 +16,10 @@ public class DelegatingBinarySupplier<BUFFER extends Payload> implements BinaryS
   @Override
   public Context currentContext() {
     return delegate.currentContext();
+  }
+
+  @Override
+  public Optional<Long> length() {
+    return delegate.length();
   }
 }

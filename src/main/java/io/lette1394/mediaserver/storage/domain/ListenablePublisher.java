@@ -55,13 +55,12 @@ class ListenablePublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
 
     @Override
     public void onError(Throwable t) {
-      super.onError(t);
-
       if (abortNotified) {
         return;
       }
       abortNotified = true;
       listener.transferAborted(t);
+      super.onError(t);
     }
 
     @Override

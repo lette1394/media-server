@@ -15,9 +15,9 @@ import java.util.Set;
 public interface ObjectPolicy extends Testable<ObjectSnapshot> {
 
   ObjectPolicy REJECT_RESUME_UPLOAD = snapshot -> {
-    if (snapshot.is(UPLOAD) && snapshot.is(PENDING)) {
-      return failure(violation("reject resume upload"));
-    }
+//    if (snapshot.is(UPLOAD) && snapshot.is(PENDING)) {
+//      return failure(violation("reject resume upload"));
+//    }
     return SUCCESS;
   };
 

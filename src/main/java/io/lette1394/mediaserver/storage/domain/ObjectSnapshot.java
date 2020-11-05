@@ -161,12 +161,12 @@ public class ObjectSnapshot {
 
     @Override
     long getSize() {
-      return 0L;
+      return size;
     }
 
     @Override
     long getProgressingSize() {
-      return size + progressingSize;
+      return progressingSize;
     }
 
     @Override

@@ -31,6 +31,18 @@ public class ValidatingLengthPublisher<BUFFER extends Payload> implements Publis
     }
 
     @Override
+    public void onNext(BUFFER buffer) {
+      if (expectedTotalLength >= getProcessedLength()) {
+        super.onNext(buffer);
+        return;
+      }
+      onError(violation(
+        format("publisher total length exceed; expected:[%s], but:[%s]",
+          expectedTotalLength,
+          getProcessedLength())));
+    }
+
+    @Override
     public void onComplete() {
       if (expectedTotalLength == getProcessedLength()) {
         super.onComplete();
@@ -42,6 +54,5 @@ public class ValidatingLengthPublisher<BUFFER extends Payload> implements Publis
           expectedTotalLength,
           getProcessedLength())));
     }
-
   }
 }
