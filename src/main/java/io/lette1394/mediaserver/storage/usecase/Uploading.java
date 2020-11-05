@@ -25,7 +25,6 @@ import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import org.reactivestreams.Publisher;
 
 @RequiredArgsConstructor
 public class Uploading<BUFFER extends Payload> {
@@ -81,7 +80,7 @@ public class Uploading<BUFFER extends Payload> {
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
     return binaryRepository.append(binaryPath, binary)
-      .thenAccept(__ -> objectRepository.save(object));
+      .whenComplete((__, e) -> objectRepository.save(object));
   }
 
   private CompletableFuture<Void> create(Identifier identifier, BinarySupplier<BUFFER> upstream) {
@@ -90,17 +89,16 @@ public class Uploading<BUFFER extends Payload> {
     final BinaryPath binaryPath = binaryPath(identifier);
 
     return binaryRepository.create(binaryPath, binarySupplier)
-      .thenAccept(__ -> objectRepository.save(object));
+      .whenComplete((__, e) -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Void> overwrite(Object<BUFFER> object, BinarySupplier<BUFFER> upstream) {
+  private CompletableFuture<Void> overwrite(Object<BUFFER> object,
+    BinarySupplier<BUFFER> upstream) {
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
-    // TODO: 이거 중간에 끊기면 object 저장안됨.
-    //  thenAccept() 가 아니라 handle() 등으로 변경 필요함
     return binaryRepository.create(binaryPath, binarySupplier)
-      .thenAccept(__ -> objectRepository.save(object));
+      .whenComplete((__, e) -> objectRepository.save(object));
   }
 
   private CompletableFuture<Void> abortUpload(Throwable e) {
