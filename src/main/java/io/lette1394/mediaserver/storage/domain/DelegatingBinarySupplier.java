@@ -8,7 +8,7 @@ public class DelegatingBinarySupplier<BUFFER extends Payload> implements BinaryS
   protected final BinarySupplier<BUFFER> delegate;
 
   @Override
-  public Publisher<BUFFER> publisher() throws UnsupportedOperationException {
+  public Publisher<BUFFER> publisher() {
     return delegate.publisher();
   }
 

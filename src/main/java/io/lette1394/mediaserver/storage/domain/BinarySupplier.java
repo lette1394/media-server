@@ -17,8 +17,8 @@ import org.reactivestreams.Publisher;
  * <h2>Restrictions</h2>
  *
  * @author Jae eun Na
- * @see ListenableBinarySupplier
- * @see ControllableBinarySupplier
+ * @see ListenablePublisher
+ * @see ControllablePublisher
  * @see DelegatingBinarySupplier
  */
 

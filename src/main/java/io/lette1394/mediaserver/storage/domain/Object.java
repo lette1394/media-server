@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
+import org.reactivestreams.Publisher;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
 public class Object<BUFFER extends Payload> extends AggregateRoot {
@@ -79,7 +80,12 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
   }
 
   private BinarySupplier<BUFFER> compose(BinarySupplier<BUFFER> binarySupplier) {
-    return listenable(controllable(binarySupplier));
+    return new DelegatingBinarySupplier<>(binarySupplier) {
+      @Override
+      public Publisher<BUFFER> publisher() {
+        return listenable(controllable(super.publisher()));
+      }
+    };
   }
 
   private BinaryPath binaryPath() {
@@ -91,16 +97,16 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     };
   }
 
-  private BinarySupplier<BUFFER> controllable(BinarySupplier<BUFFER> binarySupplier) {
-    return new ControllableBinarySupplier<>(binarySupplier, policy());
+  private Publisher<BUFFER> controllable(Publisher<BUFFER> publisher) {
+    return new ControllablePublisher<>(policy(), publisher);
   }
 
-  private BinarySupplier<BUFFER> listenable(BinarySupplier<BUFFER> binarySupplier) {
-    return new ListenableBinarySupplier<>(binarySupplier, listener());
+  private Publisher<BUFFER> listenable(Publisher<BUFFER> publisher) {
+    return new ListenablePublisher<>(listener(), publisher);
   }
 
-  private ControllableBinarySupplier.Policy policy() {
-    return new ControllableBinarySupplier.Policy() {
+  private ControllablePublisher.Policy policy() {
+    return new ControllablePublisher.Policy() {
       @Override
       public Try<Void> beforeTransfer() {
         return binaryPolicy.test(
@@ -125,8 +131,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     };
   }
 
-  private ListenableBinarySupplier.Listener listener() {
-    return new ListenableBinarySupplier.Listener() {
+  private ListenablePublisher.Listener listener() {
+    return new ListenablePublisher.Listener() {
       private boolean aborted = false;
 
       @Override
