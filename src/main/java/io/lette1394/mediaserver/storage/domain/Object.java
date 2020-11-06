@@ -87,8 +87,28 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .getOrElseThrow(e -> new OperationCanceledException(COPY, e));
   }
 
+  public boolean hasTag(String key) {
+    return tags.has(key);
+  }
+
+  public Tag getTag(String key) {
+    return tags.get(key);
+  }
+
   public Tags getTags() {
     return tags;
+  }
+
+  public void addTag(String key) {
+    tags.addTag(key);
+  }
+
+  public void addTag(String key, long value) {
+    tags.addTag(key, String.valueOf(value));
+  }
+
+  public void addTag(String key, String value) {
+    tags.addTag(key, value);
   }
 
   private BinarySupplier<BUFFER> compose(BinarySupplier<BUFFER> binarySupplier) {
@@ -103,7 +123,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     };
   }
 
-  private BinaryPath binaryPath() {
+  // TODO: 여기에 copy path를 넣어야...?
+  protected BinaryPath binaryPath() {
     return new BinaryPath() {
       @Override
       public String asString() {

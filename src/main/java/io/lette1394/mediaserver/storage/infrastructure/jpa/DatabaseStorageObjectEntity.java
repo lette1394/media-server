@@ -73,15 +73,15 @@ class DatabaseStorageObjectEntity {
 
   private Tags toTags() {
     if (StringUtils.isBlank(tagList)) {
-      return Tags.tags(Collections.emptyList());
+      return Tags.tags(Collections.emptySet());
     }
     return Tags.tags(Arrays
       .stream(tagList.split(TAG_DELIMITER))
       .map(str -> {
         final String[] split = str.split("=");
-        return new Tag(nonBlankString(split[0]), split[1]);
+        return new Tag(split[0], split[1]);
       })
-      .collect(Collectors.toList()));
+      .collect(Collectors.toSet()));
   }
 
   @Data

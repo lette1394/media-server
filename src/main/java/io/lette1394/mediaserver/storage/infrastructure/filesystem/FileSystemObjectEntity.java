@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +47,10 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
           throw new RuntimeException();
         });
 
-      final List<Tag> tags = map.entrySet().stream()
+      final Set<Tag> tags = map.entrySet().stream()
         .filter(entry -> entry.getKey().startsWith("tag"))
-        .map(entry -> new Tag(nonBlankString(entry.getKey().substring(3)), entry.getValue()))
-        .collect(Collectors.toList());
+        .map(entry -> new Tag(entry.getKey().substring(3), entry.getValue()))
+        .collect(Collectors.toSet());
 
       final Object<BUFFER> object = Object.<BUFFER>builder()
         .identifier(new Identifier(map.get("area"), map.get("key")))

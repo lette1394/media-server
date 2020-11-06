@@ -1,33 +1,63 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Value;
 
+
+// TODO: tag 가 생성 / 저장될 때
+//  prefix 로 [system, user] 등으로 나눠서
+//  코드 내부에서 사용되는 tag와, user가 등록한 tag를 구분하도록 하자
 @Value(staticConstructor = "tags")
 public class Tags {
-  List<Tag> tags;
+
+  Map<String, Tag> tags;
 
   public static Tags tags(Tag... tags) {
-    return new Tags(Lists.newArrayList(tags));
+    return tags(Sets.newHashSet(tags));
+  }
+
+  public static Tags tags(Set<Tag> tags) {
+    final Map<String, Tag> collect = tags.stream()
+      .collect(Collectors.toMap(
+        tag -> tag.getKey(),
+        tag -> tag
+      ));
+    return new Tags(collect);
   }
 
   public static Tags empty() {
-    return new Tags(Lists.newArrayList());
+    return new Tags(Maps.newHashMap());
   }
 
-  public List<Tag> getTags() {
-    return Collections.unmodifiableList(tags);
+  public Set<Tag> getTags() {
+    return Collections.unmodifiableSet(Sets.newHashSet(tags.values()));
   }
 
   public Map<String, String> toMap() {
-    return tags
+    return tags.entrySet()
       .stream()
       .collect(Collectors.toMap(
-        tag -> tag.getKey().getValue(),
-        Tag::getValue));
+        entry -> entry.getKey(),
+        entry -> entry.getValue().getValue()));
+  }
+
+  public boolean has(String key) {
+    return tags.containsKey(key);
+  }
+
+  public Tag get(String key) {
+    return tags.get(key);
+  }
+
+  public void addTag(String key, String value) {
+    tags.put(key, new Tag(key, value));
+  }
+  public void addTag(String key) {
+    tags.put(key, new Tag(key));
   }
 }
