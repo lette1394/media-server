@@ -112,7 +112,9 @@ public class Copying<BUFFER extends Payload> {
     }
 
     private Object<BUFFER> toObject(Object<BUFFER> object) {
-
+      // TODO: object 에 binary path를 주입 가능하게 변경
+      //  여기서 새로운 object로 치환
+      //  구현체는 object factory 에 두고 사용하기
       return object;
     }
 
