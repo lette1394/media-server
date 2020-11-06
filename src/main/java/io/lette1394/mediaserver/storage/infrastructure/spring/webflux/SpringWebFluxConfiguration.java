@@ -51,7 +51,7 @@ public class SpringWebFluxConfiguration {
   Copying<DataBufferPayload> copying() {
     return new Copying<>(
       new DataBufferFileSystemRepository("out/storage"),
-      uploading());
+      new DataBufferFileSystemRepository("out/storage"));
   }
 
   @Bean

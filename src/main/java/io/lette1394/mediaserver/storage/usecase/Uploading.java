@@ -6,7 +6,6 @@ import static io.vavr.API.$;
 import static io.vavr.API.Case;
 import static io.vavr.API.Match;
 import static io.vavr.Predicates.instanceOf;
-import static java.util.Objects.isNull;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
@@ -28,6 +27,7 @@ import lombok.Value;
 
 @RequiredArgsConstructor
 public class Uploading<BUFFER extends Payload> {
+
   private final BinaryRepository<BUFFER> binaryRepository;
   private final ObjectRepository<BUFFER> objectRepository;
 
@@ -56,18 +56,18 @@ public class Uploading<BUFFER extends Payload> {
     final BinarySupplier<BUFFER> upstream = command.upstream;
 
     return (object, e) -> {
-      if (isNull(e)) {
+      if (isObjectExists(e)) {
         return Match(object)
           .of(
             Case($(is(FULFILLED)), () -> overwrite(object, upstream)),
             Case($(is(PENDING)), () -> append(object, upstream)))
-          .thenApply(__ -> object);
+          .thenCompose(__ -> objectRepository.save(object));
       }
       return Match(e)
         .of(
           Case($(instanceOf(ObjectNotFoundException.class)), () -> create(identifier, upstream)),
           Case($(), () -> abortUpload(e)))
-        .thenApply(__ -> object);
+        .thenCompose(__ -> objectRepository.save(object));
     };
   }
 
@@ -75,23 +75,21 @@ public class Uploading<BUFFER extends Payload> {
     return object -> object.is(objectType);
   }
 
-  private CompletableFuture<Void> append(Object<BUFFER> object, BinarySupplier<BUFFER> upstream) {
+  private CompletableFuture<Void> append(Object<BUFFER> object,
+    BinarySupplier<BUFFER> upstream) {
     final BinarySupplier<BUFFER> binary = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
-
-    return binaryRepository.append(binaryPath, binary)
-      // TODO: fix composed
-      .whenComplete((__, e) -> objectRepository.save(object));
+    return binaryRepository.append(binaryPath, binary);
   }
 
-  private CompletableFuture<Void> create(Identifier identifier, BinarySupplier<BUFFER> upstream) {
+  private CompletableFuture<Void> create(Identifier identifier,
+    BinarySupplier<BUFFER> upstream) {
     final Object<BUFFER> object = objectFactory.create(identifier);
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(identifier);
 
-    return binaryRepository.create(binaryPath, binarySupplier)
-      .whenComplete((__, e) -> objectRepository.save(object));
+    return binaryRepository.create(binaryPath, binarySupplier);
   }
 
   private CompletableFuture<Void> overwrite(Object<BUFFER> object,
@@ -99,8 +97,7 @@ public class Uploading<BUFFER extends Payload> {
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
-    return binaryRepository.create(binaryPath, binarySupplier)
-      .whenComplete((__, e) -> objectRepository.save(object));
+    return binaryRepository.create(binaryPath, binarySupplier);
   }
 
   private CompletableFuture<Void> abortUpload(Throwable e) {
@@ -111,9 +108,14 @@ public class Uploading<BUFFER extends Payload> {
     return BinaryPath.from(identifier);
   }
 
+  private boolean isObjectExists(Throwable throwable) {
+    return throwable == null;
+  }
+
   @Value
   @Builder
   public static class Command<BUFFER extends Payload> {
+
     Identifier identifier;
     BinarySupplier<BUFFER> upstream;
     Map<String, String> tags;

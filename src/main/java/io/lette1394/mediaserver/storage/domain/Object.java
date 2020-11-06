@@ -78,13 +78,13 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       });
   }
 
-//  public BinarySupplier<BUFFER> copyFrom(BinarySupplier<BUFFER> upstream) {
-//    return objectPolicy.test(objectSnapshot.update(COPY))
-//      .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
-//      .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
-//      .map(__ -> upload(upstream))
-//      .getOrElseThrow(e -> new OperationCanceledException(COPY, e));
-//  }
+  public BinarySupplier<BUFFER> copyFrom(BinarySupplier<BUFFER> upstream) {
+    return objectPolicy.test(objectSnapshot.update(COPY))
+      .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
+      .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
+      .map(__ -> upload(upstream))
+      .getOrElseThrow(e -> new OperationCanceledException(COPY, e));
+  }
 
   public Tags getTags() {
     return tags;

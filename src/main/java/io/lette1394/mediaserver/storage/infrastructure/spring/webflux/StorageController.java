@@ -81,7 +81,7 @@ public class StorageController {
       .download(new Identifier(area, key))
       .thenApply(BinarySupplier::publisher)
       .thenApply(Flux::from)
-      .thenApply(flux -> flux.map(DataBufferPayload::getValue))
+      .thenApply(flux -> flux.map(DataBufferPayload::getValue))  // TODO: my publisher map()
       .thenApply(response::writeWith);
     return Mono
       .fromFuture(monoCompletableFuture)
