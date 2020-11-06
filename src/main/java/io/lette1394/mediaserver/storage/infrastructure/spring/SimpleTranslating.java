@@ -14,7 +14,7 @@ import io.lette1394.mediaserver.common.ContractViolationException;
 import io.lette1394.mediaserver.common.PolicyViolationException;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
-import io.lette1394.mediaserver.storage.domain.OperationCanceled;
+import io.lette1394.mediaserver.storage.domain.OperationCanceledException;
 import java.util.concurrent.CompletionException;
 import javax.annotation.Nullable;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +42,7 @@ public class SimpleTranslating implements Translator {
           $(instanceOf(CompletionException.class)),
           () -> translateException(throwable.getCause())),
         Case(
-          $(instanceOf(OperationCanceled.class)),
+          $(instanceOf(OperationCanceledException.class)),
           () -> translateException(throwable.getCause())),
 
         Case(

@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.storage.domain;
 import java.util.Optional;
 import org.reactivestreams.Publisher;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class BinarySupplierFactory {
 
   public static <BUFFER extends Payload> BinarySupplier<BUFFER> from(Publisher<BUFFER> publisher,

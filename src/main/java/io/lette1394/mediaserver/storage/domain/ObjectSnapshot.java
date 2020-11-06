@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+// TODO : test case
 @AllArgsConstructor
 public class ObjectSnapshot {
 

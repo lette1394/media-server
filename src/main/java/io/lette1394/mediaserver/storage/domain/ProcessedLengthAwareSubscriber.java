@@ -2,7 +2,7 @@ package io.lette1394.mediaserver.storage.domain;
 
 import org.reactivestreams.Subscriber;
 
-public class ProcessedLengthAwareSubscriber<BUFFER extends Payload> extends DelegatingSubscriber<BUFFER> {
+class ProcessedLengthAwareSubscriber<BUFFER extends Payload> extends DelegatingSubscriber<BUFFER> {
   private long processedLength = 0L;
 
   public ProcessedLengthAwareSubscriber(Subscriber<? super BUFFER> subscriber) {

@@ -130,7 +130,7 @@ class ObjectTest {
         final ObjectPolicy rejectAll = current -> Try.failure(new RuntimeException("reject"));
         final Object<?> object = anyObject(rejectAll);
 
-        final OperationCanceled exception = assertThrows(OperationCanceled.class,
+        final OperationCanceledException exception = assertThrows(OperationCanceledException.class,
           () -> object.upload(null));
 
         assertThat(exception, commandIs(UPLOAD));

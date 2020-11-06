@@ -79,7 +79,9 @@ public class Uploading<BUFFER extends Payload> {
     final BinarySupplier<BUFFER> binary = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
+
     return binaryRepository.append(binaryPath, binary)
+      // TODO: fix composed
       .whenComplete((__, e) -> objectRepository.save(object));
   }
 

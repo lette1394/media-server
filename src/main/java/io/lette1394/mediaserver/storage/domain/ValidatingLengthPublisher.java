@@ -9,7 +9,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 @RequiredArgsConstructor
-public class ValidatingLengthPublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
+class ValidatingLengthPublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
   private final long expectedTotalLength;
   private final Publisher<BUFFER> delegate;
 

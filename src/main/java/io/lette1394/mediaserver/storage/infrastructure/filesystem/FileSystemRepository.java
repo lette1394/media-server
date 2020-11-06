@@ -3,12 +3,12 @@ package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
-import io.lette1394.mediaserver.storage.domain.DelegatingBinarySupplier;
-import io.lette1394.mediaserver.storage.domain.BaseSubscriber;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Context;
+import io.lette1394.mediaserver.storage.domain.DelegatingBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.DelegatingSubscriber;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
 import io.lette1394.mediaserver.storage.domain.Object;
@@ -262,7 +262,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
     public Publisher<T> publisher() throws UnsupportedOperationException {
       final Publisher<T> async = delegate.publisher();
       return subscriber -> async
-        .subscribe(new BaseSubscriber<T>(subscriber) {
+        .subscribe(new DelegatingSubscriber<>(subscriber) {
           @Override
           public void onSubscribe(Subscription s) {
             FileSystemBinarySupplier.this.subscriber = subscriber;

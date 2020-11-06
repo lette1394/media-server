@@ -61,7 +61,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
       .map(__ -> compose(upstream))
-      .getOrElseThrow(e -> new OperationCanceled(UPLOAD, e));
+      .getOrElseThrow(e -> new OperationCanceledException(UPLOAD, e));
   }
 
   public CompletableFuture<BinarySupplier<BUFFER>> download() {
@@ -71,7 +71,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .toCompletableFuture()
       .thenCompose(__ -> binaryRepository.find(binaryPath()))
       .exceptionally(e -> {
-        throw new OperationCanceled(DOWNLOAD, e);
+        throw new OperationCanceledException(DOWNLOAD, e);
       });
   }
 
