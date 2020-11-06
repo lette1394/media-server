@@ -49,6 +49,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     BinaryPolicy binaryPolicy,
     BinarySnapshot binarySnapshot,
     BinaryRepository<BUFFER> binaryRepository) {
+
     this.identifier = identifier;
     this.objectPolicy = objectPolicy;
     this.objectSnapshot = objectSnapshot;

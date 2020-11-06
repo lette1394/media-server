@@ -29,9 +29,8 @@ public class Copying<BUFFER extends Payload> {
     Identifier to) {
 
     final Object<BUFFER> targetObject = objectFactory.create(to);
-    return sourceObject
-      .download()
-      .thenApply(sourceBinary -> targetObject.upload(sourceBinary))
+    return sourceObject.download()
+      .thenApply(sourceBinary -> targetObject.copyFrom(sourceBinary))
       .thenCompose(sourceBinary -> {
         final BinaryPath targetBinaryPath = BinaryPath.from(to);
         return binaryRepository.create(targetBinaryPath, sourceBinary)
