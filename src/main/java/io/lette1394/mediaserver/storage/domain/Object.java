@@ -4,11 +4,14 @@ import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.AFTER_TRAN
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.BEFORE_TRANSFER;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.DURING_TRANSFERRING;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.TRANSFER_ABORTED;
+import static io.lette1394.mediaserver.storage.domain.Command.COPY;
 import static io.lette1394.mediaserver.storage.domain.Command.DOWNLOAD;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.storage.domain.Events.CopyRejected;
+import io.lette1394.mediaserver.storage.domain.Events.CopyingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
@@ -74,6 +77,14 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
         throw new OperationCanceledException(DOWNLOAD, e);
       });
   }
+
+//  public BinarySupplier<BUFFER> copyFrom(BinarySupplier<BUFFER> upstream) {
+//    return objectPolicy.test(objectSnapshot.update(COPY))
+//      .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
+//      .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
+//      .map(__ -> upload(upstream))
+//      .getOrElseThrow(e -> new OperationCanceledException(COPY, e));
+//  }
 
   public Tags getTags() {
     return tags;
@@ -164,7 +175,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
         objectSnapshot
           .update(totalLength)
           .update(ObjectType.FULFILLED);
-        addEvent(Uploaded.uploaded());
+        addEvent(Uploaded.uploaded()); // TODO: command 별 분기
       }
 
       @Override

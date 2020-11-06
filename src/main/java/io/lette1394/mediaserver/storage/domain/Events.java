@@ -32,4 +32,13 @@ public interface Events {
   class DownloadRejected implements FailureEvent {
     Throwable throwable;
   }
+
+  @Value(staticConstructor = "copyingTriggered")
+  class CopyingTriggered implements Event {
+
+  }
+  @Value(staticConstructor = "copyRejected")
+  class CopyRejected implements FailureEvent {
+    Throwable throwable;
+  }
 }
