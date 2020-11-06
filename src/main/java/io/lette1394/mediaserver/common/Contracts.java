@@ -6,6 +6,6 @@ public class Contracts {
     if (condition) {
       return;
     }
-    throw new ContractViolationException(message);
+    throw new ContractViolationException(String.format("required: %s", message));
   }
 }

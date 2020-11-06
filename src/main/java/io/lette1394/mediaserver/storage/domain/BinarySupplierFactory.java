@@ -19,20 +19,4 @@ public class BinarySupplierFactory {
       }
     };
   }
-
-  public static <BUFFER extends Payload> BinarySupplier<BUFFER> from(Publisher<BUFFER> publisher,
-    long length) {
-    return new BaseLengthAwareBinarySupplier<>() {
-      @Override
-      public Publisher<BUFFER> publisher()
-        throws UnsupportedOperationException {
-        return publisher;
-      }
-
-      @Override
-      public long getLength() {
-        return length;
-      }
-    };
-  }
 }

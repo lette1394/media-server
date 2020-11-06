@@ -4,31 +4,26 @@ import static io.lette1394.mediaserver.common.Contracts.require;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
-import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.DelegatingBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Payload;
-import lombok.Value;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-@Value
-public class BrokenBinarySupplier<T extends Payload> implements LengthAwareBinarySupplier<T> {
-
-  LengthAwareBinarySupplier<T> delegate;
+public class BrokenBinarySupplier<T extends Payload> extends DelegatingBinarySupplier<T> {
   long exceptionAt;
+  long totalLength;
 
-  public BrokenBinarySupplier(LengthAwareBinarySupplier<T> delegate, long exceptionAt) {
-    require(nonNull(delegate), "require: nonNull(binarySupplier)");
-    require(exceptionAt >= 0, "require: exceptionAt >= 0");
-    require(delegate.getLength() > exceptionAt, "require: delegate.getSize() > exceptionAt");
+  public BrokenBinarySupplier(long exceptionAt, BinarySupplier<T> delegate) {
+    super(delegate);
+    require(nonNull(delegate), "nonNull(binarySupplier)");
+    require(exceptionAt >= 0, "exceptionAt >= 0");
+    require(delegate.length().isPresent()
+      && (delegate.length().get() > exceptionAt), "delegate.length() > exceptionAt");
 
-    this.delegate = delegate;
+    this.totalLength = delegate.length().get();
     this.exceptionAt = exceptionAt;
-  }
-
-  @Override
-  public long getLength() {
-    return delegate.getLength();
   }
 
   @Override
@@ -36,6 +31,7 @@ public class BrokenBinarySupplier<T extends Payload> implements LengthAwareBinar
     final Publisher<T> async = delegate.publisher();
     return new Publisher<>() {
       private long position = 0;
+      private boolean triggered = false;
 
       @Override
       public void subscribe(Subscriber<? super T> subscriber) {
@@ -47,10 +43,14 @@ public class BrokenBinarySupplier<T extends Payload> implements LengthAwareBinar
 
           @Override
           public void onNext(T item) {
+            if (triggered) {
+              return;
+            }
             if (position >= exceptionAt) {
+              triggered = true;
               onError(new BrokenIOException(
                 format("broken read triggered, size:[%s], exceptionAt:[%s]",
-                  getLength(),
+                  totalLength,
                   exceptionAt)));
             } else {
               position += item.getSize();
@@ -65,6 +65,9 @@ public class BrokenBinarySupplier<T extends Payload> implements LengthAwareBinar
 
           @Override
           public void onComplete() {
+            if (triggered) {
+              return;
+            }
             subscriber.onComplete();
           }
         });

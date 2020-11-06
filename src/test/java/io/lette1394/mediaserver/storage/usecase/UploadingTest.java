@@ -14,10 +14,10 @@ import io.lette1394.mediaserver.storage.BrokenBinarySupplier;
 import io.lette1394.mediaserver.storage.ByteInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.domain.LengthAwareBinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
@@ -26,6 +26,7 @@ import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
 import io.vavr.control.Try;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,8 +84,8 @@ class UploadingTest {
     final Object<BytePayload> object = getObject(pendingIdentifier);
     assertThat(getPayload(pendingIdentifier), is("payload ap"));
     assertThat(object, hasType(PENDING));
-    assertThat(object, hasSize(0L));
-    assertThat(object, hasProgressingSize(brokenSize()));
+    assertThat(object, hasSize(brokenSize()));
+    assertThat(object, hasProgressingSize(0L));
   }
 
   private Object<BytePayload> pendingObject(Identifier identifier) {
@@ -110,21 +111,21 @@ class UploadingTest {
     return Flux.fromStream(payload.chars().mapToObj(ch -> new BytePayload(ch)));
   }
 
-  private Publisher<BytePayload> brokenPublisherAt(String payload, long at) {
+  private Publisher<BytePayload> brokenPublisherAt(String payload, long exceptionAt) {
     final Publisher<BytePayload> publisher = Flux
       .fromStream(payload.chars().mapToObj(ch -> new BytePayload(ch)));
 
-    return new BrokenBinarySupplier<BytePayload>(new LengthAwareBinarySupplier<>() {
-      @Override
-      public long getLength() {
-        return payload.getBytes().length;
-      }
-
+    return new BrokenBinarySupplier<>(exceptionAt, new BinarySupplier<BytePayload>() {
       @Override
       public Publisher<BytePayload> publisher() {
         return publisher;
       }
-    }, at)
+
+      @Override
+      public Optional<Long> length() {
+        return Optional.of((long) payload.getBytes().length);
+      }
+    })
       .publisher();
   }
 
