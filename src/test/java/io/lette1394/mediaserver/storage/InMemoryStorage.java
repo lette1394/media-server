@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage;
 
+import static io.lette1394.mediaserver.common.Violations.Code.INVALID_IDENTIFIER;
 import static io.lette1394.mediaserver.common.Violations.violation;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -42,7 +43,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
     if (objectHolder.containsKey(identifier)) {
       return completedFuture(objectHolder.get(identifier));
     }
-    return failedFuture(violation(format("Cannot found object with identifier: %s", identifier)));
+    return failedFuture(violation(INVALID_IDENTIFIER, format("Cannot found object with identifier: %s", identifier)));
   }
 
   @Override

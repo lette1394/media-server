@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import static io.lette1394.mediaserver.common.Violations.Code.ENTITY_TOO_LARGE;
 import static io.lette1394.mediaserver.common.Violations.violation;
 
 import io.lette1394.mediaserver.common.Testable;
@@ -11,7 +12,7 @@ public interface BinaryPolicy extends Testable<BinarySnapshot> {
 
   BinaryPolicy REJECT_10GB_OVER = binary -> {
     if (binary.isOver(10L * 1024 * 1024 * 1024)) {
-      return Try.failure(violation("reject 10GB over binary"));
+      return Try.failure(violation(ENTITY_TOO_LARGE, "reject 10GB over binary"));
     }
     return Tries.SUCCESS;
   };

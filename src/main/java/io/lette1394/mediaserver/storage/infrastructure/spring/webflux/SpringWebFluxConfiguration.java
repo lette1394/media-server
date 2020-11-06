@@ -3,6 +3,8 @@ package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
+import io.lette1394.mediaserver.storage.infrastructure.spring.SimpleTranslating;
+import io.lette1394.mediaserver.storage.infrastructure.spring.Translator;
 import io.lette1394.mediaserver.storage.usecase.Copying;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
@@ -16,6 +18,8 @@ import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
@@ -50,6 +54,17 @@ public class SpringWebFluxConfiguration {
       uploading());
   }
 
+  @Bean
+  @Primary
+  Translator translator() {
+    return new SimpleTranslating();
+  }
+
+  @Bean
+  @Profile({"local", "alpha", "beta", "rc"})
+  Translator debuggingTranslator() {
+    return null;
+  }
 
   @Bean
   NettyReactiveWebServerFactory webServerNetty() {

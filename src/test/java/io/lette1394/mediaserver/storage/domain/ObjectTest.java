@@ -114,7 +114,7 @@ class ObjectTest {
 
       private Object<StringPayload> subject(String payload) {
         final Object<StringPayload> object = anyObject();
-        final BinarySupplier<StringPayload> binarySupplier = object.upload(anyStringPublisher(payload));
+        final BinarySupplier<StringPayload> binarySupplier = object.upload(() -> anyStringPublisher(payload));
 
         subscribe(binarySupplier);
         return object;

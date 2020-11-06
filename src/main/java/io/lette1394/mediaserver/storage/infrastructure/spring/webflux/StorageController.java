@@ -1,22 +1,10 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
-import static io.vavr.API.$;
-import static io.vavr.API.Case;
-import static io.vavr.API.Match;
-import static io.vavr.Predicates.instanceOf;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.ResponseEntity.badRequest;
-import static org.springframework.http.ResponseEntity.notFound;
-import static org.springframework.http.ResponseEntity.status;
-
-import io.lette1394.mediaserver.common.ContractViolationException;
-import io.lette1394.mediaserver.common.PolicyViolationException;
 import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
-import io.lette1394.mediaserver.storage.domain.Object;
-import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
+import io.lette1394.mediaserver.storage.infrastructure.spring.Translator;
 import io.lette1394.mediaserver.storage.usecase.Copying;
 import io.lette1394.mediaserver.storage.usecase.Copying.Command;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
@@ -24,7 +12,6 @@ import io.lette1394.mediaserver.storage.usecase.Uploading;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.http.ResponseEntity;
@@ -45,11 +32,13 @@ public class StorageController {
   private final Downloading<DataBufferPayload> downloading;
   private final Copying<DataBufferPayload> copying;
 
+  private final Translator translator;
+
   @PostMapping(value = "/{area}/{key}", headers = "!from")
   CompletableFuture<? extends ResponseEntity<Void>> putObject(
     @PathVariable String area,
     @PathVariable String key,
-    @RequestHeader(value = "Content-length", required = false) Optional<Long> contentLength,
+    @RequestHeader(value = "Content-Length", required = false) Optional<Long> contentLength,
     ServerHttpRequest request) {
 
     // TODO: 의미있는 response
@@ -63,7 +52,7 @@ public class StorageController {
         .upstream(BinarySupplierFactory.from(body, contentLength))
         .tags(new HashMap<>())
         .build())
-      .handle(this::response);
+      .handle(translator::translate);
   }
 
   @PostMapping(value = "/{toArea}/{toKey}", headers = "from")
@@ -74,11 +63,12 @@ public class StorageController {
 
     final String[] split = from.split("/");
 
-    return copying.copy(Command.builder()
-      .from(new Identifier(split[0], split[1]))
-      .to(new Identifier(toArea, toKey))
-      .build())
-      .handle(this::response);
+    return copying
+      .copy(Command.builder()
+        .from(new Identifier(split[0], split[1]))
+        .to(new Identifier(toArea, toKey))
+        .build())
+      .handle(translator::translate);
   }
 
   @GetMapping("/{area}/{key}")
@@ -96,44 +86,5 @@ public class StorageController {
     return Mono
       .fromFuture(monoCompletableFuture)
       .flatMap(__ -> __);
-  }
-
-  private ResponseEntity<Void> response(Object<?> object, Throwable throwable) {
-    if (throwable == null) {
-      return translateResponse(object);
-    }
-    return translateException(throwable);
-  }
-
-  private ResponseEntity<Void> translateResponse(Object<?> object) {
-    return ResponseEntity.ok().build();
-  }
-
-  private ResponseEntity<Void> translateException(Throwable throwable) {
-    if (throwable == null) {
-      return status(500).build();
-    }
-    if (throwable instanceof CompletionException) {
-      return translateException(throwable.getCause());
-    }
-
-    return Match(throwable)
-      .of(
-        Case(
-          $(instanceOf(PolicyViolationException.class)),
-          () -> badRequest().build()),
-        Case(
-          $(instanceOf(ObjectNotFoundException.class)),
-          () -> notFound().build()),
-        Case(
-          $(instanceOf(ObjectNotFoundException.class)),
-          () -> notFound().build()),
-        Case(
-          $(instanceOf(ContractViolationException.class)),
-          () -> status(INTERNAL_SERVER_ERROR).build()),
-        Case(
-          $(),
-          () -> status(INTERNAL_SERVER_ERROR).build())
-      );
   }
 }

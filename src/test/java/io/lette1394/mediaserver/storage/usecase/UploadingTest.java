@@ -57,7 +57,7 @@ class UploadingTest {
     final Object<BytePayload> object = uploading
       .upload(Command.<BytePayload>builder()
         .identifier(pendingIdentifier)
-        .upstream(publisher(appendedPayload))
+        .upstream(() -> publisher(appendedPayload))
         .build())
       .join();
 
@@ -76,7 +76,7 @@ class UploadingTest {
       () -> uploading
         .upload(Command.<BytePayload>builder()
           .identifier(pendingIdentifier)
-          .upstream(brokenPublisherAt(appendedPayload, brokenAt))
+          .upstream(() -> brokenPublisherAt(appendedPayload, brokenAt))
           .build())
         .join());
 

@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import static io.lette1394.mediaserver.common.Tries.SUCCESS;
+import static io.lette1394.mediaserver.common.Violations.Code.INVALID_OBJECT_STATE;
 import static io.lette1394.mediaserver.common.Violations.violation;
 import static io.lette1394.mediaserver.storage.domain.Command.DOWNLOAD;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
@@ -15,31 +16,22 @@ import java.util.Set;
 public interface ObjectPolicy extends Testable<ObjectSnapshot> {
 
   ObjectPolicy REJECT_RESUME_UPLOAD = snapshot -> {
-//    if (snapshot.is(UPLOAD) && snapshot.is(PENDING)) {
-//      return failure(violation("reject resume upload"));
-//    }
+    if (snapshot.is(UPLOAD) && snapshot.is(PENDING)) {
+      return failure(violation(INVALID_OBJECT_STATE, "reject resume upload"));
+    }
     return SUCCESS;
   };
 
   ObjectPolicy REJECT_OVERWRITE_UPLOAD = snapshot -> {
-//    if (snapshot.is(UPLOAD) && snapshot.is(FULFILLED)) {
-//      return failure(violation("reject overwrite upload"));
-//    }
+    if (snapshot.is(UPLOAD) && snapshot.is(FULFILLED)) {
+      return failure(violation(INVALID_OBJECT_STATE, "reject overwrite upload"));
+    }
     return SUCCESS;
   };
 
-  // TODO: binary policy로 빼기
-//  Policy REJECT_10MB_SIZE_OVER = current -> {
-//    if (current.is(DURING_UPLOADING) && current.getProgressingSize() > 1024 * 1024 * 10) {
-//      return failure(
-//        violation(format("Allow under 1K, got: [%s] bytes", current.getProgressingSize())));
-//    }
-//    return SUCCESS;
-//  };
-
   ObjectPolicy REJECT_PARTIAL_DOWNLOAD = snapshot -> {
     if (snapshot.is(DOWNLOAD) && snapshot.is(PENDING)) {
-      return failure(violation("Reject pending object download"));
+      return failure(violation(INVALID_OBJECT_STATE, "Reject pending object download"));
     }
     return SUCCESS;
   };

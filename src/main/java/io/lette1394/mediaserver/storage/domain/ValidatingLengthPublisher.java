@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import static io.lette1394.mediaserver.common.Violations.Code.MISMATCHED_CONTENT_LENGTH;
 import static io.lette1394.mediaserver.common.Violations.violation;
 import static java.lang.String.format;
 
@@ -37,7 +38,8 @@ public class ValidatingLengthPublisher<BUFFER extends Payload> implements Publis
         return;
       }
       onError(violation(
-        format("publisher total length exceed; expected:[%s], but:[%s]",
+        MISMATCHED_CONTENT_LENGTH,
+        format("publisher total length exceed; eager aborted; expected:[%s], but:[%s]",
           expectedTotalLength,
           getProcessedLength())));
     }
@@ -50,6 +52,7 @@ public class ValidatingLengthPublisher<BUFFER extends Payload> implements Publis
       }
 
       onError(violation(
+        MISMATCHED_CONTENT_LENGTH,
         format("publisher total length mismatched; expected:[%s], but:[%s]",
           expectedTotalLength,
           getProcessedLength())));

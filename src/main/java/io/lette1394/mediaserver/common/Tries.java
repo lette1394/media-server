@@ -23,6 +23,6 @@ public class Tries {
       return result2;
     }
 
-    return Try.failure(new PolicyViolationException());
+    return Try.failure(new PolicyViolationException("", ""));
   }
 }

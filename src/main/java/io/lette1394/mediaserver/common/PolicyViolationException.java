@@ -1,19 +1,17 @@
 package io.lette1394.mediaserver.common;
 
+import static java.lang.String.format;
+
+import lombok.Getter;
+
+@Getter
 public class PolicyViolationException extends RuntimeException {
-  public PolicyViolationException() {
-    super();
-  }
+  private final String code;
+  private final String message;
 
-  public PolicyViolationException(String message) {
-    super(message);
-  }
-
-  public PolicyViolationException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public PolicyViolationException(Throwable cause) {
-    super(cause);
+  public PolicyViolationException(String code, String message) {
+    super(format("[%s] %s", code, message));
+    this.code = code;
+    this.message = message;
   }
 }
