@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.infrastructure.springmvc;
+package io.lette1394.mediaserver.storage.infrastructure.spring.mvc;
 
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;

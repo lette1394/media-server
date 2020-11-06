@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.infrastructure.springwebflux;
+package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
@@ -22,7 +22,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @Configuration
 @EnableWebFlux
 @SpringBootConfiguration
-@ComponentScan("io.lette1394.mediaserver.storage.infrastructure.springwebflux")
+@ComponentScan("io.lette1394.mediaserver.storage.infrastructure.spring.webflux")
 @EnableAutoConfiguration(exclude = {
   DataSourceAutoConfiguration.class,
 })

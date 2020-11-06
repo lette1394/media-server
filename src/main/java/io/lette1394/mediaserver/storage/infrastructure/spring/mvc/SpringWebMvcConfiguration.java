@@ -1,17 +1,13 @@
-package io.lette1394.mediaserver.storage.infrastructure.springmvc;
+package io.lette1394.mediaserver.storage.infrastructure.spring.mvc;
 
 
-import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
-import io.lette1394.mediaserver.storage.infrastructure.filesystem.ByteBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +15,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @SpringBootConfiguration
-@ComponentScan("io.lette1394.mediaserver.storage.infrastructure.springmvc")
+@ComponentScan("io.lette1394.mediaserver.storage.infrastructure.spring.mvc")
 @EnableAutoConfiguration(exclude = {
   DataSourceAutoConfiguration.class,
 })

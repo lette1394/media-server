@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.infrastructure.springwebflux;
+package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 import static io.vavr.API.$;
 import static io.vavr.API.Case;

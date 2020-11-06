@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver;
 
-import io.lette1394.mediaserver.storage.infrastructure.springmvc.SpringWebMvcConfiguration;
-import io.lette1394.mediaserver.storage.infrastructure.springwebflux.SpringWebFluxConfiguration;
+import io.lette1394.mediaserver.storage.infrastructure.spring.mvc.SpringWebMvcConfiguration;
+import io.lette1394.mediaserver.storage.infrastructure.spring.webflux.SpringWebFluxConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
