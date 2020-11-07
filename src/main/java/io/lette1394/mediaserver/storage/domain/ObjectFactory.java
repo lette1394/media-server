@@ -1,21 +1,15 @@
 package io.lette1394.mediaserver.storage.domain;
 
-import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
-
 import com.google.common.collect.Sets;
-import io.lette1394.mediaserver.common.NonBlankString;
 import io.lette1394.mediaserver.common.TimeStamp;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ObjectFactory<BUFFER extends Payload> {
 
-  ObjectPolicy objectPolicy;
-  BinaryPolicy binaryPolicy;
+  private final ObjectPolicy objectPolicy;
+  private final BinaryPolicy binaryPolicy;
 
-  public ObjectFactory(ObjectPolicy objectPolicy,
-    BinaryPolicy binaryPolicy) {
+  public ObjectFactory(ObjectPolicy objectPolicy, BinaryPolicy binaryPolicy) {
     this.objectPolicy = objectPolicy;
     this.binaryPolicy = binaryPolicy;
   }
@@ -26,18 +20,26 @@ public class ObjectFactory<BUFFER extends Payload> {
 
   public <T> Object<BUFFER> create(Identifier identifier, String tagKey0, String tagValue0) {
     final Tags tags = Tags.tags(Sets.newHashSet(new Tag(tagKey0, tagValue0)));
-    return create(identifier.getArea(), identifier.getKey(), tags);
+    return create(identifier, tags);
   }
 
   public <T> Object<BUFFER> create(Identifier identifier) {
-    return create(identifier.getArea(), identifier.getKey(), Tags.empty());
+    return create(identifier, BinaryPath.from(identifier), Tags.empty());
   }
 
-  public <T> Object<BUFFER> create(String area, String key, Tags tags) {
-    final Identifier identifier = new Identifier(area, key);
+  public <T> Object<BUFFER> create(Identifier identifier, Tags tags) {
+    return create(identifier, BinaryPath.from(identifier), tags);
+  }
 
+  public <T> Object<BUFFER> create(String area, String key) {
+    final Identifier id = new Identifier(area, key);
+    return create(id, BinaryPath.from(id), Tags.empty());
+  }
+
+  public <T> Object<BUFFER> create(Identifier identifier, BinaryPath binaryPath, Tags tags) {
     return Object.<BUFFER>builder()
       .identifier(identifier)
+      .binaryPath(binaryPath)
       .objectPolicy(objectPolicy)
       .objectSnapshot(ObjectSnapshot.initial())
       .binaryPolicy(binaryPolicy)

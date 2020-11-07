@@ -41,6 +41,7 @@ public class Copying<BUFFER extends Payload> {
     final long CRITICAL_POINT = 2;
     final long softCount = sourceObject.getTag("copying.soft.count").asLong();
 
+    // hard copy
     if (always_use_hard_copy) {
       final Object<BUFFER> targetObject = objectFactory.create(to);
       return sourceObject.download()
@@ -53,6 +54,7 @@ public class Copying<BUFFER extends Payload> {
         });
     } else {
 
+      // soft copy
       if (softCount < CRITICAL_POINT) {
         // 기존 객체 바라봄
         // 기존 객체 link count +1
@@ -72,6 +74,7 @@ public class Copying<BUFFER extends Payload> {
 
       }
 
+      // replica
       // 똑같은 새로운 객체를 만들고
       // 다음 link 부터는 이 객체를 가지고 copy함
     }
@@ -106,19 +109,16 @@ public class Copying<BUFFER extends Payload> {
         .find(identifier)
         .thenApply(maybeSoftCopiedObject -> {
           if (maybeSoftCopiedObject.hasTag("copying.soft.copied")) {
-            return toObject(maybeSoftCopiedObject);
+            final String sourceArea = maybeSoftCopiedObject.getTag("copying.soft.copied.source.area")
+              .asString();
+            final String sourceKey = maybeSoftCopiedObject.getTag("copying.soft.copied.source.key")
+              .asString();
+            return maybeSoftCopiedObject.with(BinaryPath.from(sourceArea, sourceKey));
           }
           return maybeSoftCopiedObject;
         });
 
       return null;
-    }
-
-    private Object<BUFFER> toObject(Object<BUFFER> object) {
-      // TODO: object 에 binary path를 주입 가능하게 변경
-      //  여기서 새로운 object로 치환
-      //  구현체는 object factory 에 두고 사용하기
-      return object;
     }
 
     @Override

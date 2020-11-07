@@ -30,6 +30,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
 
   @Getter
   private final Identifier identifier;
+  private final BinaryPath binaryPath;
   private final ObjectPolicy objectPolicy;
   @Delegate
   private final ObjectSnapshot objectSnapshot;
@@ -42,7 +43,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
 
   @Builder
   public Object(Identifier identifier,
-    ObjectPolicy objectPolicy,
+    BinaryPath binaryPath, ObjectPolicy objectPolicy,
     ObjectSnapshot objectSnapshot,
     Tags tags,
     TimeStamp timeStamp,
@@ -51,6 +52,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     BinaryRepository<BUFFER> binaryRepository) {
 
     this.identifier = identifier;
+    this.binaryPath = binaryPath;
     this.objectPolicy = objectPolicy;
     this.objectSnapshot = objectSnapshot;
     this.tags = tags;
@@ -73,7 +75,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
       .toCompletableFuture()
-      .thenCompose(__ -> binaryRepository.find(binaryPath()))
+      .thenCompose(__ -> binaryRepository.find(binaryPath))
       .exceptionally(e -> {
         throw new OperationCanceledException(DOWNLOAD, e);
       });
@@ -111,6 +113,20 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     tags.addTag(key, value);
   }
 
+  public Object<BUFFER> with(BinaryPath binaryPath) {
+    return Object.<BUFFER>builder()
+      .binaryPath(binaryPath)
+      .identifier(identifier)
+      .objectSnapshot(objectSnapshot)
+      .binaryPolicy(binaryPolicy)
+      .binaryRepository(binaryRepository)
+      .binarySnapshot(binarySnapshot)
+      .tags(tags)
+      .objectPolicy(objectPolicy)
+      .timeStamp(timeStamp)
+      .build();
+  }
+
   private BinarySupplier<BUFFER> compose(BinarySupplier<BUFFER> binarySupplier) {
     return new DelegatingBinarySupplier<>(binarySupplier) {
       @Override
@@ -119,16 +135,6 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
         return super.length()
           .map(length -> listenable(controllable(lengthValidatable(length, (publisher)))))
           .orElseGet(() -> listenable(controllable(publisher)));
-      }
-    };
-  }
-
-  // TODO: 여기에 copy path를 넣어야...?
-  protected BinaryPath binaryPath() {
-    return new BinaryPath() {
-      @Override
-      public String asString() {
-        return String.format("%s/%s", identifier.getArea(), identifier.getKey());
       }
     };
   }

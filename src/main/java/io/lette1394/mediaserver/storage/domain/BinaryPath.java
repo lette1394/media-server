@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
-public class BinaryPath {
+public abstract class BinaryPath {
 
   public static BinaryPath from(Identifier identifier) {
     return new BinaryPath() {
@@ -11,7 +11,9 @@ public class BinaryPath {
     };
   }
 
-  public String asString() {
-    return null;
+  public static BinaryPath from(String area, String key) {
+    return from(new Identifier(area, key));
   }
+
+  public abstract String asString();
 }

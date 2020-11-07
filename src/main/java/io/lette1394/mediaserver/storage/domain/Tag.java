@@ -29,4 +29,8 @@ public class Tag {
   public long asLong() {
     return Long.parseLong(value);
   }
+
+  public String asString() {
+    return value;
+  }
 }
