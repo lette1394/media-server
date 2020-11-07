@@ -5,7 +5,7 @@ import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.infrastructure.spring.SimpleTranslating;
 import io.lette1394.mediaserver.storage.infrastructure.spring.Translator;
-import io.lette1394.mediaserver.storage.usecase.Copying;
+import io.lette1394.mediaserver.storage.usecase.copy.Copying;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.netty.buffer.PooledByteBufAllocator;

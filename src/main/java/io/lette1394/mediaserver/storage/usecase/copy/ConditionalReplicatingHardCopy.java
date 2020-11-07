@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.usecase;
+package io.lette1394.mediaserver.storage.usecase.copy;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 

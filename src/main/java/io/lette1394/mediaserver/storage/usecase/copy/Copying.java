@@ -1,4 +1,4 @@
-package io.lette1394.mediaserver.storage.usecase;
+package io.lette1394.mediaserver.storage.usecase.copy;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
