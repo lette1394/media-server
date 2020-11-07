@@ -34,7 +34,41 @@ public class Copying<BUFFER extends Payload> {
       .thenCompose(sourceObject -> overwriteAlways(sourceObject, command.to));
   }
 
-  private CompletableFuture<Object<BUFFER>> overwriteAlways(Object<BUFFER> sourceObject,
+  private CompletableFuture<Object<BUFFER>> hardCopy(
+    Object<BUFFER> sourceObject,
+    Identifier to) {
+
+    final Object<BUFFER> targetObject = objectFactory.create(to);
+    return sourceObject.download()
+      .thenApply(sourceBinary -> targetObject.copyFrom(sourceBinary))
+      .thenCompose(sourceBinary -> binaryRepository.create(BinaryPath.from(to), sourceBinary))
+      // TODO: handle? 예외 생겼을 때 롤백?
+      .thenCompose(__ -> objectRepository.save(targetObject));
+  }
+
+  private CompletableFuture<Object<BUFFER>> softCopy(
+    Object<BUFFER> sourceObject,
+    Identifier to) {
+
+    // 기존 객체 바라봄
+    // 기존 객체 link count +1
+    final long CRITICAL_POINT = 2;
+    final long softCount = sourceObject.getTag("copying.soft.count").asLong();
+
+    sourceObject.addTag("copying.soft.copied.count", softCount + 1);
+
+    final Object<BUFFER> targetObject = objectFactory.create(to);
+    final Identifier identifier = targetObject.getIdentifier();
+    targetObject.addTag("copying.soft.copied");
+    targetObject.addTag("copying.soft.copied.source.area", identifier.getArea());
+    targetObject.addTag("copying.soft.copied.source.key", identifier.getKey());
+
+    return objectRepository.save(targetObject);
+  }
+
+
+  private CompletableFuture<Object<BUFFER>> overwriteAlways(
+    Object<BUFFER> sourceObject,
     Identifier to) {
 
     final boolean always_use_hard_copy = true;
@@ -43,43 +77,29 @@ public class Copying<BUFFER extends Payload> {
 
     // hard copy
     if (always_use_hard_copy) {
-      final Object<BUFFER> targetObject = objectFactory.create(to);
-      return sourceObject.download()
-        .thenApply(sourceBinary -> targetObject.copyFrom(sourceBinary))
-        .thenCompose(sourceBinary -> {
-          final BinaryPath targetBinaryPath = BinaryPath.from(to);
-          return binaryRepository.create(targetBinaryPath, sourceBinary)
-            .handle((__, e) -> objectRepository.save(targetObject))
-            .thenCompose(__ -> __);
-        });
+      return hardCopy(sourceObject, to);
     } else {
 
       // soft copy
       if (softCount < CRITICAL_POINT) {
-        // 기존 객체 바라봄
-        // 기존 객체 link count +1
-        sourceObject.addTag("copying.soft.copied.count", softCount + 1);
-
-        final Object<BUFFER> targetObject = objectFactory.create(to);
-        final Identifier identifier = targetObject.getIdentifier();
-        targetObject.addTag("copying.soft.copied");
-        targetObject.addTag("copying.soft.copied.source.area", identifier.getArea());
-        targetObject.addTag("copying.soft.copied.source.key", identifier.getKey());
-
-        // 내부 binary path를 어떻게 override 할까...?
-        // source의 identifier만 저장하면 될 거 같은데 ...
-        // 어떻게 저장하지? tag로 저장하면 될 거 같은데 이거 저장은 ok인데
-        // 다시 instance화 할때는...?
-        //
-
+        return softCopy(sourceObject, to);
       }
 
       // replica
       // 똑같은 새로운 객체를 만들고
       // 다음 link 부터는 이 객체를 가지고 copy함
-    }
+      return hardCopy(sourceObject, to)
+        .thenCompose(copiedObject -> {
+          final Identifier identifier = copiedObject.getIdentifier();
 
-    return null;
+          sourceObject.addTag("copying.replica.target.area", identifier.getArea());
+          sourceObject.addTag("copying.replica.target.key", identifier.getKey());
+
+          return objectRepository
+            .save(sourceObject)
+            .thenApply(__ -> copiedObject);
+        });
+    }
   }
 
   @Value
@@ -90,6 +110,8 @@ public class Copying<BUFFER extends Payload> {
     Identifier to;
   }
 
+
+  // TODO: ReplicaFollowingObjectRepository
   @RequiredArgsConstructor
   private static class SoftCopyFollowingObjectRepository<BUFFER extends Payload> implements
     ObjectRepository<BUFFER> {
@@ -109,7 +131,8 @@ public class Copying<BUFFER extends Payload> {
         .find(identifier)
         .thenApply(maybeSoftCopiedObject -> {
           if (maybeSoftCopiedObject.hasTag("copying.soft.copied")) {
-            final String sourceArea = maybeSoftCopiedObject.getTag("copying.soft.copied.source.area")
+            final String sourceArea = maybeSoftCopiedObject
+              .getTag("copying.soft.copied.source.area")
               .asString();
             final String sourceKey = maybeSoftCopiedObject.getTag("copying.soft.copied.source.key")
               .asString();
