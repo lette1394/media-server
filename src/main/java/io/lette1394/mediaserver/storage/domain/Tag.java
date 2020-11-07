@@ -5,6 +5,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import io.lette1394.mediaserver.common.Contracts;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @EqualsAndHashCode
@@ -28,6 +29,17 @@ public class Tag {
 
   public long asLong() {
     return Long.parseLong(value);
+  }
+
+  public long asLongOrDefault(long defaultValue) {
+    if (StringUtils.isBlank(value)) {
+      return defaultValue;
+    }
+    try {
+      return Long.parseLong(value);
+    } catch (Exception e) {
+      return defaultValue;
+    }
   }
 
   public String asString() {

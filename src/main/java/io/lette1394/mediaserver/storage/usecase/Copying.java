@@ -22,21 +22,23 @@ public class Copying<BUFFER extends Payload> {
   private final BinaryRepository<BUFFER> binaryRepository;
   private final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
 
+//  private final CopyStrategy<BUFFER> copyStrategy;
+
   // 1. 무조건 link
   // 2. source에 몇 개가 link 되어있냐에 따라서 조건별 link
   // 3. source에 몇 개가 link 되어있냐에 따라서 조건별 replica
   //
-  // hard copy / soft copy / replica
+  // hard copy / replicating hard copy / soft copy
 
   public CompletableFuture<Object<BUFFER>> copy(Command command) {
     return objectRepository
       .find(command.from)
+//      .thenCompose(sourceObject -> copyStrategy.execute())
       .thenCompose(sourceObject -> overwriteAlways(sourceObject, command.to));
   }
 
   private CompletableFuture<Object<BUFFER>> hardCopy(
-    Object<BUFFER> sourceObject,
-    Identifier to) {
+    Object<BUFFER> sourceObject, Identifier to) {
 
     final Object<BUFFER> targetObject = objectFactory.create(to);
     return sourceObject.download()
@@ -111,10 +113,9 @@ public class Copying<BUFFER extends Payload> {
   }
 
 
-  // TODO: ReplicaFollowingObjectRepository
   @RequiredArgsConstructor
-  private static class SoftCopyFollowingObjectRepository<BUFFER extends Payload> implements
-    ObjectRepository<BUFFER> {
+  private static class SoftCopyFollowingObjectRepository<BUFFER extends Payload>
+    implements ObjectRepository<BUFFER> {
 
     private final ObjectRepository<BUFFER> delegate;
 
@@ -154,5 +155,4 @@ public class Copying<BUFFER extends Payload> {
       return delegate.delete(identifier);
     }
   }
-
 }
