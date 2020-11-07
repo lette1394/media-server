@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
+// TODO: make immutable
 public class Context {
   private static final Context EMPTY = new Context();
   private final Map<java.lang.Object, java.lang.Object> holder = new HashMap<>();

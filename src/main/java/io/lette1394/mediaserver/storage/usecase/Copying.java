@@ -56,7 +56,7 @@ public class Copying<BUFFER extends Payload> {
       if (softCount < CRITICAL_POINT) {
         // 기존 객체 바라봄
         // 기존 객체 link count +1
-        sourceObject.addTag("copying.soft.copied.count", softCount+1);
+        sourceObject.addTag("copying.soft.copied.count", softCount + 1);
 
         final Object<BUFFER> targetObject = objectFactory.create(to);
         final Identifier identifier = targetObject.getIdentifier();
@@ -69,7 +69,6 @@ public class Copying<BUFFER extends Payload> {
         // 어떻게 저장하지? tag로 저장하면 될 거 같은데 이거 저장은 ok인데
         // 다시 instance화 할때는...?
         //
-
 
       }
 
@@ -89,7 +88,9 @@ public class Copying<BUFFER extends Payload> {
   }
 
   @RequiredArgsConstructor
-  private static class SoftCopyFollowingObjectRepository<BUFFER extends Payload> implements ObjectRepository<BUFFER> {
+  private static class SoftCopyFollowingObjectRepository<BUFFER extends Payload> implements
+    ObjectRepository<BUFFER> {
+
     private final ObjectRepository<BUFFER> delegate;
 
     @Override
@@ -100,7 +101,9 @@ public class Copying<BUFFER extends Payload> {
     @Override
     public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
       throws ObjectNotFoundException {
-      delegate.find(identifier)
+
+      delegate
+        .find(identifier)
         .thenApply(maybeSoftCopiedObject -> {
           if (maybeSoftCopiedObject.hasTag("copying.soft.copied")) {
             return toObject(maybeSoftCopiedObject);

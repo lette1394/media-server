@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import java.util.Optional;
+import java.util.function.Function;
 import org.reactivestreams.Publisher;
 
 /**
@@ -32,6 +33,26 @@ public interface BinarySupplier<BUFFER extends Payload> {
 
   default Context currentContext() {
     return Context.empty();
+  }
+
+  default BinarySupplier<BUFFER> writeContext(Function<Context, Context> function) {
+    final BinarySupplier<BUFFER> current = this;
+    return new BinarySupplier<>() {
+      @Override
+      public Publisher<BUFFER> publisher() {
+        return current.publisher();
+      }
+
+      @Override
+      public Optional<Long> length() {
+        return current.length();
+      }
+
+      @Override
+      public Context currentContext() {
+        return function.apply(current.currentContext());
+      }
+    };
   }
 }
 
