@@ -5,7 +5,6 @@ import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
-import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.concurrent.CompletableFuture;
@@ -107,52 +106,7 @@ public class Copying<BUFFER extends Payload> {
   @Value
   @Builder
   public static class Command {
-
     Identifier from;
     Identifier to;
-  }
-
-
-  @RequiredArgsConstructor
-  private static class SoftCopyFollowingObjectRepository<BUFFER extends Payload>
-    implements ObjectRepository<BUFFER> {
-
-    private final ObjectRepository<BUFFER> delegate;
-
-    @Override
-    public CompletableFuture<Boolean> exists(Identifier identifier) {
-      return delegate.exists(identifier);
-    }
-
-    @Override
-    public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
-      throws ObjectNotFoundException {
-
-      delegate
-        .find(identifier)
-        .thenApply(maybeSoftCopiedObject -> {
-          if (maybeSoftCopiedObject.hasTag("copying.soft.copied")) {
-            final String sourceArea = maybeSoftCopiedObject
-              .getTag("copying.soft.copied.source.area")
-              .asString();
-            final String sourceKey = maybeSoftCopiedObject.getTag("copying.soft.copied.source.key")
-              .asString();
-            return maybeSoftCopiedObject.with(BinaryPath.from(sourceArea, sourceKey));
-          }
-          return maybeSoftCopiedObject;
-        });
-
-      return null;
-    }
-
-    @Override
-    public CompletableFuture<Object<BUFFER>> save(Object<BUFFER> object) {
-      return delegate.save(object);
-    }
-
-    @Override
-    public CompletableFuture<Void> delete(Identifier identifier) {
-      return delegate.delete(identifier);
-    }
   }
 }

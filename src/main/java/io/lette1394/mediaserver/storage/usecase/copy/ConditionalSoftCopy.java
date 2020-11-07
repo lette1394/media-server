@@ -1,8 +1,10 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
+import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.concurrent.CompletableFuture;
@@ -43,5 +45,49 @@ public class ConditionalSoftCopy<BUFFER extends Payload> implements CopyStrategy
         objectRepository.save(sourceObject),
         objectRepository.save(targetObject))
       .thenApply(__ -> targetObject);
+  }
+
+  @RequiredArgsConstructor
+  public static class SoftCopyFollowingObjectRepository<BUFFER extends Payload>
+    implements ObjectRepository<BUFFER> {
+
+    private final ObjectRepository<BUFFER> delegate;
+
+    @Override
+    public CompletableFuture<Boolean> exists(Identifier identifier) {
+      return delegate.exists(identifier);
+    }
+
+    @Override
+    public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
+      throws ObjectNotFoundException {
+
+      delegate
+        .find(identifier)
+        .thenApply(maybeSoftCopiedObject -> {
+          if (maybeSoftCopiedObject.hasTag(TAG_COPYING_SOFT_COPIED)) {
+            final String sourceArea = maybeSoftCopiedObject
+              .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_AREA)
+              .asString();
+            final String sourceKey = maybeSoftCopiedObject
+              .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_KEY)
+              .asString();
+            return maybeSoftCopiedObject.with(BinaryPath.from(sourceArea, sourceKey));
+          }
+          return maybeSoftCopiedObject;
+        });
+
+      return null;
+    }
+
+    @Override
+    public CompletableFuture<Object<BUFFER>> save(Object<BUFFER> object) {
+      return delegate.save(object);
+    }
+
+    @Override
+    public CompletableFuture<Void> delete(Identifier identifier) {
+      return delegate.delete(identifier);
+    }
   }
 }
