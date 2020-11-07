@@ -85,7 +85,7 @@ public class Copying<BUFFER extends Payload> {
         return softCopy(sourceObject, to);
       }
 
-      // replica
+      // replicating hard copy
       // 똑같은 새로운 객체를 만들고
       // 다음 link 부터는 이 객체를 가지고 copy함
       return hardCopy(sourceObject, to)
