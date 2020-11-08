@@ -22,16 +22,16 @@ public class ConditionalReplicatingHardCopy<BUFFER extends Payload> implements C
   private final UnConditionalHardCopy<BUFFER> unConditionalHardCopy;
   private final ObjectRepository<BUFFER> objectRepository;
 
-  @Override
-  public boolean matches(long softCopiedCount) {
-    // TODO: fix condition
-    return softCopiedCount >= thresholdCountToReplicate;
-  }
+  private final CopyStrategy<BUFFER> nextStrategy;
 
   @Override
   public CompletableFuture<Object<BUFFER>> execute(
     Object<BUFFER> sourceObject,
     Identifier targetIdentifier) {
+
+    // 어떤 조건이 있고...
+
+
 
     return unConditionalHardCopy.execute(sourceObject, targetIdentifier)
       .thenCompose(copiedObject -> {

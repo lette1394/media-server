@@ -17,14 +17,11 @@ public class UnConditionalHardCopy<BUFFER extends Payload> implements CopyStrate
   private final BinaryRepository<BUFFER> binaryRepository;
 
   @Override
-  public boolean matches(long softCopiedCount) {
-    return true;
-  }
+  public CompletableFuture<Object<BUFFER>> execute(
+    Object<BUFFER> sourceObject,
+    Identifier targetIdentifier) {
 
-  @Override
-  public CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier) {
     final Object<BUFFER> targetObject = objectFactory.create(targetIdentifier);
-
     return sourceObject.download()
       .thenApply(sourceBinary -> targetObject.copyFrom(sourceBinary))
       // TODO: 이거 병렬 실행으로 할 수 있을 거 같다

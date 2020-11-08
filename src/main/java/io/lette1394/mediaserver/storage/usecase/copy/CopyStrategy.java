@@ -20,19 +20,11 @@ import lombok.RequiredArgsConstructor;
 //  -- 근데 이건 좀 객체 합성하기가 까다로운데...
 //  테스트 관점에서는 어떤가? 
 public interface CopyStrategy<BUFFER extends Payload> {
-  boolean matches(long softCopiedCount);
-
   CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier);
 
   @RequiredArgsConstructor
   class ApplyingFirstMatchedSequentially<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
     private final List<CopyStrategy<BUFFER>> copyStrategies;
-
-    @Override
-    public boolean matches(long softCopiedCount) {
-      return copyStrategies.stream()
-        .anyMatch(strategy -> strategy.matches(softCopiedCount));
-    }
 
     @Override
     public CompletableFuture<Object<BUFFER>> execute(

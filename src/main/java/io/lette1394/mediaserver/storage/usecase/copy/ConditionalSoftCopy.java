@@ -20,24 +20,43 @@ public class ConditionalSoftCopy<BUFFER extends Payload> implements CopyStrategy
 
   private final long thresholdCountToSoftCopy;
 
-  private final ObjectRepository<BUFFER> objectRepository;
+  private final CopyStrategy<BUFFER> nextStrategy;
   private final ObjectFactory<BUFFER> objectFactory;
+  private final ObjectRepository<BUFFER> objectRepository;
 
   @Override
-  public boolean matches(long softCopiedCount) {
-    // TODO: fix condition
-    return thresholdCountToSoftCopy >= softCopiedCount;
+  public CompletableFuture<Object<BUFFER>> execute(
+    Object<BUFFER> sourceObject,
+    Identifier targetIdentifier) {
+
+    if (canHandle(sourceObject)) {
+      return softCopy(sourceObject, targetIdentifier);
+    }
+    return nextStrategy.execute(sourceObject, targetIdentifier);
   }
 
-  @Override
-  public CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier) {
+  private boolean canHandle(Object<BUFFER> sourceObject) {
+    final long referencedCount = sourceObject
+      .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
+      .asLongOrDefault(0L);
+
+    return sourceObject.hasTag(TAG_COPYING_SOFT_COPIED) &&
+      (referencedCount < thresholdCountToSoftCopy);
+  }
+
+  private CompletableFuture<Object<BUFFER>> softCopy(
+    Object<BUFFER> sourceObject,
+    Identifier targetIdentifier) {
+
     final Identifier sourceIdentifier = sourceObject.getIdentifier();
     final Object<BUFFER> targetObject = objectFactory.create(targetIdentifier);
     targetObject.addTag(TAG_COPYING_SOFT_COPIED);
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_AREA, sourceIdentifier.getArea());
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_KEY, sourceIdentifier.getKey());
 
-    final long softCount = sourceObject.getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT).asLongOrDefault(0L);
+    final long softCount = sourceObject
+      .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
+      .asLongOrDefault(0L);
     sourceObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT, softCount + 1);
 
     return CompletableFuture
