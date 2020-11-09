@@ -11,7 +11,7 @@ import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.lette1394.mediaserver.storage.usecase.copy.CopyStrategy;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying;
 import io.lette1394.mediaserver.storage.usecase.copy.HardCopying;
-import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingHardCopying;
+import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingSoftCopying;
 import io.lette1394.mediaserver.storage.usecase.copy.SoftCopying;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
@@ -56,12 +56,11 @@ public class SpringWebFluxConfiguration {
 
     final CopyStrategy<DataBufferPayload> hardCopying = new HardCopying<>(objectFactory, filesystem, filesystem);
     final CopyStrategy<DataBufferPayload> softCopying = new SoftCopying<>(objectFactory, filesystem);
-    final CopyStrategy<DataBufferPayload> replicatingHardCopying = new ReplicatingHardCopying<>(hardCopying, filesystem);
+    final CopyStrategy<DataBufferPayload> replicatingHardCopying = new ReplicatingSoftCopying<>(hardCopying, filesystem);
 
     return Copying.<DataBufferPayload>builder()
       .hardCopying(hardCopying)
-      .replicatingHardCopying(softCopying)
-      .softCopying(replicatingHardCopying)
+      .conditionalReplicatingSoftCopying(replicatingHardCopying)
       .objectRepository(filesystem)
       .build();
   }

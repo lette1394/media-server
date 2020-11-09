@@ -16,7 +16,12 @@ import java.util.concurrent.CompletableFuture;
 //  어떻게 하지?
 //  -- 일단 당장 생각나는 방법으로는 chaning이 있다. 내가 못하면 다음 객체한테 하라는 식...
 //  -- 근데 이건 좀 객체 합성하기가 까다로운데...
-//  테스트 관점에서는 어떤가? 
+//  테스트 관점에서는 어떤가?
+@FunctionalInterface
 public interface CopyStrategy<BUFFER extends Payload> {
   CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier);
+
+  default boolean matches(Object<BUFFER> object, long replicatingThreshold) {
+    return true;
+  }
 }

@@ -1,5 +1,7 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
+import static io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.TAG_COPYING_SOFT_COPIED;
+import static io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 import io.lette1394.mediaserver.storage.domain.Identifier;
@@ -8,32 +10,58 @@ import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class ReplicatingHardCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
+public class ReplicatingSoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
 
-  private static final String TAG_COPYING_REPLICATED               = "copying.replicated";
+  private static final String TAG_COPYING_REPLICATED = "copying.replicated";
   private static final String TAG_COPYING_REPLICATED_REDIRECT_AREA = "copying.replicated.redirect.area";
-  private static final String TAG_COPYING_REPLICATED_REDIRECT_KEY  = "copying.replicated.redirect.key";
+  private static final String TAG_COPYING_REPLICATED_REDIRECT_KEY = "copying.replicated.redirect.key";
 
   private final CopyStrategy<BUFFER> hardCopying;
+  private final CopyStrategy<BUFFER> softCopying;
   private final ObjectRepository<BUFFER> objectRepository;
+
+  @Override
+  public boolean matches(Object<BUFFER> sourceObject, long replicatingThreshold) {
+    boolean softCopied = sourceObject.hasTag(TAG_COPYING_SOFT_COPIED);
+    boolean exceedOrEqualsReplicatedLimit = sourceObject
+      .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
+      .asLongOrDefault(0L) >= replicatingThreshold;
+
+    return softCopied && exceedOrEqualsReplicatedLimit;
+  }
 
   @Override
   public CompletableFuture<Object<BUFFER>> execute(
     Object<BUFFER> sourceObject,
     Identifier targetIdentifier) {
 
-    return hardCopying.execute(sourceObject, targetIdentifier)
-      .thenCompose(copiedObject -> {
-        final Identifier identifier = copiedObject.getIdentifier();
-        sourceObject.addTag(TAG_COPYING_REPLICATED_REDIRECT_AREA, identifier.getArea());
-        sourceObject.addTag(TAG_COPYING_REPLICATED_REDIRECT_KEY, identifier.getKey());
 
-        return objectRepository.save(sourceObject)
-          .thenApply(__ -> copiedObject);
-      });
+    // TODO: 어... 그러니까
+    //  실제로 하는 거는 hard copy 인데
+    //  그 동작을 분기하는 기준은 soft copy 라고?
+    //  후... matcher를 따로 빼야하나?
+      return hardCopying.execute(sourceObject, targetIdentifier)
+        .thenCompose(markReplicated(sourceObject));
+    }
+    return softCopying.execute(sourceObject, targetIdentifier);
+  }
+
+  private Function<Object<BUFFER>, CompletionStage<Object<BUFFER>>> markReplicated(
+    Object<BUFFER> sourceObject) {
+
+    return copiedObject -> {
+      final Identifier copiedIdentifier = copiedObject.getIdentifier();
+      sourceObject.addTag(TAG_COPYING_REPLICATED_REDIRECT_AREA, copiedIdentifier.getArea());
+      sourceObject.addTag(TAG_COPYING_REPLICATED_REDIRECT_KEY, copiedIdentifier.getKey());
+
+      return objectRepository.save(sourceObject)
+        .thenApply(__ -> copiedObject);
+    };
   }
 
   // TODO: 이걸 downloading usecase에 합성 필요

@@ -13,10 +13,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
 
-  private static final String TAG_COPYING_SOFT_COPIED                         = "copying.soft.copied";
-  private static final String TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT = "copying.soft.copied.source.referenced.count";
-  private static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA             = "copying.soft.copied.source.area";
-  private static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY              = "copying.soft.copied.source.key";
+  static final String TAG_COPYING_SOFT_COPIED                         = "copying.soft.copied";
+  static final String TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT = "copying.soft.copied.source.referenced.count";
+  static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA             = "copying.soft.copied.source.area";
+  static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY              = "copying.soft.copied.source.key";
 
   private final ObjectFactory<BUFFER> objectFactory;
   private final ObjectRepository<BUFFER> objectRepository;
