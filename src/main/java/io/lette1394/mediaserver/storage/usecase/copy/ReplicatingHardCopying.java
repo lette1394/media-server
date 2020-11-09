@@ -11,29 +11,21 @@ import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class ConditionalReplicatingHardCopy<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
+public class ReplicatingHardCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
 
   private static final String TAG_COPYING_REPLICATED               = "copying.replicated";
   private static final String TAG_COPYING_REPLICATED_REDIRECT_AREA = "copying.replicated.redirect.area";
   private static final String TAG_COPYING_REPLICATED_REDIRECT_KEY  = "copying.replicated.redirect.key";
 
-  private final long thresholdCountToReplicate;
-
-  private final UnConditionalHardCopy<BUFFER> unConditionalHardCopy;
+  private final CopyStrategy<BUFFER> hardCopying;
   private final ObjectRepository<BUFFER> objectRepository;
-
-  private final CopyStrategy<BUFFER> nextStrategy;
 
   @Override
   public CompletableFuture<Object<BUFFER>> execute(
     Object<BUFFER> sourceObject,
     Identifier targetIdentifier) {
 
-    // 어떤 조건이 있고...
-
-
-
-    return unConditionalHardCopy.execute(sourceObject, targetIdentifier)
+    return hardCopying.execute(sourceObject, targetIdentifier)
       .thenCompose(copiedObject -> {
         final Identifier identifier = copiedObject.getIdentifier();
         sourceObject.addTag(TAG_COPYING_REPLICATED_REDIRECT_AREA, identifier.getArea());

@@ -11,40 +11,18 @@ import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class ConditionalSoftCopy<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
+public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
 
   private static final String TAG_COPYING_SOFT_COPIED                         = "copying.soft.copied";
   private static final String TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT = "copying.soft.copied.source.referenced.count";
   private static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA             = "copying.soft.copied.source.area";
   private static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY              = "copying.soft.copied.source.key";
 
-  private final long thresholdCountToSoftCopy;
-
-  private final CopyStrategy<BUFFER> nextStrategy;
   private final ObjectFactory<BUFFER> objectFactory;
   private final ObjectRepository<BUFFER> objectRepository;
 
   @Override
   public CompletableFuture<Object<BUFFER>> execute(
-    Object<BUFFER> sourceObject,
-    Identifier targetIdentifier) {
-
-    if (canHandle(sourceObject)) {
-      return softCopy(sourceObject, targetIdentifier);
-    }
-    return nextStrategy.execute(sourceObject, targetIdentifier);
-  }
-
-  private boolean canHandle(Object<BUFFER> sourceObject) {
-    final long referencedCount = sourceObject
-      .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
-      .asLongOrDefault(0L);
-
-    return sourceObject.hasTag(TAG_COPYING_SOFT_COPIED) &&
-      (referencedCount < thresholdCountToSoftCopy);
-  }
-
-  private CompletableFuture<Object<BUFFER>> softCopy(
     Object<BUFFER> sourceObject,
     Identifier targetIdentifier) {
 

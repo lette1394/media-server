@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class UnConditionalHardCopy<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
+public class HardCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
   private final ObjectFactory<BUFFER> objectFactory;
   private final ObjectRepository<BUFFER> objectRepository;
   private final BinaryRepository<BUFFER> binaryRepository;

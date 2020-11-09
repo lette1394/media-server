@@ -3,9 +3,7 @@ package io.lette1394.mediaserver.storage.usecase.copy;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.Payload;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import lombok.RequiredArgsConstructor;
 
 
 // TODO: 이거 음... 인터페이스가 사용하기에 좀 적절하지 않다.
@@ -21,23 +19,4 @@ import lombok.RequiredArgsConstructor;
 //  테스트 관점에서는 어떤가? 
 public interface CopyStrategy<BUFFER extends Payload> {
   CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier);
-
-  @RequiredArgsConstructor
-  class ApplyingFirstMatchedSequentially<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
-    private final List<CopyStrategy<BUFFER>> copyStrategies;
-
-    @Override
-    public CompletableFuture<Object<BUFFER>> execute(
-      Object<BUFFER> sourceObject,
-      Identifier targetIdentifier) {
-
-//      for (CopyStrategy<BUFFER> copyStrategy : copyStrategies) {
-//        if (copyStrategy.matches())
-//      }
-//
-//      copyStrategies.stream().filter()
-//        .filter(strategy -> strategy.matches(softCopiedCount));
-      return null;
-    }
-  }
 }

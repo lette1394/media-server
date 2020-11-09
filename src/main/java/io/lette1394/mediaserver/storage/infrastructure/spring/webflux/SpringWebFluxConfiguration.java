@@ -1,13 +1,18 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 
+import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.infrastructure.spring.SimpleTranslating;
 import io.lette1394.mediaserver.storage.infrastructure.spring.Translator;
-import io.lette1394.mediaserver.storage.usecase.copy.Copying;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
+import io.lette1394.mediaserver.storage.usecase.copy.CopyStrategy;
+import io.lette1394.mediaserver.storage.usecase.copy.Copying;
+import io.lette1394.mediaserver.storage.usecase.copy.HardCopying;
+import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingHardCopying;
+import io.lette1394.mediaserver.storage.usecase.copy.SoftCopying;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -32,26 +37,33 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 })
 @PropertySource(value = "classpath:springwebflux-application.properties")
 public class SpringWebFluxConfiguration {
+  private static final DataBufferFileSystemRepository filesystem
+    = new DataBufferFileSystemRepository("out/storage");
 
   @Bean
   Uploading<DataBufferPayload> uploading() {
-    return new Uploading<>(
-      new DataBufferFileSystemRepository("out/storage"),
-      new DataBufferFileSystemRepository("out/storage"));
+    return new Uploading<>(filesystem, filesystem);
   }
 
   @Bean
   Downloading<DataBufferPayload> downloading() {
-    return new Downloading<>(
-      new DataBufferFileSystemRepository("out/storage"),
-      new DataBufferFileSystemRepository("out/storage"));
+    return new Downloading<>(filesystem, filesystem);
   }
 
   @Bean
   Copying<DataBufferPayload> copying() {
-    return new Copying<>(
-      new DataBufferFileSystemRepository("out/storage"),
-      new DataBufferFileSystemRepository("out/storage"));
+    final ObjectFactory<DataBufferPayload> objectFactory = new ObjectFactory<>();
+
+    final CopyStrategy<DataBufferPayload> hardCopying = new HardCopying<>(objectFactory, filesystem, filesystem);
+    final CopyStrategy<DataBufferPayload> softCopying = new SoftCopying<>(objectFactory, filesystem);
+    final CopyStrategy<DataBufferPayload> replicatingHardCopying = new ReplicatingHardCopying<>(hardCopying, filesystem);
+
+    return Copying.<DataBufferPayload>builder()
+      .hardCopying(hardCopying)
+      .replicatingHardCopying(softCopying)
+      .softCopying(replicatingHardCopying)
+      .objectRepository(filesystem)
+      .build();
   }
 
   @Bean
