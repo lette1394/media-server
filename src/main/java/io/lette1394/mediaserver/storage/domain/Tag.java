@@ -45,4 +45,37 @@ public class Tag {
   public String asString() {
     return value;
   }
+
+  public static class EmptyTag extends Tag {
+    public static final EmptyTag INSTANCE = new EmptyTag();
+
+    public EmptyTag() {
+      super("empty-tag-key");
+    }
+
+    @Override
+    public String getValue() {
+      return "";
+    }
+
+    @Override
+    public String getKey() {
+      return "";
+    }
+
+    @Override
+    public long asLong() {
+      return 0L;
+    }
+
+    @Override
+    public long asLongOrDefault(long defaultValue) {
+      return 0L;
+    }
+
+    @Override
+    public String asString() {
+      return "";
+    }
+  }
 }

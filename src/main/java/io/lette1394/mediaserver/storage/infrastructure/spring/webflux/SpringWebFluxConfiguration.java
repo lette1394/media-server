@@ -11,8 +11,10 @@ import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.lette1394.mediaserver.storage.usecase.copy.CopyStrategy;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying;
 import io.lette1394.mediaserver.storage.usecase.copy.HardCopying;
-import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingSoftCopying;
+import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingHardCopying;
+import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingHardCopying.ReplicaFollowingObjectRepository;
 import io.lette1394.mediaserver.storage.usecase.copy.SoftCopying;
+import io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.SoftCopyFollowingObjectRepository;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -47,7 +49,9 @@ public class SpringWebFluxConfiguration {
 
   @Bean
   Downloading<DataBufferPayload> downloading() {
-    return new Downloading<>(filesystem, filesystem);
+    return new Downloading<>(filesystem,
+      new SoftCopyFollowingObjectRepository<>(
+        new ReplicaFollowingObjectRepository<>(filesystem)));
   }
 
   @Bean
@@ -56,11 +60,12 @@ public class SpringWebFluxConfiguration {
 
     final CopyStrategy<DataBufferPayload> hardCopying = new HardCopying<>(objectFactory, filesystem, filesystem);
     final CopyStrategy<DataBufferPayload> softCopying = new SoftCopying<>(objectFactory, filesystem);
-    final CopyStrategy<DataBufferPayload> replicatingHardCopying = new ReplicatingSoftCopying<>(hardCopying, filesystem);
+    final CopyStrategy<DataBufferPayload> replicatingHardCopying = new ReplicatingHardCopying<>(hardCopying, filesystem);
 
     return Copying.<DataBufferPayload>builder()
       .hardCopying(hardCopying)
-      .conditionalReplicatingSoftCopying(replicatingHardCopying)
+      .softCopying(softCopying)
+      .replicatingHardCopying(replicatingHardCopying)
       .objectRepository(filesystem)
       .build();
   }

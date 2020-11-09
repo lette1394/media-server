@@ -5,6 +5,7 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryPolicy;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
@@ -48,10 +49,11 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
         });
 
       final Set<Tag> tags = map.entrySet().stream()
-        .filter(entry -> entry.getKey().startsWith("tag"))
-        .map(entry -> new Tag(entry.getKey().substring(3), entry.getValue()))
+        .filter(entry -> entry.getKey().startsWith("tag-"))
+        .map(entry -> new Tag(entry.getKey().substring(4), entry.getValue()))
         .collect(Collectors.toSet());
 
+      // TODO: use object factory
       final Object<BUFFER> object = Object.<BUFFER>builder()
         .identifier(new Identifier(map.get("area"), map.get("key")))
         .objectPolicy(ObjectPolicy.ALL_OBJECT_POLICY)
@@ -64,6 +66,7 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
         .timeStamp(new TimeStamp(OffsetDateTime.parse(map.get("created")),
           OffsetDateTime.parse(map.get("updated"))))
         .tags(Tags.tags(tags))
+        .binaryPath(BinaryPath.from(new Identifier(map.get("area"), map.get("key"))))
         .build();
 
       return new FileSystemObjectEntity<>(object);

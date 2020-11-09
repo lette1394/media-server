@@ -6,7 +6,7 @@ import org.reactivestreams.Subscription;
 public class NoOperationSubscriber<T extends Payload> implements Subscriber<T> {
   private static final NoOperationSubscriber<?> INSTANCE = new NoOperationSubscriber<>();
 
-  private NoOperationSubscriber() {
+  public NoOperationSubscriber() {
   }
 
   @SuppressWarnings("unchecked")
@@ -16,12 +16,12 @@ public class NoOperationSubscriber<T extends Payload> implements Subscriber<T> {
 
   @Override
   public void onSubscribe(Subscription s) {
-
+    // no-op
   }
 
   @Override
   public void onNext(T t) {
-
+    // no-op
   }
 
   @Override

@@ -1,12 +1,16 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.lette1394.mediaserver.storage.domain.Tag.EmptyTag;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Value;
+import org.apache.commons.lang3.StringUtils;
 
 
 // TODO: tag 가 생성 / 저장될 때
@@ -43,7 +47,7 @@ public class Tags {
       .stream()
       .collect(Collectors.toMap(
         entry -> entry.getKey(),
-        entry -> entry.getValue().getValue()));
+        entry -> defaultIfBlank(entry.getValue().getValue(), "")));
   }
 
   public boolean has(String key) {
@@ -51,12 +55,16 @@ public class Tags {
   }
 
   public Tag get(String key) {
-    return tags.get(key);
+    if (tags.containsKey(key)) {
+      return tags.get(key);
+    }
+    return EmptyTag.INSTANCE;
   }
 
   public void addTag(String key, String value) {
     tags.put(key, new Tag(key, value));
   }
+
   public void addTag(String key) {
     tags.put(key, new Tag(key));
   }

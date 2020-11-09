@@ -170,6 +170,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
     try {
       ensureParentExists(target);
 
+      // TODO: extract field
       final Path source = context.getOrDefault("filesystem.supplier.source", null);
       if (source == null) {
         return writeFromUpstream(binarySupplier, target, openOption);
@@ -261,14 +262,13 @@ public abstract class FileSystemRepository<T extends Payload> implements
     @Override
     public Publisher<T> publisher() throws UnsupportedOperationException {
       final Publisher<T> async = delegate.publisher();
-      return subscriber -> async
-        .subscribe(new DelegatingSubscriber<>(subscriber) {
-          @Override
-          public void onSubscribe(Subscription s) {
-            FileSystemBinarySupplier.this.subscriber = subscriber;
-            subscriber.onSubscribe(s);
-          }
-        });
+      return subscriber -> async.subscribe(new DelegatingSubscriber<>(subscriber) {
+        @Override
+        public void onSubscribe(Subscription s) {
+          FileSystemBinarySupplier.this.subscriber = subscriber;
+          subscriber.onSubscribe(s);
+        }
+      });
     }
 
     @Override

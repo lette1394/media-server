@@ -1,7 +1,9 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
+import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
@@ -9,6 +11,8 @@ import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
+import org.reactivestreams.Subscription;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
@@ -31,6 +35,26 @@ public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER>
     targetObject.addTag(TAG_COPYING_SOFT_COPIED);
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_AREA, sourceIdentifier.getArea());
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_KEY, sourceIdentifier.getKey());
+
+    final Payload payload = new Payload() {
+      @Override
+      public long getSize() {
+        return sourceObject.getSize();
+      }
+
+      @Override
+      public void release() {
+
+      }
+    };
+    final BinarySupplier<BUFFER> binarySupplier = targetObject
+      .copyFrom(() -> Mono.just((BUFFER) payload));
+    binarySupplier.publisher().subscribe(new NoOperationSubscriber<>() {
+      @Override
+      public void onSubscribe(Subscription s) {
+        s.request(Long.MAX_VALUE);
+      }
+    });
 
     final long softCount = sourceObject
       .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
@@ -59,7 +83,7 @@ public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER>
     public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
       throws ObjectNotFoundException {
 
-      delegate
+      return delegate
         .find(identifier)
         .thenApply(maybeSoftCopiedObject -> {
           if (maybeSoftCopiedObject.hasTag(TAG_COPYING_SOFT_COPIED)) {
@@ -73,8 +97,6 @@ public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER>
           }
           return maybeSoftCopiedObject;
         });
-
-      return null;
     }
 
     @Override

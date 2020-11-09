@@ -1,5 +1,7 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
+import static io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.TAG_COPYING_SOFT_COPIED;
+import static io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT;
 import static io.vavr.API.$;
 import static io.vavr.API.Case;
 import static io.vavr.API.Match;
@@ -8,9 +10,7 @@ import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.domain.Payload;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -24,7 +24,7 @@ public class Copying<BUFFER extends Payload> {
 
   private final CopyStrategy<BUFFER> hardCopying;
   private final CopyStrategy<BUFFER> softCopying;
-  private final CopyStrategy<BUFFER> conditionalReplicatingSoftCopying;
+  private final CopyStrategy<BUFFER> replicatingHardCopying;
 
   public CompletableFuture<Object<BUFFER>> copy(Command command) {
     return objectRepository
@@ -33,11 +33,14 @@ public class Copying<BUFFER extends Payload> {
         .of(
           Case($(CopyMode.HARD), () -> hardCopying),
           Case($(CopyMode.SOFT), () -> {
-            if (command.replicatingThreshold.isPresent()) {
+            boolean exceedOrEqualsReplicatedLimit = sourceObject
+              .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
+              .asLongOrDefault(0L) >= command.replicatingThreshold;
 
+            if (exceedOrEqualsReplicatedLimit) {
+              return replicatingHardCopying;
             }
-
-            conditionalReplicatingSoftCopying
+            return softCopying;
           }))
         .execute(sourceObject, command.to));
   }
@@ -54,7 +57,7 @@ public class Copying<BUFFER extends Payload> {
     CopyMode mode;
 
     // TODO: fix it. HARD_COPY는 이 정보가 필요하지 않다.
-    //  이렇게 그냥 optional 로 주고 땡인가?
-    Optional<Long> replicatingThreshold;
+    //  그냥 optional 로 주고 땡인가?
+    long replicatingThreshold;
   }
 }

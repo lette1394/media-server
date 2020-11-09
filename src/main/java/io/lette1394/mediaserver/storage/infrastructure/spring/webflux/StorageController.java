@@ -9,6 +9,7 @@ import io.lette1394.mediaserver.storage.usecase.copy.Copying;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying.Command;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
+import io.lette1394.mediaserver.storage.usecase.copy.Copying.CopyMode;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -59,7 +60,8 @@ public class StorageController {
   CompletableFuture<? extends ResponseEntity<Void>> copyObject(
     @PathVariable String toArea,
     @PathVariable String toKey,
-    @RequestHeader("from") String from) {
+    @RequestHeader("from") String from,
+    @RequestHeader("mode") String mode) {
 
     final String[] split = from.split("/");
 
@@ -67,6 +69,8 @@ public class StorageController {
       .copy(Command.builder()
         .from(new Identifier(split[0], split[1]))
         .to(new Identifier(toArea, toKey))
+        .mode(CopyMode.valueOf(mode.toUpperCase()))
+        .replicatingThreshold(3)
         .build())
       .handle(translator::translate);
   }
@@ -85,6 +89,7 @@ public class StorageController {
       .thenApply(response::writeWith);
     return Mono
       .fromFuture(monoCompletableFuture)
-      .flatMap(__ -> __);
+      .flatMap(__ -> __)
+      .doOnError(throwable -> throwable.printStackTrace());
   }
 }

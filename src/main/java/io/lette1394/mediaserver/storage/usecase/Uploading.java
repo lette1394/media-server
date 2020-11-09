@@ -60,14 +60,12 @@ public class Uploading<BUFFER extends Payload> {
         return Match(object)
           .of(
             Case($(is(FULFILLED)), () -> overwrite(object, upstream)),
-            Case($(is(PENDING)), () -> append(object, upstream)))
-          .thenCompose(__ -> objectRepository.save(object));
+            Case($(is(PENDING)), () -> append(object, upstream)));
       }
       return Match(e)
         .of(
           Case($(instanceOf(ObjectNotFoundException.class)), () -> create(identifier, upstream)),
-          Case($(), () -> abortUpload(e)))
-        .thenCompose(__ -> objectRepository.save(object));
+          Case($(), () -> abortUpload(e)));
     };
   }
 
@@ -75,32 +73,35 @@ public class Uploading<BUFFER extends Payload> {
     return object -> object.is(objectType);
   }
 
-  private CompletableFuture<Void> append(Object<BUFFER> object,
+  private CompletableFuture<Object<BUFFER>> append(Object<BUFFER> object,
     BinarySupplier<BUFFER> upstream) {
     final BinarySupplier<BUFFER> binary = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
-    return binaryRepository.append(binaryPath, binary);
+    return binaryRepository.append(binaryPath, binary)
+      .thenCompose(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Void> create(Identifier identifier,
+  private CompletableFuture<Object<BUFFER>> create(Identifier identifier,
     BinarySupplier<BUFFER> upstream) {
     final Object<BUFFER> object = objectFactory.create(identifier);
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(identifier);
 
-    return binaryRepository.create(binaryPath, binarySupplier);
+    return binaryRepository.create(binaryPath, binarySupplier)
+      .thenCompose(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Void> overwrite(Object<BUFFER> object,
+  private CompletableFuture<Object<BUFFER>> overwrite(Object<BUFFER> object,
     BinarySupplier<BUFFER> upstream) {
     final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
-    return binaryRepository.create(binaryPath, binarySupplier);
+    return binaryRepository.create(binaryPath, binarySupplier)
+      .thenCompose(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Void> abortUpload(Throwable e) {
+  private CompletableFuture<Object<BUFFER>> abortUpload(Throwable e) {
     return CompletableFuture.failedFuture(e);
   }
 

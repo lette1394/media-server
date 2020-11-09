@@ -20,8 +20,4 @@ import java.util.concurrent.CompletableFuture;
 @FunctionalInterface
 public interface CopyStrategy<BUFFER extends Payload> {
   CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier);
-
-  default boolean matches(Object<BUFFER> object, long replicatingThreshold) {
-    return true;
-  }
 }

@@ -7,7 +7,6 @@ import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying;
 import io.lette1394.mediaserver.user.Config.CopyMode;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -35,7 +34,7 @@ public class ServiceCodeBasedCopying<B extends Payload> {
         format("%s/%s", command.toServiceCode, command.toSpaceId),
         command.toOid))
       .mode(copyMode)
-      .replicatingThreshold(Optional.ofNullable(config.getReplicatingSoftThreshold()))
+      .replicatingThreshold(config.getReplicatingSoftThreshold())
       .build()
     );
   }
