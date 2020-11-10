@@ -1,7 +1,6 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
 import io.lette1394.mediaserver.storage.domain.Object;
@@ -51,20 +50,12 @@ public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_KEY, sourceIdentifier.getKey());
   }
 
+  @SuppressWarnings("unchecked")
   private void pretendingToCopy(Object<B> sourceObject, Object<B> targetObject) {
-    final Payload payload = new Payload() {
-      @Override
-      public long getSize() {
-        return sourceObject.getSize();
-      }
-
-      @Override
-      public void release() {
-      }
-    };
-    final BinarySupplier<B> binarySupplier = targetObject
-      .copyFrom(() -> Mono.just((B) payload));
-    binarySupplier.publisher().subscribe(new NoOperationSubscriber<>() {
+    final Payload notifyPayload = () -> sourceObject.getSize();
+    targetObject
+      .copyFrom(() -> Mono.just((B) notifyPayload))
+      .publisher().subscribe(new NoOperationSubscriber<>() {
       @Override
       public void onSubscribe(Subscription s) {
         s.request(1L);

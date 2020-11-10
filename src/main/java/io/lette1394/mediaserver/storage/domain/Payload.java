@@ -1,8 +1,11 @@
 package io.lette1394.mediaserver.storage.domain;
 
+@FunctionalInterface
 public interface Payload {
 
   long getSize();
 
-  void release();
+  default void release() {
+    // no op
+  }
 }
