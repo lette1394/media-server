@@ -1,6 +1,6 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
@@ -83,7 +83,7 @@ public class StorageController {
 
     final CompletableFuture<Mono<Void>> monoCompletableFuture = downloading
       .download(new Identifier(area, key))
-      .thenApply(BinarySupplier::publisher)
+      .thenApply(BinaryPublisher::publisher)
       .thenApply(Flux::from)
       .thenApply(flux -> flux.map(DataBufferPayload::getValue))  // TODO: my publisher map()
       .thenApply(response::writeWith);

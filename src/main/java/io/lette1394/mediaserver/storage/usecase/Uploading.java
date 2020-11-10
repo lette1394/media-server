@@ -9,7 +9,7 @@ import static io.vavr.Predicates.instanceOf;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
@@ -53,7 +53,7 @@ public class Uploading<BUFFER extends Payload> {
   private BiFunction<Object<BUFFER>, Throwable, CompletableFuture<Object<BUFFER>>> dispatch(
     Command<BUFFER> command) {
     final Identifier identifier = command.identifier;
-    final BinarySupplier<BUFFER> upstream = command.upstream;
+    final BinaryPublisher<BUFFER> upstream = command.upstream;
 
     return (object, e) -> {
       if (isObjectExists(e)) {
@@ -74,8 +74,8 @@ public class Uploading<BUFFER extends Payload> {
   }
 
   private CompletableFuture<Object<BUFFER>> append(Object<BUFFER> object,
-    BinarySupplier<BUFFER> upstream) {
-    final BinarySupplier<BUFFER> binary = object.upload(upstream);
+    BinaryPublisher<BUFFER> upstream) {
+    final BinaryPublisher<BUFFER> binary = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
     return binaryRepository.append(binaryPath, binary)
@@ -83,21 +83,21 @@ public class Uploading<BUFFER extends Payload> {
   }
 
   private CompletableFuture<Object<BUFFER>> create(Identifier identifier,
-    BinarySupplier<BUFFER> upstream) {
+    BinaryPublisher<BUFFER> upstream) {
     final Object<BUFFER> object = objectFactory.create(identifier);
-    final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
+    final BinaryPublisher<BUFFER> binaryPublisher = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(identifier);
 
-    return binaryRepository.create(binaryPath, binarySupplier)
+    return binaryRepository.create(binaryPath, binaryPublisher)
       .thenCompose(__ -> objectRepository.save(object));
   }
 
   private CompletableFuture<Object<BUFFER>> overwrite(Object<BUFFER> object,
-    BinarySupplier<BUFFER> upstream) {
-    final BinarySupplier<BUFFER> binarySupplier = object.upload(upstream);
+    BinaryPublisher<BUFFER> upstream) {
+    final BinaryPublisher<BUFFER> binaryPublisher = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
-    return binaryRepository.create(binaryPath, binarySupplier)
+    return binaryRepository.create(binaryPath, binaryPublisher)
       .thenCompose(__ -> objectRepository.save(object));
   }
 
@@ -118,6 +118,6 @@ public class Uploading<BUFFER extends Payload> {
   public static class Command<BUFFER extends Payload> {
     Identifier identifier;
     Map<String, String> tags;
-    BinarySupplier<BUFFER> upstream;
+    BinaryPublisher<BUFFER> upstream;
   }
 }

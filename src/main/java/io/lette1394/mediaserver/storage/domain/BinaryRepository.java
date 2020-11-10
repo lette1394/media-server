@@ -10,11 +10,11 @@ public interface BinaryRepository<BUFFER extends Payload> {
       .exceptionally(__ -> false);
   }
 
-  CompletableFuture<BinarySupplier<BUFFER>> find(BinaryPath binaryPath);
+  CompletableFuture<BinaryPublisher<BUFFER>> find(BinaryPath binaryPath);
 
-  CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<Void> append(BinaryPath binaryPath, BinaryPublisher<BUFFER> binaryPublisher);
 
   CompletableFuture<Void> delete(BinaryPath binaryPath);
 
-  CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<BUFFER> binarySupplier);
+  CompletableFuture<Void> create(BinaryPath binaryPath, BinaryPublisher<BUFFER> binaryPublisher);
 }

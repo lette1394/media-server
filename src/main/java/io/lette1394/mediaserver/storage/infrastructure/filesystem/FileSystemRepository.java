@@ -5,9 +5,9 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Context;
-import io.lette1394.mediaserver.storage.domain.DelegatingBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.DelegatingBinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.DelegatingSubscriber;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
@@ -97,25 +97,25 @@ public abstract class FileSystemRepository<T extends Payload> implements
   }
 
   @Override
-  public CompletableFuture<BinarySupplier<T>> find(BinaryPath binaryPath) {
+  public CompletableFuture<BinaryPublisher<T>> find(BinaryPath binaryPath) {
     try {
       return completedFuture(
-        new FileSystemBinarySupplier<>(readBinary(binaryPath), createPath(binaryPath)));
+        new FileSystemBinaryPublisher<>(readBinary(binaryPath), createPath(binaryPath)));
     } catch (Throwable e) {
       return failedFuture(e);
     }
   }
 
   @Override
-  public CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
-    return writeBinary(binaryPath, binarySupplier,
+  public CompletableFuture<Void> create(BinaryPath binaryPath, BinaryPublisher<T> binaryPublisher) {
+    return writeBinary(binaryPath, binaryPublisher,
       StandardOpenOption.CREATE,
       StandardOpenOption.WRITE);
   }
 
   @Override
-  public CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
-    return writeBinary(binaryPath, binarySupplier, StandardOpenOption.APPEND);
+  public CompletableFuture<Void> append(BinaryPath binaryPath, BinaryPublisher<T> binaryPublisher) {
+    return writeBinary(binaryPath, binaryPublisher, StandardOpenOption.APPEND);
   }
 
   @Override
@@ -141,16 +141,16 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
   protected abstract void write(WritableByteChannel channel, T item);
 
-  private BinarySupplier<T> readBinary(BinaryPath binaryPath) {
+  private BinaryPublisher<T> readBinary(BinaryPath binaryPath) {
     return () -> read(createPath(binaryPath));
   }
 
   private CompletableFuture<Void> writeBinary(
     BinaryPath binaryPath,
-    BinarySupplier<T> binarySupplier,
+    BinaryPublisher<T> binaryPublisher,
     OpenOption... openOption) {
     final Path target = createPath(binaryPath);
-    final Context context = binarySupplier.currentContext();
+    final Context context = binaryPublisher.currentContext();
 
     try {
       ensureParentExists(target);
@@ -158,9 +158,9 @@ public abstract class FileSystemRepository<T extends Payload> implements
       // TODO: extract field
       final Path source = context.getOrDefault("filesystem.supplier.source", null);
       if (source == null) {
-        return writeFromUpstream(binarySupplier, target, openOption);
+        return writeFromUpstream(binaryPublisher, target, openOption);
       }
-      return writeFromFilesystem(binarySupplier, target);
+      return writeFromFilesystem(binaryPublisher, target);
     } catch (Exception e) {
       return failedFuture(e);
     }
@@ -175,13 +175,13 @@ public abstract class FileSystemRepository<T extends Payload> implements
     parent.toFile().mkdirs();
   }
 
-  private CompletableFuture<Void> writeFromUpstream(BinarySupplier<T> binarySupplier, Path target,
+  private CompletableFuture<Void> writeFromUpstream(BinaryPublisher<T> binaryPublisher, Path target,
     OpenOption[] openOption) throws IOException {
     final WritableByteChannel channel = Channels
       .newChannel(Files.newOutputStream(target, openOption));
     final CompletableFuture<Void> ret = new CompletableFuture<>();
 
-    Flux.from(binarySupplier.publisher())
+    Flux.from(binaryPublisher.publisher())
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .doFinally(__ -> IOUtils.closeQuietly(channel, null))
@@ -190,12 +190,12 @@ public abstract class FileSystemRepository<T extends Payload> implements
     return ret;
   }
 
-  private CompletableFuture<Void> writeFromFilesystem(BinarySupplier<T> binarySupplier,
+  private CompletableFuture<Void> writeFromFilesystem(BinaryPublisher<T> binaryPublisher,
     Path target) {
-    final Context context = binarySupplier.currentContext();
+    final Context context = binaryPublisher.currentContext();
     try {
       final Path source = context.getOrDefault("filesystem.supplier.source", null);
-      binarySupplier.publisher().subscribe(NoOperationSubscriber.instance());
+      binaryPublisher.publisher().subscribe(NoOperationSubscriber.instance());
 
       assert source != null;
       final Path copied = Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -233,13 +233,13 @@ public abstract class FileSystemRepository<T extends Payload> implements
     return path;
   }
 
-  private static class FileSystemBinarySupplier<T extends Payload> extends
-    DelegatingBinarySupplier<T> {
+  private static class FileSystemBinaryPublisher<T extends Payload> extends
+    DelegatingBinaryPublisher<T> {
     private final Path source;
 
     private Subscriber<? super T> subscriber;
 
-    public FileSystemBinarySupplier(BinarySupplier<T> delegate, Path source) {
+    public FileSystemBinaryPublisher(BinaryPublisher<T> delegate, Path source) {
       super(delegate);
       this.source = source;
     }
@@ -250,7 +250,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
       return subscriber -> async.subscribe(new DelegatingSubscriber<>(subscriber) {
         @Override
         public void onSubscribe(Subscription s) {
-          FileSystemBinarySupplier.this.subscriber = subscriber;
+          FileSystemBinaryPublisher.this.subscriber = subscriber;
           subscriber.onSubscribe(s);
         }
       });

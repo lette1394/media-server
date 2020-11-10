@@ -9,7 +9,7 @@ class ObjectDsl {
   ObjectType state
   ObjectPolicy policy
   BinaryRepository binaryRepository
-  BiFunction<Object, BinarySupplier, CompletableFuture<Object>> method
+  BiFunction<Object, BinaryPublisher, CompletableFuture<Object>> method
 
   Object object
   CompletableFuture<Object> future
@@ -39,18 +39,18 @@ class ObjectDsl {
     return this
   }
 
-  ObjectDsl got(BiFunction<Object, BinarySupplier, CompletableFuture<Object>> method) {
+  ObjectDsl got(BiFunction<Object, BinaryPublisher, CompletableFuture<Object>> method) {
     this.method = method
     return this
   }
 
-  static BiFunction<Object, BinarySupplier, CompletableFuture<Object>> uploading() {
+  static BiFunction<Object, BinaryPublisher, CompletableFuture<Object>> uploading() {
     return {
       object, binarySupplier -> object.upload(binarySupplier)
     }
   }
 
-  CompletableFuture<Object> from(BinarySupplier binarySupplier) {
+  CompletableFuture<Object> from(BinaryPublisher binarySupplier) {
     object = toObject(binaryRepository)
     return method.apply(toObject(binaryRepository), binarySupplier)
   }

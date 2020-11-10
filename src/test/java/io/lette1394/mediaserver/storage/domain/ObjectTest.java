@@ -54,8 +54,8 @@ class ObjectTest {
     return Flux.fromStream(Arrays.stream(string.split("")).map(StringPayload::new));
   }
 
-  private <T extends Payload> void subscribe(BinarySupplier<T> binarySupplier) {
-    Flux.from(binarySupplier.publisher())
+  private <T extends Payload> void subscribe(BinaryPublisher<T> binaryPublisher) {
+    Flux.from(binaryPublisher.publisher())
       .subscribe(__ -> {
       });
   }
@@ -114,9 +114,9 @@ class ObjectTest {
 
       private Object<StringPayload> subject(String payload) {
         final Object<StringPayload> object = anyObject();
-        final BinarySupplier<StringPayload> binarySupplier = object.upload(() -> anyStringPublisher(payload));
+        final BinaryPublisher<StringPayload> binaryPublisher = object.upload(() -> anyStringPublisher(payload));
 
-        subscribe(binarySupplier);
+        subscribe(binaryPublisher);
         return object;
       }
     }

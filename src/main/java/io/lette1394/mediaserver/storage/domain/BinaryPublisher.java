@@ -10,7 +10,7 @@ import org.reactivestreams.Publisher;
  *
  * <h2>Abstraction Level</h2>
  * <p>
- * Domain objects can use this {@link BinarySupplier} interface for hiding their specific binary
+ * Domain objects can use this {@link BinaryPublisher} interface for hiding their specific binary
  * transfer logic whether it is sync or async way. Domain object can hold their code flow without
  * any considerations of implementation details.<br>
  * <br>
@@ -20,11 +20,11 @@ import org.reactivestreams.Publisher;
  * @author Jae eun Na
  * @see ListenablePublisher
  * @see ControllablePublisher
- * @see DelegatingBinarySupplier
+ * @see DelegatingBinaryPublisher
  */
 
 @FunctionalInterface
-public interface BinarySupplier<BUFFER extends Payload> {
+public interface BinaryPublisher<BUFFER extends Payload> {
   Publisher<BUFFER> publisher();
 
   default Optional<Long> length() {
@@ -35,9 +35,9 @@ public interface BinarySupplier<BUFFER extends Payload> {
     return Context.empty();
   }
 
-  default BinarySupplier<BUFFER> writeContext(Function<Context, Context> function) {
-    final BinarySupplier<BUFFER> current = this;
-    return new BinarySupplier<>() {
+  default BinaryPublisher<BUFFER> writeContext(Function<Context, Context> function) {
+    final BinaryPublisher<BUFFER> current = this;
+    return new BinaryPublisher<>() {
       @Override
       public Publisher<BUFFER> publisher() {
         return current.publisher();

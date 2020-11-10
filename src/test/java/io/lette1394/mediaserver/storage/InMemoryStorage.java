@@ -8,7 +8,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
@@ -59,10 +59,10 @@ public abstract class InMemoryStorage<T extends Payload> implements
 
   @Override
   public CompletableFuture<Void> create(BinaryPath binaryPath,
-    BinarySupplier<T> binarySupplier) {
+    BinaryPublisher<T> binaryPublisher) {
     CompletableFuture<Void> ret = new CompletableFuture<>();
     Flux
-      .from(binarySupplier.publisher())
+      .from(binaryPublisher.publisher())
       .doOnSubscribe(__ -> binaryHolder.put(binaryPath.asString(), new ByteArrayOutputStream()))
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
@@ -73,9 +73,9 @@ public abstract class InMemoryStorage<T extends Payload> implements
 
   @Override
   public CompletableFuture<Void> append(BinaryPath binaryPath,
-    BinarySupplier<T> binarySupplier) {
+    BinaryPublisher<T> binaryPublisher) {
     final CompletableFuture<Void> ret = new CompletableFuture<>();
-    Flux.from(binarySupplier.publisher())
+    Flux.from(binaryPublisher.publisher())
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .subscribe(payload -> write(binaryPath, payload));
@@ -83,7 +83,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
   }
 
   @Override
-  public CompletableFuture<BinarySupplier<T>> find(BinaryPath binaryPath) {
+  public CompletableFuture<BinaryPublisher<T>> find(BinaryPath binaryPath) {
     return completedFuture(() -> read(binaryPath));
   }
 

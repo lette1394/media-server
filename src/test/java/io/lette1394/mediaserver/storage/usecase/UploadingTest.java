@@ -10,11 +10,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.lette1394.mediaserver.storage.BrokenBinarySupplier;
+import io.lette1394.mediaserver.storage.BrokenBinaryPublisher;
 import io.lette1394.mediaserver.storage.ByteInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Identifier;
@@ -115,7 +115,7 @@ class UploadingTest {
     final Publisher<BytePayload> publisher = Flux
       .fromStream(payload.chars().mapToObj(ch -> new BytePayload(ch)));
 
-    return new BrokenBinarySupplier<>(exceptionAt, new BinarySupplier<BytePayload>() {
+    return new BrokenBinaryPublisher<>(exceptionAt, new BinaryPublisher<BytePayload>() {
       @Override
       public Publisher<BytePayload> publisher() {
         return publisher;

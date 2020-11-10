@@ -4,18 +4,18 @@ import static io.lette1394.mediaserver.common.Contracts.require;
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
 
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
-import io.lette1394.mediaserver.storage.domain.DelegatingBinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
+import io.lette1394.mediaserver.storage.domain.DelegatingBinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public class BrokenBinarySupplier<T extends Payload> extends DelegatingBinarySupplier<T> {
+public class BrokenBinaryPublisher<T extends Payload> extends DelegatingBinaryPublisher<T> {
   long exceptionAt;
   long totalLength;
 
-  public BrokenBinarySupplier(long exceptionAt, BinarySupplier<T> delegate) {
+  public BrokenBinaryPublisher(long exceptionAt, BinaryPublisher<T> delegate) {
     super(delegate);
     require(nonNull(delegate), "nonNull(binarySupplier)");
     require(exceptionAt >= 0, "exceptionAt >= 0");

@@ -14,13 +14,13 @@ public class DeleteAllBinaryWhenClosedBinaryRepository<T extends Payload> implem
   BinaryRepository<T> repository;
 
   @Override
-  public CompletableFuture<BinarySupplier<T>> find(BinaryPath binaryPath) {
+  public CompletableFuture<BinaryPublisher<T>> find(BinaryPath binaryPath) {
     return repository.find(binaryPath);
   }
 
   @Override
-  public CompletableFuture<Void> append(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
-    return repository.append(binaryPath, binarySupplier);
+  public CompletableFuture<Void> append(BinaryPath binaryPath, BinaryPublisher<T> binaryPublisher) {
+    return repository.append(binaryPath, binaryPublisher);
   }
 
   @Override
@@ -29,8 +29,8 @@ public class DeleteAllBinaryWhenClosedBinaryRepository<T extends Payload> implem
   }
 
   @Override
-  public CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
-    return repository.create(binaryPath, binarySupplier);
+  public CompletableFuture<Void> create(BinaryPath binaryPath, BinaryPublisher<T> binaryPublisher) {
+    return repository.create(binaryPath, binaryPublisher);
   }
 
   @Override

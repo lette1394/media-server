@@ -1,7 +1,7 @@
 package io.lette1394.mediaserver.storage.infrastructure.awss3;
 
 import io.lette1394.mediaserver.common.Contracts;
-import io.lette1394.mediaserver.storage.domain.BinarySupplier;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.infrastructure.ByteBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.ObjectPath;
 import java.util.concurrent.CompletableFuture;
@@ -29,8 +29,8 @@ public class AwsClient {
       .build();
   }
 
-  <T extends ByteBufferPayload> CompletableFuture<Void> put(ObjectPath objectPath, BinarySupplier<T> binarySupplier) {
-    Contracts.require(binarySupplier.length().isPresent(), "aws client needs binary length");
+  <T extends ByteBufferPayload> CompletableFuture<Void> put(ObjectPath objectPath, BinaryPublisher<T> binaryPublisher) {
+    Contracts.require(binaryPublisher.length().isPresent(), "aws client needs binary length");
 
     final S3AsyncClient client = S3AsyncClient.builder()
       .region(region)
@@ -39,10 +39,10 @@ public class AwsClient {
     return client.putObject(PutObjectRequest.builder()
       .bucket(awsBucket)
       .key(objectPath.asString())
-      .contentLength(binarySupplier.length().get()) // content-length required
+      .contentLength(binaryPublisher.length().get()) // content-length required
       .build(), AsyncRequestBody
       // TODO: my publisher interface; then add map() method
-      .fromPublisher(Flux.from(binarySupplier.publisher()).map(item -> item.getValue())))
+      .fromPublisher(Flux.from(binaryPublisher.publisher()).map(item -> item.getValue())))
       .thenApply(response -> null);
   }
 }

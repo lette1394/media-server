@@ -62,7 +62,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     this.binaryRepository = binaryRepository;
   }
 
-  public BinarySupplier<BUFFER> upload(BinarySupplier<BUFFER> upstream) {
+  public BinaryPublisher<BUFFER> upload(BinaryPublisher<BUFFER> upstream) {
     return objectPolicy.test(objectSnapshot.update(UPLOAD))
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
@@ -70,7 +70,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .getOrElseThrow(e -> new OperationCanceledException(UPLOAD, e));
   }
 
-  public CompletableFuture<BinarySupplier<BUFFER>> download() {
+  public CompletableFuture<BinaryPublisher<BUFFER>> download() {
     return objectPolicy.test(objectSnapshot.update(DOWNLOAD))
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
@@ -81,7 +81,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       });
   }
 
-  public BinarySupplier<BUFFER> copyFrom(BinarySupplier<BUFFER> upstream) {
+  public BinaryPublisher<BUFFER> copyFrom(BinaryPublisher<BUFFER> upstream) {
     return objectPolicy.test(objectSnapshot.update(COPY))
       .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
       .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
@@ -127,8 +127,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .build();
   }
 
-  private BinarySupplier<BUFFER> compose(BinarySupplier<BUFFER> binarySupplier) {
-    return new DelegatingBinarySupplier<>(binarySupplier) {
+  private BinaryPublisher<BUFFER> compose(BinaryPublisher<BUFFER> binaryPublisher) {
+    return new DelegatingBinaryPublisher<>(binaryPublisher) {
       @Override
       public Publisher<BUFFER> publisher() {
         final Publisher<BUFFER> publisher = super.publisher();
