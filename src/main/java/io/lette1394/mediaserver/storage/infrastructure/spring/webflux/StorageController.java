@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
+import io.lette1394.mediaserver.processing.usecase.MediaAwareUploading;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
@@ -29,6 +30,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 public class StorageController {
+  private final MediaAwareUploading<DataBufferPayload> mediaAwareUploading;
   private final Uploading<DataBufferPayload> uploading;
   private final Downloading<DataBufferPayload> downloading;
   private final Copying<DataBufferPayload> copying;
@@ -42,12 +44,31 @@ public class StorageController {
     @RequestHeader(value = "Content-Length", required = false) Optional<Long> contentLength,
     ServerHttpRequest request) {
 
-    // TODO: 의미있는 response
     final Publisher<DataBufferPayload> body = request
       .getBody()
       .map(DataBufferPayload::new);
 
     return uploading
+      .upload(Uploading.Command.<DataBufferPayload>builder()
+        .identifier(new Identifier(area, key))
+        .upstream(BinarySupplierFactory.from(body, contentLength))
+        .tags(new HashMap<>())
+        .build())
+      .handle(translator::translate);
+  }
+
+  @PostMapping(value = "/{area}/{key}/media", headers = "!from")
+  CompletableFuture<? extends ResponseEntity<Void>> putMediaObject(
+    @PathVariable String area,
+    @PathVariable String key,
+    @RequestHeader(value = "Content-Length", required = false) Optional<Long> contentLength,
+    ServerHttpRequest request) {
+
+    final Publisher<DataBufferPayload> body = request
+      .getBody()
+      .map(DataBufferPayload::new);
+
+    return mediaAwareUploading
       .upload(Uploading.Command.<DataBufferPayload>builder()
         .identifier(new Identifier(area, key))
         .upstream(BinarySupplierFactory.from(body, contentLength))

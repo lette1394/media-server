@@ -23,9 +23,9 @@ public interface ObjectPolicy extends Testable<ObjectSnapshot> {
   };
 
   ObjectPolicy REJECT_OVERWRITE_UPLOAD = snapshot -> {
-    if (snapshot.is(UPLOAD) && snapshot.is(FULFILLED)) {
-      return failure(violation(INVALID_OBJECT_STATE, "reject overwrite upload"));
-    }
+//    if (snapshot.is(UPLOAD) && snapshot.is(FULFILLED)) {
+//      return failure(violation(INVALID_OBJECT_STATE, "reject overwrite upload"));
+//    }
     return SUCCESS;
   };
 

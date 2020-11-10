@@ -119,5 +119,13 @@ public class Uploading<BUFFER extends Payload> {
     Identifier identifier;
     Map<String, String> tags;
     BinaryPublisher<BUFFER> upstream;
+
+    public Command<BUFFER> with(BinaryPublisher<BUFFER> upstream) {
+      return Command.<BUFFER>builder()
+        .identifier(identifier)
+        .tags(tags)
+        .upstream(upstream)
+        .build();
+    }
   }
 }
