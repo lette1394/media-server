@@ -15,27 +15,43 @@ import org.reactivestreams.Subscription;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER> {
+public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
 
   static final String TAG_COPYING_SOFT_COPIED                         = "copying.soft.copied";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT = "copying.soft.copied.source.referenced.count";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA             = "copying.soft.copied.source.area";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY              = "copying.soft.copied.source.key";
 
-  private final ObjectFactory<BUFFER> objectFactory;
-  private final ObjectRepository<BUFFER> objectRepository;
+  private final ObjectFactory<B> objectFactory;
+  private final ObjectRepository<B> objectRepository;
 
   @Override
-  public CompletableFuture<Object<BUFFER>> execute(
-    Object<BUFFER> sourceObject,
+  public CompletableFuture<Object<B>> execute(
+    Object<B> sourceObject,
     Identifier targetIdentifier) {
 
+    final Object<B> targetObject = objectFactory.create(targetIdentifier);
+
+    markSoftCopied(sourceObject, targetObject);
+    pretendingToCopy(sourceObject, targetObject);
+    increaseReferencedCount(sourceObject);
+
+    // TODO: atomic update
+    return CompletableFuture
+      .allOf(
+        objectRepository.save(sourceObject),
+        objectRepository.save(targetObject))
+      .thenApply(__ -> targetObject);
+  }
+
+  private void markSoftCopied(Object<B> sourceObject, Object<B> targetObject) {
     final Identifier sourceIdentifier = sourceObject.getIdentifier();
-    final Object<BUFFER> targetObject = objectFactory.create(targetIdentifier);
     targetObject.addTag(TAG_COPYING_SOFT_COPIED);
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_AREA, sourceIdentifier.getArea());
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_KEY, sourceIdentifier.getKey());
+  }
 
+  private void pretendingToCopy(Object<B> sourceObject, Object<B> targetObject) {
     final Payload payload = new Payload() {
       @Override
       public long getSize() {
@@ -44,28 +60,23 @@ public class SoftCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER>
 
       @Override
       public void release() {
-
       }
     };
-    final BinarySupplier<BUFFER> binarySupplier = targetObject
-      .copyFrom(() -> Mono.just((BUFFER) payload));
+    final BinarySupplier<B> binarySupplier = targetObject
+      .copyFrom(() -> Mono.just((B) payload));
     binarySupplier.publisher().subscribe(new NoOperationSubscriber<>() {
       @Override
       public void onSubscribe(Subscription s) {
-        s.request(Long.MAX_VALUE);
+        s.request(1L);
       }
     });
+  }
 
+  private void increaseReferencedCount(Object<B> sourceObject) {
     final long softCount = sourceObject
       .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
       .asLongOrDefault(0L);
     sourceObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT, softCount + 1);
-
-    return CompletableFuture
-      .allOf(
-        objectRepository.save(sourceObject),
-        objectRepository.save(targetObject))
-      .thenApply(__ -> targetObject);
   }
 
   @RequiredArgsConstructor
