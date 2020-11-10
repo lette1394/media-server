@@ -117,7 +117,7 @@ public class Uploading<BUFFER extends Payload> {
   @Builder
   public static class Command<BUFFER extends Payload> {
     Identifier identifier;
-    BinarySupplier<BUFFER> upstream;
     Map<String, String> tags;
+    BinarySupplier<BUFFER> upstream;
   }
 }
