@@ -66,7 +66,9 @@ public class SpringWebFluxConfiguration {
       .hardCopying(hardCopying)
       .softCopying(softCopying)
       .replicatingHardCopying(replicatingHardCopying)
-      .objectRepository(filesystem)
+      .objectRepository(
+        new SoftCopyFollowingObjectRepository<>(
+          new ReplicaFollowingObjectRepository<>(filesystem)))
       .build();
   }
 

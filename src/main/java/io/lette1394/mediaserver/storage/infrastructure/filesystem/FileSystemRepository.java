@@ -108,21 +108,6 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
   @Override
   public CompletableFuture<Void> create(BinaryPath binaryPath, BinarySupplier<T> binarySupplier) {
-    // TODO: file system -> file system copy는 어떻게 처리하나?
-    //  이 클래스 안에서 FileSystemBinarySupplier 인터페이스를 추가 (외부에 노출되서는 안 됨)
-    //  binary find() 연산에서, 이 인터페이스를 구현한 거 return.
-    //  create 연산 마다 FileSystemBinarySupplier 의 인스턴스인지 확인
-    //  그 인스턴스인 경우 FilePath를 알아내서, 실제 binary를 읽지 않고 filesystem -> filesystem으로 copy가 이뤄질 수 있도록 함
-    //  AS-IS
-    //         filesystem -> application -> filesystem
-    //  TO-BE
-    //         filesystem -> filesystem
-    //  .
-    //  .
-    //  .
-    //   oop관점에서 이게 맞는건가?
-    //   실제로 ControllableBinarySupplier 등 합성된 interface가 동작을 안할거임.
-    //   이걸 강제로 trigger 시킬 수는 없다.
     return writeBinary(binaryPath, binarySupplier,
       StandardOpenOption.CREATE,
       StandardOpenOption.WRITE);
@@ -297,7 +282,6 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
         @Override
         public void release() {
-
         }
       });
     }

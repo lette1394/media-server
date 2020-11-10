@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
-import static io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.TAG_COPYING_SOFT_COPIED;
 import static io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT;
 import static io.vavr.API.$;
 import static io.vavr.API.Case;
@@ -18,8 +17,6 @@ import lombok.Value;
 @Builder
 @RequiredArgsConstructor
 public class Copying<BUFFER extends Payload> {
-  // TODO: [COPY] 그리고 여기서 object repository에 들어올 때, copy link 에 대해 알고 있는
-  //  repository를 한 번 감싸서 object를 반환해주자.
   private final ObjectRepository<BUFFER> objectRepository;
 
   private final CopyStrategy<BUFFER> hardCopying;
