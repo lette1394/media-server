@@ -30,16 +30,18 @@ public class Copying<BUFFER extends Payload> {
         .of(
           Case($(CopyMode.HARD), () -> hardCopying),
           Case($(CopyMode.SOFT), () -> {
-            boolean exceedOrEqualsReplicatedLimit = sourceObject
-              .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
-              .asLongOrDefault(0L) >= command.replicatingThreshold;
-
-            if (exceedOrEqualsReplicatedLimit) {
+            if (needReplicating(command, sourceObject)) {
               return replicatingHardCopying;
             }
             return softCopying;
           }))
         .execute(sourceObject, command.to));
+  }
+
+  private boolean needReplicating(Command command, Object<BUFFER> sourceObject) {
+    return sourceObject
+      .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
+      .asLongOrDefault(0L) >= command.replicatingThreshold;
   }
 
   public enum CopyMode {
