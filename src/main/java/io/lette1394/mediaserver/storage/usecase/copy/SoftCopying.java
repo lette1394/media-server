@@ -36,6 +36,7 @@ public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
     increaseReferencedCount(sourceObject);
 
     // TODO: atomic update
+    // TODO: transaction
     return CompletableFuture
       .allOf(
         objectRepository.save(sourceObject),
