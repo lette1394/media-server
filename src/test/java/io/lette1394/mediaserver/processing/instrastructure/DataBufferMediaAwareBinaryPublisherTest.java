@@ -46,8 +46,6 @@ class DataBufferMediaAwareBinaryPublisherTest {
   @Test
   @SneakyThrows
   void imageWithLargeBuffer() {
-    ensureLeakDetectionEnabled();
-
     triggerSubject(imagePath, 2 * 1024 * 1024);
 
     assertThat(decoded.get(), is(true));
@@ -59,8 +57,6 @@ class DataBufferMediaAwareBinaryPublisherTest {
   @Test
   @SneakyThrows
   void imageWithSmallBuffer() {
-    ensureLeakDetectionEnabled();
-
     triggerSubject(imagePath, 128);
 
     assertThat(decoded.get(), is(true));
@@ -72,8 +68,6 @@ class DataBufferMediaAwareBinaryPublisherTest {
   @Test
   @SneakyThrows
   void videoWithLargeBuffer() {
-    ensureLeakDetectionEnabled();
-
     triggerSubject(videoPath, 2 * 1024 * 1024);
 
     assertThat(decoded.get(), is(true));
@@ -85,22 +79,12 @@ class DataBufferMediaAwareBinaryPublisherTest {
   @Test
   @SneakyThrows
   void videoWithSmallBuffer() {
-    ensureLeakDetectionEnabled();
-
     triggerSubject(videoPath, 128);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(1280L));
     assertThat(decodedHeight.get(), is(720L));
     assertNoLeaks();
-  }
-
-  private void ensureLeakDetectionEnabled() {
-    final String leakDetectionLevel = System.getProperty("io.netty.leakDetection.level");
-    if (StringUtils.isBlank(leakDetectionLevel) ||
-      !StringUtils.equalsIgnoreCase(leakDetectionLevel, "PARANOID")) {
-      fail("need jvm option: -Dio.netty.leakDetection.level=PARANOID");
-    }
   }
 
   private void assertNoLeaks() {
