@@ -24,7 +24,7 @@ import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import reactor.core.publisher.Flux;
 
 class DataBufferMediaAwareBinaryPublisherTest {
-  String imagePath = "/sample_image_3840x2160_537055_bytes.jpg";
+  static String imagePath = "/sample_image_3840x2160_537055_bytes.jpg";
 
   AtomicBoolean decoded;
   AtomicLong decodedWidth;
@@ -46,47 +46,35 @@ class DataBufferMediaAwareBinaryPublisherTest {
   void imageWithLargeBuffer() {
     ensureLeakDetection();
 
-    final int bufferSize = 2 * 1024 * 1024;
-    final Publisher<DataBufferPayload> mediaAwarePublisher =
-      createMediaAwarePublisher(imageSource(bufferSize));
-
-    trigger(mediaAwarePublisher);
-    latch.await(1000, TimeUnit.MILLISECONDS);
+    trigger(imagePath, 2 * 1024 * 1024);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(3840L));
     assertThat(decodedHeight.get(), is(2160L));
   }
+
 
   @Test
   @SneakyThrows
   void imageWithSmallBuffer() {
     ensureLeakDetection();
 
-    final int bufferSize = 128;
-    final Publisher<DataBufferPayload> mediaAwarePublisher =
-      createMediaAwarePublisher(imageSource(bufferSize));
-
-    trigger(mediaAwarePublisher);
-    latch.await(1000, TimeUnit.MILLISECONDS);
+    trigger(imagePath, 128);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(3840L));
     assertThat(decodedHeight.get(), is(2160L));
   }
 
-  private void trigger(Publisher<DataBufferPayload> mediaDecoder) {
+  private void trigger(String binaryPath, int bufferSize) throws InterruptedException {
+    subscribe(createMediaAwarePublisher(binarySource(binaryPath, bufferSize)));
+    latch.await(1000, TimeUnit.MILLISECONDS);
+  }
+
+  private void subscribe(Publisher<DataBufferPayload> mediaDecoder) {
     Flux.from(mediaDecoder)
       .doFinally(__ -> latch.countDown())
       .subscribe(payload -> payload.release());
-  }
-
-  private Listener listener() {
-    return (width, height) -> {
-      decoded.set(true);
-      decodedWidth.set(width);
-      decodedHeight.set(height);
-    };
   }
 
   private void ensureLeakDetection() {
@@ -102,9 +90,17 @@ class DataBufferMediaAwareBinaryPublisherTest {
     return new DataBufferMediaAwareBinaryPublisher(publisher, listener()).publisher();
   }
 
-  private BinaryPublisher<DataBufferPayload> imageSource(int bufferSize) {
+  private Listener listener() {
+    return (width, height) -> {
+      decoded.set(true);
+      decodedWidth.set(width);
+      decodedHeight.set(height);
+    };
+  }
+
+  private BinaryPublisher<DataBufferPayload> binarySource(String path, int bufferSize) {
     return () -> DataBufferUtils.read(
-      getPath(imagePath),
+      getPath(path),
       new NettyDataBufferFactory(new UnpooledByteBufAllocator(true)),
       bufferSize)
       .map(dataBuffer -> new DataBufferPayload(dataBuffer));
