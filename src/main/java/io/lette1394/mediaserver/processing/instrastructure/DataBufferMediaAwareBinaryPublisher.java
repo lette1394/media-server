@@ -3,6 +3,7 @@ package io.lette1394.mediaserver.processing.instrastructure;
 import io.lette1394.mediaserver.processing.domain.MediaAwareBinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import lombok.SneakyThrows;
 import org.springframework.core.io.buffer.DataBuffer;

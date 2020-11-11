@@ -118,6 +118,7 @@ public class Uploading<BUFFER extends Payload> {
   public static class Command<BUFFER extends Payload> {
     Identifier identifier;
     Map<String, String> tags;
+    // TODO: CompletableFuture tag
     BinaryPublisher<BUFFER> upstream;
 
     public Command<BUFFER> with(BinaryPublisher<BUFFER> upstream) {

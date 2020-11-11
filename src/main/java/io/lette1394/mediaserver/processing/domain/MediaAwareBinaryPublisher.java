@@ -19,6 +19,10 @@ import javax.imageio.stream.ImageInputStream;
 import lombok.SneakyThrows;
 import org.reactivestreams.Publisher;
 
+// TODO: 이걸 publisher 로 하는게 맞나?
+//  객체 생성 시점에 binary publisher 를 알 수가 없는데...
+//  이건 필요한 건 맞는거 같은데
+//  실제로 usecase에서 사용하는 거는 별도 인터페이스가 필요해보임
 public abstract class MediaAwareBinaryPublisher<B extends Payload> extends
   DelegatingBinaryPublisher<B> {
   private final Listener listener;
@@ -34,6 +38,17 @@ public abstract class MediaAwareBinaryPublisher<B extends Payload> extends
   public Publisher<B> publisher() {
     final AtomicBoolean decoded = new AtomicBoolean(false);
     final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+    // TODO: 1. local은 apache tika 로
+    //  2. remote 로는 음.. 구현은 없지만 테스트는 가능하게
+    //  리스너는 비동기로 터진다
+    //  .
+    //  이제 이걸 실제로 어떻게 object tag에 전달하냐 인데...
+    //  final
+
+
+
+    // TODO: tika 붙여서 일단 video test는 통과하게 만들어두자.
     final Runnable run = () -> {
       if (decoded.get()) {
         return;
