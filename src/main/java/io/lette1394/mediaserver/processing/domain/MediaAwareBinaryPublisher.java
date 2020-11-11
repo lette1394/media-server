@@ -1,5 +1,8 @@
 package io.lette1394.mediaserver.processing.domain;
 
+import static java.util.Objects.nonNull;
+
+import io.lette1394.mediaserver.common.Contracts;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.DelegatingBinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.DelegatingSubscriber;
@@ -22,6 +25,7 @@ public abstract class MediaAwareBinaryPublisher<B extends Payload> extends
 
   public MediaAwareBinaryPublisher(BinaryPublisher<B> delegate, Listener listener) {
     super(delegate);
+    Contracts.require(nonNull(listener), "nonNull(listener)");
     this.listener = listener;
   }
 
@@ -44,8 +48,7 @@ public abstract class MediaAwareBinaryPublisher<B extends Payload> extends
           reader.setInput(imageInputStream);
           final int width = reader.getWidth(0);
           final int height = reader.getHeight(0);
-          System.out.println(width);
-          System.out.println(height);
+          listener.decoded(width, height);
           decoded.set(true);
         }
       } catch (Exception e) {
@@ -69,6 +72,16 @@ public abstract class MediaAwareBinaryPublisher<B extends Payload> extends
           run.run();
         }
         super.onNext(b);
+      }
+
+      @Override
+      public void onComplete() {
+        if (decoded.get()) {
+          super.onComplete();
+          return;
+        }
+        run.run();
+        super.onComplete();
       }
     });
   }

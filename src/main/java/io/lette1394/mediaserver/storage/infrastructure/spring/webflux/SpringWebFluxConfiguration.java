@@ -2,6 +2,7 @@ package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 
 import io.lette1394.mediaserver.processing.domain.MediaAwareBinaryPublisher;
+import io.lette1394.mediaserver.processing.instrastructure.DataBufferMediaAwareBinaryPublisher;
 import io.lette1394.mediaserver.processing.usecase.MediaAwareUploading;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.Payload;
@@ -56,32 +57,7 @@ public class SpringWebFluxConfiguration {
 
   @Bean
   MediaAwareUploading<DataBufferPayload> uploadingMedia() {
-    return new MediaAwareUploading<>(uploading(), bBinaryPublisher -> new MediaAwareBinaryPublisher<DataBufferPayload>(bBinaryPublisher, null) {
-      @Override
-      @SneakyThrows
-      protected byte[] getByte(DataBufferPayload payload) {
-        final DataBuffer dataBuffer = payload.getValue().retainedSlice(0, (int) payload.getSize());
-
-        DataBufferUtils.retain(payload.getValue());
-        DataBufferUtils.retain(payload.getValue());
-        DataBufferUtils.retain(payload.getValue());
-        DataBufferUtils.retain(payload.getValue());
-        DataBufferUtils.retain(payload.getValue());
-        DataBufferUtils.retain(payload.getValue());
-        DataBufferUtils.retain(dataBuffer);
-        DataBufferUtils.retain(dataBuffer);
-        DataBufferUtils.retain(dataBuffer);
-        DataBufferUtils.retain(dataBuffer);
-        DataBufferUtils.retain(dataBuffer);
-        DataBufferUtils.retain(dataBuffer);
-        DataBufferUtils.retain(dataBuffer);
-
-
-        byte[] ret = new byte[(int) payload.getSize()];
-        dataBuffer.asInputStream(false).read(ret);
-        return ret;
-      }
-    });
+    return new MediaAwareUploading<>(uploading(), publisher -> new DataBufferMediaAwareBinaryPublisher(publisher, null));
   }
 
   @Bean
