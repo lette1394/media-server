@@ -4,10 +4,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import io.lette1394.mediaserver.TestByteBufAllocator;
 import io.lette1394.mediaserver.processing.domain.MediaAwareBinaryPublisher.Listener;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
@@ -46,57 +46,65 @@ class DataBufferMediaAwareBinaryPublisherTest {
   @Test
   @SneakyThrows
   void imageWithLargeBuffer() {
-    ensureLeakDetection();
+    ensureLeakDetectionEnabled();
 
     triggerSubject(imagePath, 2 * 1024 * 1024);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(3840L));
     assertThat(decodedHeight.get(), is(2160L));
+    assertNoLeaks();
   }
 
   @Test
   @SneakyThrows
   void imageWithSmallBuffer() {
-    ensureLeakDetection();
+    ensureLeakDetectionEnabled();
 
     triggerSubject(imagePath, 128);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(3840L));
     assertThat(decodedHeight.get(), is(2160L));
+    assertNoLeaks();
   }
 
   @Test
   @SneakyThrows
   void videoWithLargeBuffer() {
-    ensureLeakDetection();
+    ensureLeakDetectionEnabled();
 
     triggerSubject(videoPath, 2 * 1024 * 1024);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(1280L));
     assertThat(decodedHeight.get(), is(720L));
+    assertNoLeaks();
   }
 
   @Test
   @SneakyThrows
   void videoWithSmallBuffer() {
-    ensureLeakDetection();
+    ensureLeakDetectionEnabled();
 
     triggerSubject(videoPath, 128);
 
     assertThat(decoded.get(), is(true));
     assertThat(decodedWidth.get(), is(1280L));
     assertThat(decodedHeight.get(), is(720L));
+    assertNoLeaks();
   }
 
-  private void ensureLeakDetection() {
+  private void ensureLeakDetectionEnabled() {
     final String leakDetectionLevel = System.getProperty("io.netty.leakDetection.level");
     if (StringUtils.isBlank(leakDetectionLevel) ||
       !StringUtils.equalsIgnoreCase(leakDetectionLevel, "PARANOID")) {
       fail("need jvm option: -Dio.netty.leakDetection.level=PARANOID");
     }
+  }
+
+  private void assertNoLeaks() {
+    TestByteBufAllocator.checkForLeaks();
   }
 
   private void triggerSubject(String binaryPath, int bufferSize) throws InterruptedException {
@@ -126,7 +134,7 @@ class DataBufferMediaAwareBinaryPublisherTest {
   private BinaryPublisher<DataBufferPayload> binarySource(String path, int bufferSize) {
     return () -> DataBufferUtils.read(
       getPath(path),
-      new NettyDataBufferFactory(new UnpooledByteBufAllocator(true)),
+      new NettyDataBufferFactory(TestByteBufAllocator.getInstance()),
       bufferSize)
       .map(dataBuffer -> new DataBufferPayload(dataBuffer));
   }
