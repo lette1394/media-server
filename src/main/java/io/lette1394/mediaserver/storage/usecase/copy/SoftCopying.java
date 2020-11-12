@@ -86,6 +86,7 @@ public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
     public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
       throws ObjectNotFoundException {
 
+      // TODO: recursive
       return delegate
         .find(identifier)
         .thenApply(maybeSoftCopiedObject -> {

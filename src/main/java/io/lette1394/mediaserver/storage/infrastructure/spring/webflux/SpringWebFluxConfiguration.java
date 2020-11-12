@@ -1,11 +1,8 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 
-import io.lette1394.mediaserver.processing.domain.MediaAwareBinaryPublisher;
-import io.lette1394.mediaserver.processing.instrastructure.DataBufferMediaAwareBinaryPublisher;
 import io.lette1394.mediaserver.processing.usecase.MediaAwareUploading;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
-import io.lette1394.mediaserver.storage.domain.Payload;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.infrastructure.spring.SimpleTranslating;
@@ -19,11 +16,9 @@ import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingHardCopying;
 import io.lette1394.mediaserver.storage.usecase.copy.ReplicatingHardCopying.ReplicaFollowingObjectRepository;
 import io.lette1394.mediaserver.storage.usecase.copy.SoftCopying;
 import io.lette1394.mediaserver.storage.usecase.copy.SoftCopying.SoftCopyFollowingObjectRepository;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelOption;
-import lombok.SneakyThrows;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -34,8 +29,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
 @Configuration
@@ -57,7 +50,7 @@ public class SpringWebFluxConfiguration {
 
   @Bean
   MediaAwareUploading<DataBufferPayload> uploadingMedia() {
-    return new MediaAwareUploading<>(uploading(), publisher -> new DataBufferMediaAwareBinaryPublisher(publisher, null));
+    return new MediaAwareUploading<>(uploading());
   }
 
   @Bean

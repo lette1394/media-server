@@ -13,6 +13,7 @@ import io.lette1394.mediaserver.common.Testable;
 import io.vavr.control.Try;
 import java.util.Set;
 
+@FunctionalInterface
 public interface ObjectPolicy extends Testable<ObjectSnapshot> {
 
   ObjectPolicy REJECT_RESUME_UPLOAD = snapshot -> {

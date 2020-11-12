@@ -1,10 +1,6 @@
 package io.lette1394.mediaserver.processing.domain;
 
-import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Payload;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
 
 // TODO: MediaDecoder 에서는 image/video/audio/file 등
 //  여러 타입이 서로 다른 decode 결과를 가지므로 (속성 등, file은 width, height 등이 없다)
@@ -21,9 +17,27 @@ import java.util.concurrent.CompletableFuture;
 //  tag는 변경될 수 있으나 별도 usecase에서 처리되어야 하는 거고,
 //  하나의 usecase에서는 업로드가 끝난 뒤에 tag를 업데이트 하는 방식은
 //  있을 수 없다.
+
+// TODO: FailedAtMaxByteSizeMediaDecoder
+//  FailedByTimeoutMediaDecoder
+//  SingleThreadFailedByTimeoutMediaDecoder
 public interface MediaDecoder<B extends Payload> {
   // TODO: 일단 이 메서드를 구현하는 것 부터 해보자.
   //  local - apache tika 를 사용해서,
   //  remote - 뭐... 음... 뭘로 해야할 지는 모르겠지만 test는 가능할 것이다
-  CompletableFuture<Map<String, String>> decode(BinaryPublisher<B> binaryPublisher);
+
+  void appendNext(Payload payload);
+
+  void tryDecode();
+
+  interface Listener {
+    default void beforeDecodingStarted() {
+    }
+
+    default void afterDecoded(Metadata decoded) {
+    }
+
+    default void afterDecodeFailed() {
+    }
+  }
 }
