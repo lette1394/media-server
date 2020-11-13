@@ -32,6 +32,12 @@ public class MediaAwareBinaryPublisher<B extends Payload> extends
         mediaDecoder.appendNext(payload);
         super.onNext(payload);
       }
+
+      @Override
+      public void onComplete() {
+        mediaDecoder.appendCompleted();
+        super.onComplete();
+      }
     });
   }
 }

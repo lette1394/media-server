@@ -26,7 +26,9 @@ public interface MediaDecoder<B extends Payload> {
   //  local - apache tika 를 사용해서,
   //  remote - 뭐... 음... 뭘로 해야할 지는 모르겠지만 test는 가능할 것이다
 
-  void appendNext(Payload payload);
+  void appendNext(B payload);
+
+  void appendCompleted();
 
   void tryDecode();
 
@@ -34,10 +36,10 @@ public interface MediaDecoder<B extends Payload> {
     default void beforeDecodingStarted() {
     }
 
-    default void afterDecoded(Metadata decoded) {
+    default void afterDecoded(DecodedMetadata decodedMetadata) {
     }
 
-    default void afterDecodeFailed() {
+    default void afterDecodeFailed(Throwable throwable) {
     }
   }
 }
