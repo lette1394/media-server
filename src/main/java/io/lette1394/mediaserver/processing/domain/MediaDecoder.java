@@ -26,6 +26,12 @@ public interface MediaDecoder<B extends Payload> {
   //  local - apache tika 를 사용해서,
   //  remote - 뭐... 음... 뭘로 해야할 지는 모르겠지만 test는 가능할 것이다
 
+
+
+  // TODO(20.11.14): 이거 꼭 이렇게 해야하나?
+  //  그냥 BinaryPublisher 를 받으면 안 돼?
+  //  그걸 받는게 더 나을 거 같은데...
+  //  listener는 알아서 터트려주고 말이야. 
   void appendNext(B payload);
 
   void appendCompleted();
