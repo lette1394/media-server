@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.processing.instrastructure;
 
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -133,7 +134,7 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
     final CompletableFuture<Void> ret = new CompletableFuture<>();
     final MediaDecoder<DataBufferPayload> subject = subject(binaryPublisher);
 
-    Flux.from(binaryPublisher.publisher())
+    Flux.from(binaryPublisher)
       .subscribe(payload -> payload.release());
 
     return ret;
@@ -148,11 +149,11 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
   }
 
   private BinaryPublisher<DataBufferPayload> binarySource(String path, int bufferSize) {
-    return () -> DataBufferUtils.read(
+    return adapt(DataBufferUtils.read(
       getPath(path),
       new NettyDataBufferFactory(memoryLeakDetectableByteBufAllocator),
       bufferSize)
-      .map(dataBuffer -> new DataBufferPayload(dataBuffer));
+      .map(dataBuffer -> new DataBufferPayload(dataBuffer)));
   }
 
   private Listener composite(Listener first, Listener last) {

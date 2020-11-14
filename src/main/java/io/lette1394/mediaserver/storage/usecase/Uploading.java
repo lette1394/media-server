@@ -26,12 +26,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 @RequiredArgsConstructor
-public class Uploading<BUFFER extends Payload> {
+public class Uploading<P extends Payload> {
 
-  private final BinaryRepository<BUFFER> binaryRepository;
-  private final ObjectRepository<BUFFER> objectRepository;
+  private final BinaryRepository<P> binaryRepository;
+  private final ObjectRepository<P> objectRepository;
 
-  private final ObjectFactory<BUFFER> objectFactory = new ObjectFactory<>();
+  private final ObjectFactory<P> objectFactory = new ObjectFactory<>();
 
   // 요구사항
   // 1. resume 업로드 되는 친구/아예 안되는 친구 효율적인 제어 흐름...
@@ -43,17 +43,17 @@ public class Uploading<BUFFER extends Payload> {
 //
 
 
-  public CompletableFuture<Object<BUFFER>> upload(Command<BUFFER> command) {
+  public CompletableFuture<Object<P>> upload(Command<P> command) {
     return objectRepository
       .find(command.identifier)
       .handle(dispatch(command))
       .thenCompose(__ -> __);
   }
 
-  private BiFunction<Object<BUFFER>, Throwable, CompletableFuture<Object<BUFFER>>> dispatch(
-    Command<BUFFER> command) {
+  private BiFunction<Object<P>, Throwable, CompletableFuture<Object<P>>> dispatch(
+    Command<P> command) {
     final Identifier identifier = command.identifier;
-    final BinaryPublisher<BUFFER> upstream = command.upstream;
+    final BinaryPublisher<P> upstream = command.upstream;
 
     return (object, e) -> {
       if (isObjectExists(e)) {
@@ -69,39 +69,39 @@ public class Uploading<BUFFER extends Payload> {
     };
   }
 
-  private Predicate<Object<BUFFER>> is(ObjectType objectType) {
+  private Predicate<Object<P>> is(ObjectType objectType) {
     return object -> object.is(objectType);
   }
 
-  private CompletableFuture<Object<BUFFER>> append(Object<BUFFER> object,
-    BinaryPublisher<BUFFER> upstream) {
-    final BinaryPublisher<BUFFER> binary = object.upload(upstream);
+  private CompletableFuture<Object<P>> append(Object<P> object,
+    BinaryPublisher<P> upstream) {
+    final BinaryPublisher<P> binary = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
     return binaryRepository.append(binaryPath, binary)
       .thenCompose(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Object<BUFFER>> create(Identifier identifier,
-    BinaryPublisher<BUFFER> upstream) {
-    final Object<BUFFER> object = objectFactory.create(identifier);
-    final BinaryPublisher<BUFFER> binaryPublisher = object.upload(upstream);
+  private CompletableFuture<Object<P>> create(Identifier identifier,
+    BinaryPublisher<P> upstream) {
+    final Object<P> object = objectFactory.create(identifier);
+    final BinaryPublisher<P> binaryPublisher = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(identifier);
 
     return binaryRepository.create(binaryPath, binaryPublisher)
       .thenCompose(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Object<BUFFER>> overwrite(Object<BUFFER> object,
-    BinaryPublisher<BUFFER> upstream) {
-    final BinaryPublisher<BUFFER> binaryPublisher = object.upload(upstream);
+  private CompletableFuture<Object<P>> overwrite(Object<P> object,
+    BinaryPublisher<P> upstream) {
+    final BinaryPublisher<P> binaryPublisher = object.upload(upstream);
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
     return binaryRepository.create(binaryPath, binaryPublisher)
       .thenCompose(__ -> objectRepository.save(object));
   }
 
-  private CompletableFuture<Object<BUFFER>> abortUpload(Throwable e) {
+  private CompletableFuture<Object<P>> abortUpload(Throwable e) {
     return CompletableFuture.failedFuture(e);
   }
 

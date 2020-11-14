@@ -23,10 +23,9 @@ public class MediaAwareBinaryPublisher<B extends Payload> extends
     this.mediaDecoder = mediaDecoder;
   }
 
-  @Override
   @SneakyThrows
   public Publisher<B> publisher() {
-    return subscriber -> delegate.publisher().subscribe(new DelegatingSubscriber<>(subscriber) {
+//    return subscriber -> delegate.publisher().subscribe(new DelegatingSubscriber<>(subscriber) {
 //      @Override
 //      public void onNext(B payload) {
 //        mediaDecoder.appendNext(payload);
@@ -38,6 +37,6 @@ public class MediaAwareBinaryPublisher<B extends Payload> extends
 //        mediaDecoder.appendCompleted();
 //        super.onComplete();
 //      }
-    });
+    return null;
   }
 }

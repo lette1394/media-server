@@ -2,15 +2,15 @@ package io.lette1394.mediaserver.storage.domain;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
 @RequiredArgsConstructor
-public class DelegatingBinaryPublisher<BUFFER extends Payload> implements BinaryPublisher<BUFFER> {
-  protected final BinaryPublisher<BUFFER> delegate;
+public abstract class DelegatingBinaryPublisher<P extends Payload> implements BinaryPublisher<P> {
+  protected final BinaryPublisher<P> delegate;
 
   @Override
-  public Publisher<BUFFER> publisher() {
-    return delegate.publisher();
+  public void subscribe(Subscriber<? super P> s) {
+    delegate.subscribe(s);
   }
 
   @Override

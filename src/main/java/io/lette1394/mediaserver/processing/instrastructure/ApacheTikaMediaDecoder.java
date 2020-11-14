@@ -61,7 +61,7 @@ public class ApacheTikaMediaDecoder<B extends Payload> implements MediaDecoder<B
 
     used = true;
     ret = new CompletableFuture<>();
-    Flux.from(binaryPublisher.publisher())
+    Flux.from(binaryPublisher)
       .doOnNext(payload -> {
         onNextPayload(payload);
         tryDecode();

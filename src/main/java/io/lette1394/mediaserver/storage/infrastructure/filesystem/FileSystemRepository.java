@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
@@ -142,7 +143,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
   protected abstract void write(WritableByteChannel channel, T item);
 
   private BinaryPublisher<T> readBinary(BinaryPath binaryPath) {
-    return () -> read(createPath(binaryPath));
+    return adapt(read(createPath(binaryPath)));
   }
 
   private CompletableFuture<Void> writeBinary(
@@ -181,7 +182,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
       .newChannel(Files.newOutputStream(target, openOption));
     final CompletableFuture<Void> ret = new CompletableFuture<>();
 
-    Flux.from(binaryPublisher.publisher())
+    Flux.from(binaryPublisher)
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .doFinally(__ -> IOUtils.closeQuietly(channel, null))
@@ -195,7 +196,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
     final Context context = binaryPublisher.currentContext();
     try {
       final Path source = context.getOrDefault("filesystem.supplier.source", null);
-      binaryPublisher.publisher().subscribe(NoOperationSubscriber.instance());
+      binaryPublisher.subscribe(NoOperationSubscriber.instance());
 
       assert source != null;
       final Path copied = Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -233,11 +234,11 @@ public abstract class FileSystemRepository<T extends Payload> implements
     return path;
   }
 
-  private static class FileSystemBinaryPublisher<T extends Payload> extends
-    DelegatingBinaryPublisher<T> {
-    private final Path source;
+  private static class FileSystemBinaryPublisher<T extends Payload>
+    extends DelegatingBinaryPublisher<T> {
 
-    private Subscriber<? super T> subscriber;
+    private final Path source;
+    private Subscriber<? super T> originalSubscriber;
 
     public FileSystemBinaryPublisher(BinaryPublisher<T> delegate, Path source) {
       super(delegate);
@@ -245,13 +246,17 @@ public abstract class FileSystemRepository<T extends Payload> implements
     }
 
     @Override
-    public Publisher<T> publisher() throws UnsupportedOperationException {
-      final Publisher<T> async = delegate.publisher();
-      return subscriber -> async.subscribe(new DelegatingSubscriber<>(subscriber) {
+    public void subscribe(Subscriber<? super T> s) {
+      super.subscribe(new DelegatingSubscriber<T, T>(originalSubscriber) {
         @Override
         public void onSubscribe(Subscription s) {
-          FileSystemBinaryPublisher.this.subscriber = subscriber;
-          subscriber.onSubscribe(s);
+          FileSystemBinaryPublisher.this.originalSubscriber = delegate;
+          delegate.onSubscribe(s);
+        }
+
+        @Override
+        public void onNext(T t) {
+          delegate.onNext(t);
         }
       });
     }
@@ -260,11 +265,11 @@ public abstract class FileSystemRepository<T extends Payload> implements
     public Context currentContext() {
       final Consumer<Long> completeNormally = size -> {
         notifyBinarySize(size);
-        subscriber.onComplete();
+        originalSubscriber.onComplete();
       };
 
       final Consumer<Throwable> completeExceptionally
-        = throwable -> subscriber.onError(throwable);
+        = throwable -> originalSubscriber.onError(throwable);
 
       return delegate.currentContext()
         .put("filesystem.supplier.source", source)
@@ -274,7 +279,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
     @SuppressWarnings("unchecked")
     private void notifyBinarySize(Long size) {
-      subscriber.onNext((T) new Payload() {
+      originalSubscriber.onNext((T) new Payload() {
         @Override
         public long getSize() {
           return size;

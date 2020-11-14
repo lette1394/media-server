@@ -5,6 +5,7 @@ import static io.lette1394.mediaserver.matchers.Matchers.commandIs;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.got;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
@@ -55,7 +56,7 @@ class ObjectTest {
   }
 
   private <T extends Payload> void subscribe(BinaryPublisher<T> binaryPublisher) {
-    Flux.from(binaryPublisher.publisher())
+    Flux.from(binaryPublisher)
       .subscribe(__ -> {
       });
   }
@@ -114,7 +115,7 @@ class ObjectTest {
 
       private Object<StringPayload> subject(String payload) {
         final Object<StringPayload> object = anyObject();
-        final BinaryPublisher<StringPayload> binaryPublisher = object.upload(() -> anyStringPublisher(payload));
+        final BinaryPublisher<StringPayload> binaryPublisher = object.upload(adapt(anyStringPublisher(payload)));
 
         subscribe(binaryPublisher);
         return object;

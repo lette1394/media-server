@@ -1,6 +1,9 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
+
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
 import io.lette1394.mediaserver.storage.domain.Object;
@@ -16,10 +19,10 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
 
-  static final String TAG_COPYING_SOFT_COPIED                         = "copying.soft.copied";
+  static final String TAG_COPYING_SOFT_COPIED = "copying.soft.copied";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT = "copying.soft.copied.source.referenced.count";
-  static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA             = "copying.soft.copied.source.area";
-  static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY              = "copying.soft.copied.source.key";
+  static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA = "copying.soft.copied.source.area";
+  static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY = "copying.soft.copied.source.key";
 
   private final ObjectFactory<B> objectFactory;
   private final ObjectRepository<B> objectRepository;
@@ -55,13 +58,13 @@ public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
   private void pretendingToCopy(Object<B> sourceObject, Object<B> targetObject) {
     final Payload notifyPayload = () -> sourceObject.getSize();
     targetObject
-      .copyFrom(() -> Mono.just((B) notifyPayload))
-      .publisher().subscribe(new NoOperationSubscriber<>() {
-      @Override
-      public void onSubscribe(Subscription s) {
-        s.request(1L);
-      }
-    });
+      .copyFrom(adapt(Mono.just((B) notifyPayload)))
+      .subscribe(new NoOperationSubscriber<>() {
+        @Override
+        public void onSubscribe(Subscription s) {
+          s.request(1L);
+        }
+      });
   }
 
   private void increaseReferencedCount(Object<B> sourceObject) {

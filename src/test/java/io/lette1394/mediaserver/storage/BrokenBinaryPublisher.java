@@ -7,15 +7,14 @@ import static java.util.Objects.nonNull;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.DelegatingBinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Payload;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public class BrokenBinaryPublisher<T extends Payload> extends DelegatingBinaryPublisher<T> {
-  long exceptionAt;
-  long totalLength;
+public class BrokenBinaryPublisher<P extends Payload> extends DelegatingBinaryPublisher<P> {
+  private final long exceptionAt;
+  private final long totalLength;
 
-  public BrokenBinaryPublisher(long exceptionAt, BinaryPublisher<T> delegate) {
+  public BrokenBinaryPublisher(long exceptionAt, BinaryPublisher<P> delegate) {
     super(delegate);
     require(nonNull(delegate), "nonNull(binarySupplier)");
     require(exceptionAt >= 0, "exceptionAt >= 0");
@@ -27,51 +26,45 @@ public class BrokenBinaryPublisher<T extends Payload> extends DelegatingBinaryPu
   }
 
   @Override
-  public Publisher<T> publisher() {
-    final Publisher<T> async = delegate.publisher();
-    return new Publisher<>() {
-      private long position = 0;
-      private boolean triggered = false;
+  public void subscribe(Subscriber<? super P> subscriber) {
+    delegate.subscribe(new Subscriber<>() {
+      long position = 0;
+      boolean triggered = false;
 
       @Override
-      public void subscribe(Subscriber<? super T> subscriber) {
-        async.subscribe(new Subscriber<>() {
-          @Override
-          public void onSubscribe(Subscription s) {
-            subscriber.onSubscribe(s);
-          }
-
-          @Override
-          public void onNext(T item) {
-            if (triggered) {
-              return;
-            }
-            if (position >= exceptionAt) {
-              triggered = true;
-              onError(new BrokenIOException(
-                format("broken read triggered, size:[%s], exceptionAt:[%s]",
-                  totalLength,
-                  exceptionAt)));
-            } else {
-              position += item.getSize();
-              subscriber.onNext(item);
-            }
-          }
-
-          @Override
-          public void onError(Throwable t) {
-            subscriber.onError(t);
-          }
-
-          @Override
-          public void onComplete() {
-            if (triggered) {
-              return;
-            }
-            subscriber.onComplete();
-          }
-        });
+      public void onSubscribe(Subscription s) {
+        subscriber.onSubscribe(s);
       }
-    };
+
+      @Override
+      public void onNext(P item) {
+        if (triggered) {
+          return;
+        }
+        if (position >= exceptionAt) {
+          triggered = true;
+          onError(new BrokenIOException(
+            format("broken read triggered, size:[%s], exceptionAt:[%s]",
+              totalLength,
+              exceptionAt)));
+        } else {
+          position += item.getSize();
+          subscriber.onNext(item);
+        }
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        subscriber.onError(t);
+      }
+
+      @Override
+      public void onComplete() {
+        if (triggered) {
+          return;
+        }
+        subscriber.onComplete();
+      }
+    });
   }
 }

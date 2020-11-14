@@ -2,16 +2,18 @@ package io.lette1394.mediaserver.storage.domain;
 
 import java.util.Optional;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class BinarySupplierFactory {
-
-  public static <BUFFER extends Payload> BinaryPublisher<BUFFER> from(Publisher<BUFFER> publisher,
+  public static <P extends Payload> BinaryPublisher<P> from(
+    Publisher<P> publisher,
     Optional<Long> length) {
-    return new BinaryPublisher<BUFFER>() {
+
+    return new BinaryPublisher<P>() {
       @Override
-      public Publisher<BUFFER> publisher() {
-        return publisher;
+      public void subscribe(Subscriber<? super P> s) {
+        publisher.subscribe(s);
       }
 
       @Override
