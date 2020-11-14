@@ -22,8 +22,9 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
-public class ApacheTikaMediaDecoder<B extends Payload> implements MediaDecoder<B> {
+public class ApacheTikaMediaDecoder<P extends Payload> implements MediaDecoder {
 
   private static final Parser parser = new AutoDetectParser(TikaConfig.getDefaultConfig());
 
@@ -31,21 +32,21 @@ public class ApacheTikaMediaDecoder<B extends Payload> implements MediaDecoder<B
   private final int limitByteArraySize;
   private final ByteArrayOutputStream holder;
 
-  private final BinaryPublisher<B> binaryPublisher;
-  private final PayloadParser<B> payloadParser;
+  private final BinaryPublisher<P> binaryPublisher;
+  private final PayloadParser<P> payloadParser;
 
   private boolean decoded = false;
   private boolean allBinaryUploaded = false;
 
-  private boolean used = false;
+  private boolean triggered = false;
 
   private CompletableFuture<DecodedMetadata> ret;
 
   public ApacheTikaMediaDecoder(
     int initialByteArraySize,
     int limitByteArraySize,
-    BinaryPublisher<B> binaryPublisher,
-    PayloadParser<B> payloadParser) {
+    BinaryPublisher<P> binaryPublisher,
+    PayloadParser<P> payloadParser) {
 
     this.limitByteArraySize = limitByteArraySize;
     this.holder = new ByteArrayOutputStream(initialByteArraySize);
@@ -55,12 +56,12 @@ public class ApacheTikaMediaDecoder<B extends Payload> implements MediaDecoder<B
 
   @Override
   public CompletableFuture<DecodedMetadata> decode() {
-    if (used) {
+    if (triggered) {
       return CompletableFuture.failedFuture(new RuntimeException("cannot reuse media decoder"));
     }
-
-    used = true;
+    triggered = true;
     ret = new CompletableFuture<>();
+
     Flux.from(binaryPublisher)
       .doOnNext(payload -> {
         onNextPayload(payload);
@@ -76,13 +77,12 @@ public class ApacheTikaMediaDecoder<B extends Payload> implements MediaDecoder<B
     return ret;
   }
 
-  private void onNextPayload(B payload) {
+  private void onNextPayload(P payload) {
     if (holder.size() > limitByteArraySize) {
       payload.release();
       return;
     }
     holder.writeBytes(payloadParser.parse(payload));
-    payload.release();
   }
 
   public void tryDecode() {
@@ -98,6 +98,9 @@ public class ApacheTikaMediaDecoder<B extends Payload> implements MediaDecoder<B
       parser.parse(new ByteArrayInputStream(holder.toByteArray()), handler, metadata, context);
 
       if (!isDecoded(metadata)) {
+        if (allBinaryUploaded) {
+          ret.completeExceptionally(new RuntimeException("cannot decode"));
+        }
         return;
       }
 

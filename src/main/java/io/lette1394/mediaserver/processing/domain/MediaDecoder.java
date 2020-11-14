@@ -22,17 +22,6 @@ import java.util.concurrent.CompletableFuture;
 // TODO: FailedAtMaxByteSizeMediaDecoder
 //  FailedByTimeoutMediaDecoder
 //  SingleThreadFailedByTimeoutMediaDecoder
-public interface MediaDecoder<B extends Payload> {
+public interface MediaDecoder {
   CompletableFuture<DecodedMetadata> decode();
-
-  interface Listener {
-    default void beforeDecodingStarted() {
-    }
-
-    default void afterDecoded(DecodedMetadata decodedMetadata) {
-    }
-
-    default void afterDecodeFailed(Throwable throwable) {
-    }
-  }
 }

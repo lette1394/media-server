@@ -15,9 +15,4 @@ public class BytePayload implements Payload {
   public long getSize() {
     return 1;
   }
-
-  @Override
-  public void release() {
-    // no op
-  }
 }

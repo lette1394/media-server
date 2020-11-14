@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.domain;
 
 import java.util.Optional;
+import java.util.function.Function;
 import org.reactivestreams.Publisher;
 
 /**
@@ -23,7 +24,7 @@ import org.reactivestreams.Publisher;
  */
 
 @FunctionalInterface
-public interface BinaryPublisher<P extends Payload> extends Publisher<P> {
+public interface BinaryPublisher<T extends Payload> extends Publisher<T> {
   static <P extends Payload> BinaryPublisher<P> adapt(Publisher<P> toAdapt) {
     return toAdapt::subscribe;
   }
@@ -34,6 +35,15 @@ public interface BinaryPublisher<P extends Payload> extends Publisher<P> {
 
   default Context currentContext() {
     return Context.empty();
+  }
+
+  default <R extends Payload> BinaryPublisher<R> map(Function<T, R> mapper) {
+    return subscriber -> subscribe(new DelegatingSubscriber<T, R>(subscriber) {
+      @Override
+      public void onNext(T payload) {
+        subscriber.onNext(mapper.apply(payload));
+      }
+    });
   }
 }
 

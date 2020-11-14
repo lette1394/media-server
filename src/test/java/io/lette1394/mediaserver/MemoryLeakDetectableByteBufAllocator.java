@@ -26,6 +26,7 @@ import io.netty.util.ResourceLeakDetector.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class MemoryLeakDetectableByteBufAllocator extends PooledByteBufAllocator {
   private final List<ByteBuf> trackedBuffers = new ArrayList<>();
@@ -80,15 +81,19 @@ public class MemoryLeakDetectableByteBufAllocator extends PooledByteBufAllocator
         .stream()
         .filter(byteBuf -> byteBuf.refCnt() > 0)
         .count();
-      // Make tracked buffers eligible for GC
-      trackedBuffers.clear();
     }
     if (referencedBuffersCount > 0) {
+      final String refCnts = trackedBuffers
+        .stream()
+        .map(byteBuf -> "" + byteBuf.refCnt())
+        .collect(Collectors.joining(", "));
+      // Make tracked buffers eligible for GC
+      trackedBuffers.clear();
       // Trigger a GC. This will hopefully (but not necessarily) print
       // details about detected leaks to standard error before the error
       // is thrown.
       System.gc();
-      throw new AssertionError("Found a netty ByteBuf leak!");
+      throw new AssertionError(String.format("Found a netty ByteBuf leak! actual:[%s]", refCnts));
     }
   }
 }

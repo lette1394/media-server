@@ -234,20 +234,20 @@ public abstract class FileSystemRepository<T extends Payload> implements
     return path;
   }
 
-  private static class FileSystemBinaryPublisher<T extends Payload>
-    extends DelegatingBinaryPublisher<T> {
+  private static class FileSystemBinaryPublisher<P extends Payload>
+    extends DelegatingBinaryPublisher<P> {
 
     private final Path source;
-    private Subscriber<? super T> originalSubscriber;
+    private Subscriber<? super P> originalSubscriber;
 
-    public FileSystemBinaryPublisher(BinaryPublisher<T> delegate, Path source) {
+    public FileSystemBinaryPublisher(BinaryPublisher<P> delegate, Path source) {
       super(delegate);
       this.source = source;
     }
 
     @Override
-    public void subscribe(Subscriber<? super T> s) {
-      super.subscribe(new DelegatingSubscriber<T, T>(originalSubscriber) {
+    public void subscribe(Subscriber<? super P> s) {
+      super.subscribe(new DelegatingSubscriber<P, P>(originalSubscriber) {
         @Override
         public void onSubscribe(Subscription s) {
           FileSystemBinaryPublisher.this.originalSubscriber = delegate;
@@ -255,8 +255,8 @@ public abstract class FileSystemRepository<T extends Payload> implements
         }
 
         @Override
-        public void onNext(T t) {
-          delegate.onNext(t);
+        public void onNext(P payload) {
+          delegate.onNext(payload);
         }
       });
     }
@@ -279,16 +279,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
 
     @SuppressWarnings("unchecked")
     private void notifyBinarySize(Long size) {
-      originalSubscriber.onNext((T) new Payload() {
-        @Override
-        public long getSize() {
-          return size;
-        }
-
-        @Override
-        public void release() {
-        }
-      });
+      originalSubscriber.onNext((P) (Payload) () -> size);
     }
   }
 }

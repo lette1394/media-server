@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 public class MediaAwareUploading<B extends Payload> {
   private final Uploading<B> uploading;
 
-  private MediaDecoder<B> mediaDecoder;
+  private MediaDecoder mediaDecoder;
   // 방법 1. MediaAwareBinarySupplier를 도입한다
   // 방법 2. MediaDecoder 같은걸로 명시적으로 decode...
 

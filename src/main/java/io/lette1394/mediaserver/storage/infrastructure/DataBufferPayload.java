@@ -15,7 +15,14 @@ public class DataBufferPayload implements Payload {
   }
 
   @Override
-  public void release() {
+  public DataBufferPayload release() {
     DataBufferUtils.release(value);
+    return this;
+  }
+
+  @Override
+  public DataBufferPayload retain() {
+    DataBufferUtils.retain(value);
+    return this;
   }
 }

@@ -14,6 +14,7 @@ public interface PayloadParser<B extends Payload> {
       final DataBuffer buffer = payload.getValue();
       final byte[] ret = new byte[buffer.readableByteCount()];
       buffer.read(ret);
+      payload.release();
       return ret;
     }
   }

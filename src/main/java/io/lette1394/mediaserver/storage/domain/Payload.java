@@ -5,7 +5,11 @@ public interface Payload {
 
   long getSize();
 
-  default void release() {
-    // no op
+  default Payload release() {
+    return this;
+  }
+
+  default Payload retain() {
+    return this;
   }
 }
