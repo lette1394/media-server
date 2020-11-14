@@ -8,6 +8,7 @@ import io.lette1394.mediaserver.processing.domain.DecodedMetadata;
 import io.lette1394.mediaserver.processing.domain.MediaDecoder;
 import io.lette1394.mediaserver.processing.domain.MediaDecoder.Listener;
 import io.lette1394.mediaserver.processing.domain.PayloadParser.DataBufferPayloadParser;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -117,37 +118,37 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
   }
 
   private CompletableFuture<Void> subjectWithLargeChunk(String path, Listener listener) {
-    return subject(path, 1024 * 8, listener);
+    return subject(path, 1024 * 8);
   }
 
   private CompletableFuture<Void> subjectWithSmallChunk(String path, Listener listener) {
-    return subject(path, 1024, listener);
+    return subject(path, 1024);
   }
 
-  private CompletableFuture<Void> subject(String path, int bufferSize, Listener listener) {
-    final CompletableFuture<Void> ret = new CompletableFuture<>();
-    final MediaDecoder<DataBufferPayload> subject = subject(listener);
+  private CompletableFuture<Void> subject(String path, int bufferSize) {
+    final BinaryPublisher<DataBufferPayload> binaryPublisher = binarySource(path, bufferSize);
 
-    Flux.from(binarySource(path, bufferSize))
-      .doOnNext(buffer -> subject.appendNext(buffer))
-      .doOnEach(__ -> subject.tryDecode())
-      .doOnError(e -> ret.completeExceptionally(e))
-      .doFinally(__ -> ret.complete(null))
+    // TODO: binaryPublisher.map( // 여기서 payload ref count 를 하나 늘려야 한다... // )
+
+    final CompletableFuture<Void> ret = new CompletableFuture<>();
+    final MediaDecoder<DataBufferPayload> subject = subject(binaryPublisher);
+
+    Flux.from(binaryPublisher.publisher())
       .subscribe(payload -> payload.release());
 
     return ret;
   }
 
-  private MediaDecoder<DataBufferPayload> subject(Listener listener) {
+  private MediaDecoder<DataBufferPayload> subject(BinaryPublisher<DataBufferPayload> binaryPublisher) {
     return new ApacheTikaMediaDecoder<>(
       1024 * 128,
       1024 * 1024,
-      new DataBufferPayloadParser(),
-      listener);
+      binaryPublisher,
+      new DataBufferPayloadParser());
   }
 
-  private Publisher<DataBufferPayload> binarySource(String path, int bufferSize) {
-    return DataBufferUtils.read(
+  private BinaryPublisher<DataBufferPayload> binarySource(String path, int bufferSize) {
+    return () -> DataBufferUtils.read(
       getPath(path),
       new NettyDataBufferFactory(memoryLeakDetectableByteBufAllocator),
       bufferSize)

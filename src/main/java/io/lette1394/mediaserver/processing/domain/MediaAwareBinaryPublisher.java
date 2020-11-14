@@ -27,17 +27,17 @@ public class MediaAwareBinaryPublisher<B extends Payload> extends
   @SneakyThrows
   public Publisher<B> publisher() {
     return subscriber -> delegate.publisher().subscribe(new DelegatingSubscriber<>(subscriber) {
-      @Override
-      public void onNext(B payload) {
-        mediaDecoder.appendNext(payload);
-        super.onNext(payload);
-      }
-
-      @Override
-      public void onComplete() {
-        mediaDecoder.appendCompleted();
-        super.onComplete();
-      }
+//      @Override
+//      public void onNext(B payload) {
+//        mediaDecoder.appendNext(payload);
+//        super.onNext(payload);
+//      }
+//
+//      @Override
+//      public void onComplete() {
+//        mediaDecoder.appendCompleted();
+//        super.onComplete();
+//      }
     });
   }
 }

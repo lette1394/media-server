@@ -25,6 +25,8 @@ import org.reactivestreams.Publisher;
 
 @FunctionalInterface
 public interface BinaryPublisher<BUFFER extends Payload> {
+  // TODO: rename or.... 이거 그냥 publisher 를 상속받아야 하는 건 아닌지?
+  //  매우매우매우매우 큰 + 별 의미없는 변경이 예상된다...
   Publisher<BUFFER> publisher();
 
   default Optional<Long> length() {

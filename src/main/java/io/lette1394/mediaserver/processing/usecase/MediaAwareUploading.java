@@ -20,7 +20,7 @@ public class MediaAwareUploading<B extends Payload> {
 
   public CompletableFuture<Object<B>> upload(Command<B> command) {
 
-    mediaDecoder.tryDecode();
+    mediaDecoder.decode();
 
     // TODO: Uploading class public method를 풍부하게 만들어야 할 거 같다...
     return uploading.upload(command);
