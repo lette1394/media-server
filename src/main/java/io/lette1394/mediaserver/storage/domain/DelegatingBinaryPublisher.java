@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Subscriber;
 
 @RequiredArgsConstructor
-public abstract class DelegatingBinaryPublisher<P extends Payload> implements BinaryPublisher<P> {
+public class DelegatingBinaryPublisher<P extends Payload> implements BinaryPublisher<P> {
   protected final BinaryPublisher<P> delegate;
 
   @Override

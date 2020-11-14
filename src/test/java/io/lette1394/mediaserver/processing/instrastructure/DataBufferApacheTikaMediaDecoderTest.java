@@ -69,17 +69,15 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
   }
 
   private CompletableFuture<DecodedMetadata> subject(String path, int bufferSize) {
-    final BinaryPublisher<DataBufferPayload> retainedBinaryPublisher = binarySource(path, bufferSize)
-      .map(payload -> payload.retain());
+    final BinaryPublisher<DataBufferPayload> retainedBroadcastingPublisher =
+      binarySource(path, bufferSize)
+        .broadcast(2);
 
-    final BinaryPublisher<DataBufferPayload> broadcasted = BinaryPublisher.adapt(Flux.from(retainedBinaryPublisher)
-      .publish().autoConnect(2));
-
-    Flux.from(broadcasted)
+    Flux.from(retainedBroadcastingPublisher)
       .doOnNext(payload -> payload.release())
       .subscribe();
 
-    return subject(broadcasted).decode();
+    return subject(retainedBroadcastingPublisher).decode();
   }
 
   private MediaDecoder subject(BinaryPublisher<DataBufferPayload> binaryPublisher) {
