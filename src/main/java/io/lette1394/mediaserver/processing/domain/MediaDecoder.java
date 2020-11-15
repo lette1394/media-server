@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.processing.domain;
 
-import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.concurrent.CompletableFuture;
 
 // TODO: MediaDecoder 에서는 image/video/audio/file 등

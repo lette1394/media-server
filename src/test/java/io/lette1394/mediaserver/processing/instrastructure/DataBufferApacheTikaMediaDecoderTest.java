@@ -2,7 +2,6 @@ package io.lette1394.mediaserver.processing.instrastructure;
 
 import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
 
 import io.lette1394.mediaserver.MemoryLeakTest;
@@ -24,12 +23,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
 @Tag("slow")
 class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
   static String imagePath = "/sample_image_3840x2160_537055_bytes.jpg";
-  static String videoPath = "/sample_video_1280x720_31491130_bytes.mp4";
+  static String videoPath = "/sample_video_480x270_1570024_bytes.mp4";
 
   AtomicBoolean decoded;
   AtomicLong decodedWidth;
@@ -60,8 +58,8 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
   void video() {
     final DecodedMetadata metadata = subject(videoPath).join();
 
-    assertThat(metadata.getAsLong("tiff:ImageWidth"), is(1280L));
-    assertThat(metadata.getAsLong("tiff:ImageLength"), is(720L));
+    assertThat(metadata.getAsLong("tiff:ImageWidth"), is(480L));
+    assertThat(metadata.getAsLong("tiff:ImageLength"), is(270L));
   }
 
   private CompletableFuture<DecodedMetadata> subject(String path) {
