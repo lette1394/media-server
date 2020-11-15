@@ -114,6 +114,10 @@ public class Object<P extends Payload> extends AggregateRoot {
     tags.addTag(key, value);
   }
 
+  public void addAllTag(Tags tags) {
+    this.tags.addAllTag(tags);
+  }
+
   public Object<P> with(BinaryPath binaryPath) {
     return Object.<P>builder()
       .binaryPath(binaryPath)

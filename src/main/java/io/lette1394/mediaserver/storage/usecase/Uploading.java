@@ -8,8 +8,8 @@ import static io.vavr.API.Match;
 import static io.vavr.Predicates.instanceOf;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
-import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
@@ -17,9 +17,11 @@ import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
 import io.lette1394.mediaserver.storage.domain.Payload;
-import java.util.Map;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +49,9 @@ public class Uploading<P extends Payload> {
     return objectRepository
       .find(command.identifier)
       .handle(dispatch(command))
-      .thenCompose(__ -> __);
+      .thenCompose(unwrap())
+      .thenCombine(command.tags, addAllTags())
+      .thenCompose(saveObject());
   }
 
   private BiFunction<Object<P>, Throwable, CompletableFuture<Object<P>>> dispatch(
@@ -69,6 +73,17 @@ public class Uploading<P extends Payload> {
     };
   }
 
+  private BiFunction<Object<P>, Tags, Object<P>> addAllTags() {
+    return (object, tags) -> {
+      object.addAllTag(tags);
+      return object;
+    };
+  }
+
+  private Function<Object<P>, CompletionStage<Object<P>>> saveObject() {
+    return object -> objectRepository.save(object);
+  }
+
   private Predicate<Object<P>> is(ObjectType objectType) {
     return object -> object.is(objectType);
   }
@@ -79,7 +94,7 @@ public class Uploading<P extends Payload> {
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
     return binaryRepository.append(binaryPath, binary)
-      .thenCompose(__ -> objectRepository.save(object));
+      .thenApply(__ -> object);
   }
 
   private CompletableFuture<Object<P>> create(Identifier identifier,
@@ -89,7 +104,7 @@ public class Uploading<P extends Payload> {
     final BinaryPath binaryPath = binaryPath(identifier);
 
     return binaryRepository.create(binaryPath, binaryPublisher)
-      .thenCompose(__ -> objectRepository.save(object));
+      .thenApply(__ -> object);
   }
 
   private CompletableFuture<Object<P>> overwrite(Object<P> object,
@@ -98,7 +113,7 @@ public class Uploading<P extends Payload> {
     final BinaryPath binaryPath = binaryPath(object.getIdentifier());
 
     return binaryRepository.create(binaryPath, binaryPublisher)
-      .thenCompose(__ -> objectRepository.save(object));
+      .thenApply(__ -> object);
   }
 
   private CompletableFuture<Object<P>> abortUpload(Throwable e) {
@@ -113,20 +128,33 @@ public class Uploading<P extends Payload> {
     return throwable == null;
   }
 
+  private Function<CompletableFuture<Object<P>>, CompletionStage<Object<P>>> unwrap() {
+    return __ -> __;
+  }
+
   @Value
   @Builder
-  public static class Command<BUFFER extends Payload> {
-    Identifier identifier;
-    Map<String, String> tags;
-    // TODO: CompletableFuture tag
-    BinaryPublisher<BUFFER> upstream;
+  public static class Command<P extends Payload> {
 
-    public Command<BUFFER> with(BinaryPublisher<BUFFER> upstream) {
-      return Command.<BUFFER>builder()
+    Identifier identifier;
+    CompletableFuture<Tags> tags;
+    BinaryPublisher<P> upstream;
+
+    public Command<P> with(BinaryPublisher<P> upstream) {
+      return Command.<P>builder()
         .identifier(identifier)
         .tags(tags)
         .upstream(upstream)
         .build();
     }
+
+    public Command<P> with(CompletableFuture<Tags> tags) {
+      return Command.<P>builder()
+        .identifier(identifier)
+        .tags(tags)
+        .upstream(upstream)
+        .build();
+    }
+
   }
 }

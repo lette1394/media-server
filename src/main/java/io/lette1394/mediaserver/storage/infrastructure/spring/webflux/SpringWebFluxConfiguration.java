@@ -1,6 +1,8 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 
+import io.lette1394.mediaserver.processing.domain.PayloadParser;
+import io.lette1394.mediaserver.processing.domain.PayloadParser.DataBufferPayloadParser;
 import io.lette1394.mediaserver.processing.usecase.MediaAwareUploading;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
@@ -50,7 +52,7 @@ public class SpringWebFluxConfiguration {
 
   @Bean
   MediaAwareUploading<DataBufferPayload> uploadingMedia() {
-    return new MediaAwareUploading<>(uploading());
+    return new MediaAwareUploading<>(uploading(), new DataBufferPayloadParser());
   }
 
   @Bean

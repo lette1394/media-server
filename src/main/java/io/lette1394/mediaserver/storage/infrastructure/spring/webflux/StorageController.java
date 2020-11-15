@@ -1,8 +1,12 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+
+import com.uwyn.jhighlight.fastutil.Hash;
 import io.lette1394.mediaserver.processing.usecase.MediaAwareUploading;
 import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.spring.Translator;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
@@ -51,7 +55,7 @@ public class StorageController {
       .upload(Uploading.Command.<DataBufferPayload>builder()
         .identifier(new Identifier(area, key))
         .upstream(BinarySupplierFactory.from(body, contentLength))
-        .tags(new HashMap<>())
+        .tags(completedFuture(Tags.empty()))
         .build())
       .handle(translator::translate);
   }
@@ -71,7 +75,7 @@ public class StorageController {
       .upload(Uploading.Command.<DataBufferPayload>builder()
         .identifier(new Identifier(area, key))
         .upstream(BinarySupplierFactory.from(body, contentLength))
-        .tags(new HashMap<>())
+        .tags(completedFuture(Tags.empty()))
         .build())
       .handle(translator::translate);
   }

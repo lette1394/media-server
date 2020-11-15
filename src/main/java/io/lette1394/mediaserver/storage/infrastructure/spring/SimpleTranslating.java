@@ -25,6 +25,7 @@ public class SimpleTranslating implements Translator {
     if (throwable == null) {
       return translateResponse(object);
     }
+    throwable.printStackTrace();
     return translateException(throwable);
   }
 

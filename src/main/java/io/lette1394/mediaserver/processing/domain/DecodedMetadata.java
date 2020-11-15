@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.processing.domain;
 
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -25,5 +26,9 @@ public class DecodedMetadata {
   @Override
   public String toString() {
     return holder.toString();
+  }
+
+  public Set<String> names() {
+    return holder.keySet();
   }
 }

@@ -1,9 +1,11 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.mvc;
 
 import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Identifier;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
@@ -38,7 +40,7 @@ public class StorageController {
     return uploading.upload(Command.<DataBufferPayload>builder()
       .identifier(new Identifier(area, key))
       .upstream(adapt(body))
-      .tags(new HashMap<>())
+      .tags(completedFuture(Tags.empty()))
       .build())
       .thenAccept(__ -> System.out.println("done mvc"));
   }

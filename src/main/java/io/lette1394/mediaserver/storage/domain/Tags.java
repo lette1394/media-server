@@ -68,4 +68,8 @@ public class Tags {
   public void addTag(String key) {
     tags.put(key, new Tag(key));
   }
+
+  public void addAllTag(Tags others) {
+    this.tags.putAll(others.tags);
+  }
 }

@@ -85,7 +85,7 @@ public class ApacheTikaMediaDecoder<P extends Payload> implements MediaDecoder {
     holder.writeBytes(payloadParser.parse(payload));
   }
 
-  public void tryDecode() {
+  private void tryDecode() {
     if (decoded) {
       return;
     }
