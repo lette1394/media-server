@@ -12,9 +12,4 @@ public class ByteBufferPayload implements Payload {
   public long getSize() {
     return value.remaining();
   }
-
-  @Override
-  public void release() {
-    
-  }
 }

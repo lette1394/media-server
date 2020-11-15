@@ -11,9 +11,4 @@ public class StringPayload implements Payload {
   public long getSize() {
     return value.length();
   }
-
-  @Override
-  public void release() {
-    // no op
-  }
 }

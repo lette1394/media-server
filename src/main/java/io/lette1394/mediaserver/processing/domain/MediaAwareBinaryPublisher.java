@@ -13,31 +13,30 @@ import org.reactivestreams.Publisher;
 //  실제로 usecase에서 사용하는 거는 별도 인터페이스가 필요해보임
 public class MediaAwareBinaryPublisher<B extends Payload> extends
   DelegatingBinaryPublisher<B> {
-  private final MediaDecoder<B> mediaDecoder;
+  private final MediaDecoder mediaDecoder;
 
   public MediaAwareBinaryPublisher(
     BinaryPublisher<B> delegate,
-    MediaDecoder<B> mediaDecoder) {
+    MediaDecoder mediaDecoder) {
 
     super(delegate);
     this.mediaDecoder = mediaDecoder;
   }
 
-  @Override
   @SneakyThrows
   public Publisher<B> publisher() {
-    return subscriber -> delegate.publisher().subscribe(new DelegatingSubscriber<>(subscriber) {
-      @Override
-      public void onNext(B payload) {
-        mediaDecoder.appendNext(payload);
-        super.onNext(payload);
-      }
-
-      @Override
-      public void onComplete() {
-        mediaDecoder.appendCompleted();
-        super.onComplete();
-      }
-    });
+//    return subscriber -> delegate.publisher().subscribe(new DelegatingSubscriber<>(subscriber) {
+//      @Override
+//      public void onNext(B payload) {
+//        mediaDecoder.appendNext(payload);
+//        super.onNext(payload);
+//      }
+//
+//      @Override
+//      public void onComplete() {
+//        mediaDecoder.appendCompleted();
+//        super.onComplete();
+//      }
+    return null;
   }
 }

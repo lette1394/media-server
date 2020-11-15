@@ -42,7 +42,7 @@ public class AwsClient {
       .contentLength(binaryPublisher.length().get()) // content-length required
       .build(), AsyncRequestBody
       // TODO: my publisher interface; then add map() method
-      .fromPublisher(Flux.from(binaryPublisher.publisher()).map(item -> item.getValue())))
+      .fromPublisher(Flux.from(binaryPublisher).map(item -> item.getValue())))
       .thenApply(response -> null);
   }
 }

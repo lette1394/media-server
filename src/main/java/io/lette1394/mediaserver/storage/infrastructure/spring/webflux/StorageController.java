@@ -1,15 +1,14 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.webflux;
 
 import io.lette1394.mediaserver.processing.usecase.MediaAwareUploading;
-import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.BinarySupplierFactory;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.spring.Translator;
-import io.lette1394.mediaserver.storage.usecase.copy.Copying;
-import io.lette1394.mediaserver.storage.usecase.copy.Copying.Command;
 import io.lette1394.mediaserver.storage.usecase.Downloading;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
+import io.lette1394.mediaserver.storage.usecase.copy.Copying;
+import io.lette1394.mediaserver.storage.usecase.copy.Copying.Command;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying.CopyMode;
 import java.util.HashMap;
 import java.util.Optional;
@@ -104,7 +103,6 @@ public class StorageController {
 
     final CompletableFuture<Mono<Void>> monoCompletableFuture = downloading
       .download(new Identifier(area, key))
-      .thenApply(BinaryPublisher::publisher)
       .thenApply(Flux::from)
       .thenApply(flux -> flux.map(DataBufferPayload::getValue))  // TODO: my publisher map()
       .thenApply(response::writeWith);

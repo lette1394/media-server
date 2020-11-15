@@ -5,26 +5,21 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @RequiredArgsConstructor
-public class DelegatingSubscriber<T> implements Subscriber<T> {
-  private final Subscriber<? super T> subscriber;
+public abstract class DelegatingSubscriber<T, R> implements Subscriber<T> {
+  protected final Subscriber<? super R> delegate;
 
   @Override
   public void onSubscribe(Subscription s) {
-    subscriber.onSubscribe(s);
-  }
-
-  @Override
-  public void onNext(T t) {
-    subscriber.onNext(t);
+    delegate.onSubscribe(s);
   }
 
   @Override
   public void onError(Throwable t) {
-    subscriber.onError(t);
+    delegate.onError(t);
   }
 
   @Override
   public void onComplete() {
-    subscriber.onComplete();
+    delegate.onComplete();
   }
 }

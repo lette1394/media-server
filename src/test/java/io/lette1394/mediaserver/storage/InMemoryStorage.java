@@ -2,6 +2,7 @@ package io.lette1394.mediaserver.storage;
 
 import static io.lette1394.mediaserver.common.Violations.Code.INVALID_IDENTIFIER;
 import static io.lette1394.mediaserver.common.Violations.violation;
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -62,8 +63,10 @@ public abstract class InMemoryStorage<T extends Payload> implements
     BinaryPublisher<T> binaryPublisher) {
     CompletableFuture<Void> ret = new CompletableFuture<>();
     Flux
-      .from(binaryPublisher.publisher())
-      .doOnSubscribe(__ -> binaryHolder.put(binaryPath.asString(), new ByteArrayOutputStream()))
+      .from(binaryPublisher)
+      .doOnSubscribe(__ -> {
+        binaryHolder.put(binaryPath.asString(), new ByteArrayOutputStream());
+      })
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .subscribe(payload -> write(binaryPath, payload));
@@ -75,7 +78,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
   public CompletableFuture<Void> append(BinaryPath binaryPath,
     BinaryPublisher<T> binaryPublisher) {
     final CompletableFuture<Void> ret = new CompletableFuture<>();
-    Flux.from(binaryPublisher.publisher())
+    Flux.from(binaryPublisher)
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .subscribe(payload -> write(binaryPath, payload));
@@ -84,7 +87,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
 
   @Override
   public CompletableFuture<BinaryPublisher<T>> find(BinaryPath binaryPath) {
-    return completedFuture(() -> read(binaryPath));
+    return completedFuture(adapt(read(binaryPath)));
   }
 
   @Override

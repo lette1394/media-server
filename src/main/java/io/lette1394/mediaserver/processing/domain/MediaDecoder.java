@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.processing.domain;
 
 import io.lette1394.mediaserver.storage.domain.Payload;
+import java.util.concurrent.CompletableFuture;
 
 // TODO: MediaDecoder 에서는 image/video/audio/file 등
 //  여러 타입이 서로 다른 decode 결과를 가지므로 (속성 등, file은 width, height 등이 없다)
@@ -21,31 +22,6 @@ import io.lette1394.mediaserver.storage.domain.Payload;
 // TODO: FailedAtMaxByteSizeMediaDecoder
 //  FailedByTimeoutMediaDecoder
 //  SingleThreadFailedByTimeoutMediaDecoder
-public interface MediaDecoder<B extends Payload> {
-  // TODO: 일단 이 메서드를 구현하는 것 부터 해보자.
-  //  local - apache tika 를 사용해서,
-  //  remote - 뭐... 음... 뭘로 해야할 지는 모르겠지만 test는 가능할 것이다
-
-
-
-  // TODO(20.11.14): 이거 꼭 이렇게 해야하나?
-  //  그냥 BinaryPublisher 를 받으면 안 돼?
-  //  그걸 받는게 더 나을 거 같은데...
-  //  listener는 알아서 터트려주고 말이야. 
-  void appendNext(B payload);
-
-  void appendCompleted();
-
-  void tryDecode();
-
-  interface Listener {
-    default void beforeDecodingStarted() {
-    }
-
-    default void afterDecoded(DecodedMetadata decodedMetadata) {
-    }
-
-    default void afterDecodeFailed(Throwable throwable) {
-    }
-  }
+public interface MediaDecoder {
+  CompletableFuture<DecodedMetadata> decode();
 }

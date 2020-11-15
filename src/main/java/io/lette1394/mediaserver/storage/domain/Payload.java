@@ -8,4 +8,12 @@ public interface Payload {
   default void release() {
     // no op
   }
+
+  default void retain() {
+    // no op
+  }
+
+  default void retain(int count) {
+    // no op
+  }
 }

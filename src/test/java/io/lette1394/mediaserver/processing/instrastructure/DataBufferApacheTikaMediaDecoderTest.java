@@ -1,13 +1,15 @@
 package io.lette1394.mediaserver.processing.instrastructure;
 
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInRelativeOrder;
 import static org.hamcrest.Matchers.is;
 
 import io.lette1394.mediaserver.MemoryLeakTest;
 import io.lette1394.mediaserver.processing.domain.DecodedMetadata;
 import io.lette1394.mediaserver.processing.domain.MediaDecoder;
-import io.lette1394.mediaserver.processing.domain.MediaDecoder.Listener;
 import io.lette1394.mediaserver.processing.domain.PayloadParser.DataBufferPayloadParser;
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,15 +21,15 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 @Tag("slow")
 class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
   static String imagePath = "/sample_image_3840x2160_537055_bytes.jpg";
-  static String videoPath = "/file_example_MP4_480_1_5MG.mp4";
+  static String videoPath = "/sample_video_1280x720_31491130_bytes.mp4";
 
   AtomicBoolean decoded;
   AtomicLong decodedWidth;
@@ -46,134 +48,52 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
     latch = new CountDownLatch(1);
   }
 
-  // TODO: Add leak detector
   @Test
-  @SneakyThrows
-  void imageWithLargeBuffer() {
-    subjectWithLargeChunk(imagePath, new Listener() {
-      @Override
-      public void afterDecoded(DecodedMetadata decodedMetadata) {
-        decoded.set(true);
-        decodedWidth.set(decodedMetadata.getAsLong("Image Width"));
-        decodedHeight.set(decodedMetadata.getAsLong("Image Height"));
-      }
-    }).join();
+  void image() {
+    final DecodedMetadata metadata = subject(imagePath).join();
 
-    assertThat(decoded.get(), is(true));
-    assertThat(decodedWidth.get(), is(3840L));
-    assertThat(decodedHeight.get(), is(2160L));
+    assertThat(metadata.getAsLong("Image Width"), is(3840L));
+    assertThat(metadata.getAsLong("Image Height"), is(2160L));
   }
 
   @Test
-  @SneakyThrows
-  void imageWithSmallBuffer() {
-    subjectWithSmallChunk(imagePath, new Listener() {
-      @Override
-      public void afterDecoded(DecodedMetadata decodedMetadata) {
-        // todo: refactor
-        decoded.set(true);
-        decodedWidth.set(decodedMetadata.getAsLong("Image Width"));
-        decodedHeight.set(decodedMetadata.getAsLong("Image Height"));
-      }
-    }).join();
+  void video() {
+    final DecodedMetadata metadata = subject(videoPath).join();
 
-    assertThat(decoded.get(), is(true));
-    assertThat(decodedWidth.get(), is(3840L));
-    assertThat(decodedHeight.get(), is(2160L));
+    assertThat(metadata.getAsLong("tiff:ImageWidth"), is(1280L));
+    assertThat(metadata.getAsLong("tiff:ImageLength"), is(720L));
   }
 
-  @Test
-  @SneakyThrows
-  void videoWithLargeBuffer() {
-    subjectWithLargeChunk(videoPath, new Listener() {
-      @Override
-      public void afterDecoded(DecodedMetadata decodedMetadata) {
-        decoded.set(true);
-        decodedWidth.set(decodedMetadata.getAsLong("tiff:ImageWidth"));
-        decodedHeight.set(decodedMetadata.getAsLong("tiff:ImageLength"));
-      }
-    }).join();
-
-    assertThat(decoded.get(), is(true));
-    assertThat(decodedWidth.get(), is(480L));
-    assertThat(decodedHeight.get(), is(270L));
+  private CompletableFuture<DecodedMetadata> subject(String path) {
+    return subject(path, 1024 * 1024);
   }
 
-  @Test
-  @SneakyThrows
-  void videoWithSmallBuffer() {
-    subjectWithSmallChunk(videoPath, new Listener() {
-      @Override
-      public void afterDecoded(DecodedMetadata decodedMetadata) {
-        decoded.set(true);
-        decodedWidth.set(decodedMetadata.getAsLong("tiff:ImageWidth"));
-        decodedHeight.set(decodedMetadata.getAsLong("tiff:ImageLength"));
-      }
-    }).join();
+  private CompletableFuture<DecodedMetadata> subject(String path, int bufferSize) {
+    final BinaryPublisher<DataBufferPayload> retainedBroadcastingPublisher =
+      binarySource(path, bufferSize)
+        .broadcast(2);
 
-    assertThat(decoded.get(), is(true));
-    assertThat(decodedWidth.get(), is(480L));
-    assertThat(decodedHeight.get(), is(270L));
+    Flux.from(retainedBroadcastingPublisher)
+      .doOnNext(payload -> payload.release())
+      .subscribe();
+
+    return subject(retainedBroadcastingPublisher).decode();
   }
 
-  private CompletableFuture<Void> subjectWithLargeChunk(String path, Listener listener) {
-    return subject(path, 1024 * 8, listener);
-  }
-
-  private CompletableFuture<Void> subjectWithSmallChunk(String path, Listener listener) {
-    return subject(path, 1024, listener);
-  }
-
-  private CompletableFuture<Void> subject(String path, int bufferSize, Listener listener) {
-    final CompletableFuture<Void> ret = new CompletableFuture<>();
-    final MediaDecoder<DataBufferPayload> subject = subject(listener);
-
-    Flux.from(binarySource(path, bufferSize))
-      .doOnNext(buffer -> subject.appendNext(buffer))
-      .doOnEach(__ -> subject.tryDecode())
-      .doOnError(e -> ret.completeExceptionally(e))
-      .doFinally(__ -> ret.complete(null))
-      .subscribe(payload -> payload.release());
-
-    return ret;
-  }
-
-  private MediaDecoder<DataBufferPayload> subject(Listener listener) {
+  private MediaDecoder subject(BinaryPublisher<DataBufferPayload> binaryPublisher) {
     return new ApacheTikaMediaDecoder<>(
-      1024 * 128,
       1024 * 1024,
-      new DataBufferPayloadParser(),
-      listener);
+      1024 * 1024 * 50,
+      binaryPublisher,
+      new DataBufferPayloadParser());
   }
 
-  private Publisher<DataBufferPayload> binarySource(String path, int bufferSize) {
-    return DataBufferUtils.read(
+  private BinaryPublisher<DataBufferPayload> binarySource(String path, int bufferSize) {
+    return adapt(DataBufferUtils.read(
       getPath(path),
       new NettyDataBufferFactory(memoryLeakDetectableByteBufAllocator),
       bufferSize)
-      .map(dataBuffer -> new DataBufferPayload(dataBuffer));
-  }
-
-  private Listener composite(Listener first, Listener last) {
-    return new Listener() {
-      @Override
-      public void beforeDecodingStarted() {
-        first.beforeDecodingStarted();
-        last.beforeDecodingStarted();
-      }
-
-      @Override
-      public void afterDecoded(DecodedMetadata decodedMetadata) {
-        first.afterDecoded(decodedMetadata);
-        last.afterDecoded(decodedMetadata);
-      }
-
-      @Override
-      public void afterDecodeFailed(Throwable throwable) {
-        first.afterDecodeFailed(throwable);
-        last.afterDecodeFailed(throwable);
-      }
-    };
+      .map(dataBuffer -> new DataBufferPayload(dataBuffer)));
   }
 
   @SneakyThrows

@@ -24,9 +24,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 
 @EqualsAndHashCode(of = "identifier", callSuper = false)
-public class Object<BUFFER extends Payload> extends AggregateRoot {
+public class Object<P extends Payload> extends AggregateRoot {
 
   @Getter
   private final Identifier identifier;
@@ -39,7 +40,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
   private final TimeStamp timeStamp;
   private final BinaryPolicy binaryPolicy;
   private final BinarySnapshot binarySnapshot;
-  private final BinaryRepository<BUFFER> binaryRepository;
+  private final BinaryRepository<P> binaryRepository;
 
   @Builder
   public Object(Identifier identifier,
@@ -49,7 +50,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     TimeStamp timeStamp,
     BinaryPolicy binaryPolicy,
     BinarySnapshot binarySnapshot,
-    BinaryRepository<BUFFER> binaryRepository) {
+    BinaryRepository<P> binaryRepository) {
 
     this.identifier = identifier;
     this.binaryPath = binaryPath;
@@ -62,7 +63,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     this.binaryRepository = binaryRepository;
   }
 
-  public BinaryPublisher<BUFFER> upload(BinaryPublisher<BUFFER> upstream) {
+  public BinaryPublisher<P> upload(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(UPLOAD))
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
@@ -70,7 +71,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .getOrElseThrow(e -> new OperationCanceledException(UPLOAD, e));
   }
 
-  public CompletableFuture<BinaryPublisher<BUFFER>> download() {
+  public CompletableFuture<BinaryPublisher<P>> download() {
     return objectPolicy.test(objectSnapshot.update(DOWNLOAD))
       .onSuccess(__ -> addEvent(DownloadingTriggered.downloadingTriggered()))
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
@@ -81,7 +82,7 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       });
   }
 
-  public BinaryPublisher<BUFFER> copyFrom(BinaryPublisher<BUFFER> upstream) {
+  public BinaryPublisher<P> copyFrom(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(COPY))
       .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
       .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
@@ -113,8 +114,8 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
     tags.addTag(key, value);
   }
 
-  public Object<BUFFER> with(BinaryPath binaryPath) {
-    return Object.<BUFFER>builder()
+  public Object<P> with(BinaryPath binaryPath) {
+    return Object.<P>builder()
       .binaryPath(binaryPath)
       .identifier(identifier)
       .objectSnapshot(objectSnapshot)
@@ -127,27 +128,27 @@ public class Object<BUFFER extends Payload> extends AggregateRoot {
       .build();
   }
 
-  private BinaryPublisher<BUFFER> compose(BinaryPublisher<BUFFER> binaryPublisher) {
+  private BinaryPublisher<P> compose(BinaryPublisher<P> binaryPublisher) {
     return new DelegatingBinaryPublisher<>(binaryPublisher) {
       @Override
-      public Publisher<BUFFER> publisher() {
-        final Publisher<BUFFER> publisher = super.publisher();
-        return super.length()
-          .map(length -> listenable(controllable(lengthValidatable(length, (publisher)))))
-          .orElseGet(() -> listenable(controllable(publisher)));
+      public void subscribe(Subscriber<? super P> subscriber) {
+        super.length()
+          .map(length -> listenable(controllable(lengthValidatable(length, delegate))))
+          .orElseGet(() -> listenable(controllable(delegate)))
+          .subscribe(subscriber);
       }
     };
   }
 
-  private Publisher<BUFFER> lengthValidatable(long length, Publisher<BUFFER> publisher) {
+  private Publisher<P> lengthValidatable(long length, Publisher<P> publisher) {
     return new ValidatingLengthPublisher<>(length, publisher);
   }
 
-  private Publisher<BUFFER> controllable(Publisher<BUFFER> publisher) {
+  private Publisher<P> controllable(Publisher<P> publisher) {
     return new ControllablePublisher<>(policy(), publisher);
   }
 
-  private Publisher<BUFFER> listenable(Publisher<BUFFER> publisher) {
+  private Publisher<P> listenable(Publisher<P> publisher) {
     return new ListenablePublisher<>(listener(), publisher);
   }
 

@@ -4,6 +4,7 @@ import static io.lette1394.mediaserver.matchers.ObjectMatchers.got;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasProgressingSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
+import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,6 +32,7 @@ import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactor.core.publisher.Flux;
 
 class UploadingTest {
@@ -58,7 +60,7 @@ class UploadingTest {
     final Object<BytePayload> object = uploading
       .upload(Command.<BytePayload>builder()
         .identifier(pendingIdentifier)
-        .upstream(() -> publisher(appendedPayload))
+        .upstream(adapt(publisher(appendedPayload)))
         .build())
       .join();
 
@@ -77,7 +79,7 @@ class UploadingTest {
       () -> uploading
         .upload(Command.<BytePayload>builder()
           .identifier(pendingIdentifier)
-          .upstream(() -> brokenPublisherAt(appendedPayload, brokenAt))
+          .upstream(adapt(brokenPublisherAt(appendedPayload, brokenAt)))
           .build())
         .join());
 
@@ -115,18 +117,17 @@ class UploadingTest {
     final Publisher<BytePayload> publisher = Flux
       .fromStream(payload.chars().mapToObj(ch -> new BytePayload(ch)));
 
-    return new BrokenBinaryPublisher<>(exceptionAt, new BinaryPublisher<BytePayload>() {
+    return new BrokenBinaryPublisher<>(exceptionAt, new BinaryPublisher<>() {
       @Override
-      public Publisher<BytePayload> publisher() {
-        return publisher;
+      public void subscribe(Subscriber<? super BytePayload> s) {
+        publisher.subscribe(s);
       }
 
       @Override
       public Optional<Long> length() {
         return Optional.of((long) payload.getBytes().length);
       }
-    })
-      .publisher();
+    });
   }
 
   private String getPayload(Identifier identifier) {
