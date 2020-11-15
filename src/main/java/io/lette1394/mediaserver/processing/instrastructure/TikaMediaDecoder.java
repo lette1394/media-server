@@ -22,17 +22,14 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
-public class ApacheTikaMediaDecoder<P extends Payload> implements MediaDecoder {
-
+public class TikaMediaDecoder<P extends Payload> implements MediaDecoder<P> {
   private static final Parser parser = new AutoDetectParser(TikaConfig.getDefaultConfig());
 
   // TODO: extract class
   private final int limitByteArraySize;
   private final ByteArrayOutputStream holder;
 
-  private final BinaryPublisher<P> binaryPublisher;
   private final PayloadParser<P> payloadParser;
 
   private boolean decoded = false;
@@ -42,20 +39,22 @@ public class ApacheTikaMediaDecoder<P extends Payload> implements MediaDecoder {
 
   private CompletableFuture<DecodedMetadata> ret;
 
-  public ApacheTikaMediaDecoder(
+  public TikaMediaDecoder(
     int initialByteArraySize,
     int limitByteArraySize,
-    BinaryPublisher<P> binaryPublisher,
     PayloadParser<P> payloadParser) {
 
     this.limitByteArraySize = limitByteArraySize;
     this.holder = new ByteArrayOutputStream(initialByteArraySize);
-    this.binaryPublisher = binaryPublisher;
     this.payloadParser = payloadParser;
   }
 
   @Override
-  public CompletableFuture<DecodedMetadata> decode() {
+  public CompletableFuture<DecodedMetadata> decode(BinaryPublisher<P> binaryPublisher) {
+
+    // TODO: triggered로 하지말고, 매번 계산 전용 새로운 객체를 생성해주자(method object!)
+    //  이러면 TikaMediaDecoder 클래스 자체는 무상태로 남길 수 있다.
+    //  'Task' inner class
     if (triggered) {
       return CompletableFuture.failedFuture(new RuntimeException("cannot reuse media decoder"));
     }

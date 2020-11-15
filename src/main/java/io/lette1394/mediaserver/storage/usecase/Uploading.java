@@ -137,7 +137,8 @@ public class Uploading<P extends Payload> {
   public static class Command<P extends Payload> {
 
     Identifier identifier;
-    CompletableFuture<Tags> tags;
+    @Builder.Default // TODO: fix naive impl
+    CompletableFuture<Tags> tags = CompletableFuture.completedFuture(Tags.empty());
     BinaryPublisher<P> upstream;
 
     public Command<P> with(BinaryPublisher<P> upstream) {

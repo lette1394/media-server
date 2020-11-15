@@ -30,6 +30,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.reactivestreams.Publisher;
@@ -42,6 +43,7 @@ public abstract class FileSystemRepository<T extends Payload> implements
   ObjectRepository<T>,
   BinaryRepository<T> {
 
+  @Getter
   private final String baseDir;
 
   private static boolean isEmptyDirectory(Path path) throws IOException {

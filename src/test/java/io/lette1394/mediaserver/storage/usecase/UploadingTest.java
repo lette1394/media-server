@@ -22,12 +22,14 @@ import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
+import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.infrastructure.BytePayload;
 import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
 import io.vavr.control.Try;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,6 +63,7 @@ class UploadingTest {
       .upload(Command.<BytePayload>builder()
         .identifier(pendingIdentifier)
         .upstream(adapt(publisher(appendedPayload)))
+        .tags(CompletableFuture.completedFuture(Tags.empty()))
         .build())
       .join();
 
@@ -100,6 +103,7 @@ class UploadingTest {
       .binaryPolicy(binarySnapshot -> Try.success(null))
       .objectPolicy(snapshot -> Try.success(null))
       .binaryRepository(repository)
+      .tags(Tags.empty())
       .build();
   }
 

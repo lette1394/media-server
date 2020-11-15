@@ -1,10 +1,6 @@
 package io.lette1394.mediaserver.processing.usecase;
 
-import io.lette1394.mediaserver.processing.domain.DecodedMetadata;
 import io.lette1394.mediaserver.processing.domain.MediaDecoder;
-import io.lette1394.mediaserver.processing.domain.PayloadParser;
-import io.lette1394.mediaserver.processing.domain.PayloadParser.DataBufferPayloadParser;
-import io.lette1394.mediaserver.processing.instrastructure.ApacheTikaMediaDecoder;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.Payload;
@@ -13,31 +9,25 @@ import io.lette1394.mediaserver.storage.usecase.Uploading;
 import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
-import software.amazon.awssdk.services.s3.model.Tag;
 
 @RequiredArgsConstructor
-public class MediaAwareUploading<B extends Payload> {
-  private final Uploading<B> uploading;
+public class MediaAwareUploading<P extends Payload> {
+  private final Uploading<P> uploading;
+  private final MediaDecoder<P> mediaDecoder;
 
-  private final PayloadParser<B> payloadParser;
-  // 방법 1. MediaAwareBinarySupplier를 도입한다
-  // 방법 2. MediaDecoder 같은걸로 명시적으로 decode...
+  public CompletableFuture<Object<P>> upload(Command<P> command) {
+    final BinaryPublisher<P> broadcasted = command.getUpstream().broadcast(2);
 
-  // 방법 1이 더 나아보이니까 일단 이렇게하자
+    // TODO: 바깥에서 주입
+//    final TikaMediaDecoder<B> decoder = new TikaMediaDecoder<>(
+//      1024 * 1024,
+//      1024 * 1024 * 20,
+//      payloadParser);
 
-  public CompletableFuture<Object<B>> upload(Command<B> command) {
-    final BinaryPublisher<B> broadcasted = command.getUpstream().broadcast(2);
-
-    final ApacheTikaMediaDecoder<B> decoder = new ApacheTikaMediaDecoder<>(
-      1024 * 1024,
-      1024 * 1024 * 20,
-      broadcasted,
-      payloadParser);
-
-    final CompletableFuture<Tags> tags = decoder.decode()
+    final CompletableFuture<Tags> tags = mediaDecoder.decode(broadcasted)
       .thenApply(metadata -> {
         final Tags empty = Tags.empty();
-        metadata.names().forEach(name -> empty.addTag(name, metadata.getAsString(name)));
+        metadata.names().forEach(name -> empty.addTag("decoded-" + name, metadata.getAsString(name)));
         return empty;
       });
 

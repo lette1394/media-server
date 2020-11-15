@@ -25,7 +25,7 @@ import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import reactor.core.publisher.Flux;
 
 @Tag("slow")
-class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
+class DataBufferTikaMediaDecoderTest extends MemoryLeakTest {
   static String imagePath = "/sample_image_3840x2160_537055_bytes.jpg";
   static String videoPath = "/sample_video_480x270_1570024_bytes.mp4";
 
@@ -75,14 +75,13 @@ class DataBufferApacheTikaMediaDecoderTest extends MemoryLeakTest {
       .doOnNext(payload -> payload.release())
       .subscribe();
 
-    return subject(retainedBroadcastingPublisher).decode();
+    return subject().decode(retainedBroadcastingPublisher);
   }
 
-  private MediaDecoder subject(BinaryPublisher<DataBufferPayload> binaryPublisher) {
-    return new ApacheTikaMediaDecoder<>(
+  private MediaDecoder<DataBufferPayload> subject() {
+    return new TikaMediaDecoder<>(
       1024 * 1024,
       1024 * 1024 * 50,
-      binaryPublisher,
       new DataBufferPayloadParser());
   }
 

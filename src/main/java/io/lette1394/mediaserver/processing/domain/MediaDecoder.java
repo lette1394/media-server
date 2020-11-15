@@ -1,5 +1,7 @@
 package io.lette1394.mediaserver.processing.domain;
 
+import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
+import io.lette1394.mediaserver.storage.domain.Payload;
 import java.util.concurrent.CompletableFuture;
 
 // TODO: MediaDecoder 에서는 image/video/audio/file 등
@@ -21,6 +23,6 @@ import java.util.concurrent.CompletableFuture;
 // TODO: FailedAtMaxByteSizeMediaDecoder
 //  FailedByTimeoutMediaDecoder
 //  SingleThreadFailedByTimeoutMediaDecoder
-public interface MediaDecoder {
-  CompletableFuture<DecodedMetadata> decode();
+public interface MediaDecoder<P extends Payload> {
+  CompletableFuture<DecodedMetadata> decode(BinaryPublisher<P> binaryPublisher);
 }
