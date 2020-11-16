@@ -64,6 +64,15 @@ java.base/java.lang.invoke=ALL-UNNAMED
 java.base/java.io=ALL-UNNAMED
 ```
 
+### links
+- image processing server: https://github.com/imgproxy/imgproxy
+- image processing server: http://thumbor.org/
+- image processing server: https://zauner.nllk.net/post/0032-image-processing-services/
+
+- object storage: https://min.io/ 
+- apache benchmarking tool: https://httpd.apache.org/docs/2.4/programs/ab.html (see https://github.com/imgproxy/imgproxy/blob/master/BENCHMARK.md)
+- 
+
 
 ### ideas
 - java generic은 쉽지 않다...
