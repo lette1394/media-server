@@ -17,6 +17,8 @@ public class MediaAwareUploading<P extends Payload> {
   private final MediaDecoder<P> mediaDecoder;
 
   public CompletableFuture<Object<P>> upload(Command<P> command) {
+    // TODO: 이 녀석들은 모두 MediaObject 내부에서 작업 되어야 한다
+
     final BinaryPublisher<P> broadcast = command.getUpstream().broadcast(2);
     final CompletableFuture<Tags> tags = mediaDecoder
       .decode(broadcast)

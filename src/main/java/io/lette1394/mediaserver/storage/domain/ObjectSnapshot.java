@@ -71,7 +71,7 @@ public class ObjectSnapshot {
     return state.getObjectType();
   }
 
-  public Command getCommand() {
+  Command getCommand() {
     return state.getCommand();
   }
 
@@ -79,7 +79,7 @@ public class ObjectSnapshot {
     return state.is(objectType);
   }
 
-  public boolean is(Command command) {
+  boolean is(Command command) {
     return state.is(command);
   }
 

@@ -63,6 +63,11 @@ public class Object<P extends Payload> extends AggregateRoot {
     this.binaryRepository = binaryRepository;
   }
 
+  // TODO: 인터페이스가 너무 이상하다... 나는 upload()를 했는데
+  //  왜 return 값이 parameter랑 같아?
+  //  download랑 쌍도 안맞고, 이해하기가 어렵다.
+  //  지금 usecase를 보면 그대로 바로 그냥 BinaryRepository에 save하는 일만 하고 있으니,
+  //  여기서 그냥 다 해주고 CompletableFuture를 반환해 주는게 낫겠다.
   public BinaryPublisher<P> upload(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(UPLOAD))
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
@@ -82,6 +87,9 @@ public class Object<P extends Payload> extends AggregateRoot {
       });
   }
 
+  // TODO: 이것도 upload() 메서드랑 같이 이상한데...
+  //  이것도 upload() 와 같이 만들려면 SoftCopying 쪽이 문젠데,
+  //  SoftCopying 에 있는 objectFactory에 있는 BinaryRepository를 아무것도 안하게 만들면 해결 가능하다.
   public BinaryPublisher<P> copyFrom(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(COPY))
       .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))

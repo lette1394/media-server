@@ -23,6 +23,8 @@ import java.util.concurrent.CompletableFuture;
 // TODO: FailedAtMaxByteSizeMediaDecoder
 //  FailedByTimeoutMediaDecoder
 //  SingleThreadFailedByTimeoutMediaDecoder
+
+// TODO: renaming... MediaMetadataExtractor?
 public interface MediaDecoder<P extends Payload> {
   CompletableFuture<DecodedMetadata> decode(BinaryPublisher<P> binaryPublisher);
 }
