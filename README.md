@@ -1,15 +1,15 @@
 ### Requirements 1
 - [storage] Support streaming: 10GB file up/download
-    - [x] implementation    
-    - [x] support tag / metadata
-    - [x] object policy
+  - [x] implementation    
+  - [x] support tag / metadata
+  - [x] object policy
 - [storage] Support range upload (a.k.a 이어올리기)
-    - [x] implementation 
-    - [x] Update size per object sub classes 
-    - [x] exception callback when uploading is broken
-    - [x] Add test for classes
-    - [x] Adjust class access modifier level
-    - [x] Add netty, spring mvc, spring webflux implements
+  - [x] implementation 
+  - [x] Update size per object sub classes 
+  - [x] exception callback when uploading is broken
+  - [x] Add test for classes
+  - [x] Adjust class access modifier level
+  - [x] Add netty, spring mvc, spring webflux implements
 - [storage] Support Copy
   - [x] implementation 
   - [x] hard / soft / replicating hard
