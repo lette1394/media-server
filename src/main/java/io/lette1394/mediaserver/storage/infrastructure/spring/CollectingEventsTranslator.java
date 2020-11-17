@@ -13,8 +13,6 @@ public class CollectingEventsTranslator implements Translator {
   public <T> ResponseEntity<T> translate(Object<?> object, @Nullable Throwable throwable) {
     final ResponseEntity<java.lang.Object> translate = translator.translate(object, throwable);
 
-
-
     final ResponseEntity<java.lang.Object> objectResponseEntity = new ResponseEntity<>(
       translate.getBody(), translate.getHeaders(), translate.getStatusCode());
 

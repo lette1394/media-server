@@ -36,34 +36,24 @@ public class SimpleTranslating implements Translator {
   private <T> ResponseEntity<T> translateException(Throwable throwable) {
     return Match(throwable)
       .of(
-        Case(
-          $(isNull()),
+        Case($(isNull()),
           () -> status(INTERNAL_SERVER_ERROR).build()),
-        Case(
-          $(instanceOf(CompletionException.class)),
+        Case($(instanceOf(CompletionException.class)),
           () -> translateException(throwable.getCause())),
-        Case(
-          $(instanceOf(OperationCanceledException.class)),
+        Case($(instanceOf(OperationCanceledException.class)),
           () -> translateException(throwable.getCause())),
-
-        Case(
-          $(instanceOf(PolicyViolationException.class)),
+        Case($(instanceOf(PolicyViolationException.class)),
           (e) -> badRequest()
             .header("x-ms-error-code", e.getCode())
             .header("x-ms-error-message", e.getMessage())
             .build()),
-        Case(
-          $(instanceOf(ObjectNotFoundException.class)),
+        Case($(instanceOf(ObjectNotFoundException.class)),
           () -> notFound().build()),
-        Case(
-          $(instanceOf(ObjectNotFoundException.class)),
+        Case($(instanceOf(ObjectNotFoundException.class)),
           () -> notFound().build()),
-        Case(
-          $(instanceOf(ContractViolationException.class)),
+        Case($(instanceOf(ContractViolationException.class)),
           () -> status(INTERNAL_SERVER_ERROR).build()),
-        Case(
-          $(),
-          () -> status(INTERNAL_SERVER_ERROR).build())
-      );
+        Case($(),
+          () -> status(INTERNAL_SERVER_ERROR).build()));
   }
 }
