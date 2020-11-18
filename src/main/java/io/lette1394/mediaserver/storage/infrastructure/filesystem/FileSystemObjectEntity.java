@@ -1,6 +1,5 @@
 package io.lette1394.mediaserver.storage.infrastructure.filesystem;
 
-import static io.lette1394.mediaserver.common.NonBlankString.nonBlankString;
 import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 
@@ -9,7 +8,6 @@ import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryPolicy;
 import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
-import io.lette1394.mediaserver.storage.domain.Command;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectPolicy;
@@ -30,11 +28,11 @@ import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 
 @Value
-public class FileSystemObjectEntity<BUFFER extends Payload> {
+public class FileSystemObjectEntity<P extends Payload> {
   private static final String LINE_SEPARATOR = "\n";
-  Object<BUFFER> object;
+  Object<P> object;
 
-  public static <BUFFER extends Payload> FileSystemObjectEntity<BUFFER> fromBytes(byte[] bytes, BinaryRepository<BUFFER> binaryRepository) {
+  public static <P extends Payload> FileSystemObjectEntity<P> fromBytes(byte[] bytes, BinaryRepository<P> binaryRepository) {
     try {
       final String raw = new String(bytes);
       final Map<String, String> map = Arrays.stream(raw.split("\n"))
@@ -54,7 +52,7 @@ public class FileSystemObjectEntity<BUFFER extends Payload> {
         .collect(Collectors.toSet());
 
       // TODO: use object factory
-      final Object<BUFFER> object = Object.<BUFFER>builder()
+      final Object<P> object = Object.<P>builder()
         .identifier(new Identifier(map.get("area"), map.get("key")))
         .objectPolicy(ObjectPolicy.ALL_OBJECT_POLICY)
         .objectSnapshot(ObjectSnapshot.byObjectType(

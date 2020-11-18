@@ -10,12 +10,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @RequiredArgsConstructor
-class ControllablePublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
+class ControllablePublisher<P extends Payload> implements Publisher<P> {
   private final Policy policy;
-  private final Publisher<BUFFER> delegate;
+  private final Publisher<P> delegate;
 
   @Override
-  public void subscribe(Subscriber<? super BUFFER> subscriber) {
+  public void subscribe(Subscriber<? super P> subscriber) {
     delegate.subscribe(new ControllableSubscriber<>(policy, subscriber));
   }
 
@@ -34,13 +34,13 @@ class ControllablePublisher<BUFFER extends Payload> implements Publisher<BUFFER>
     }
   }
 
-  private static class ControllableSubscriber<BUFFER extends Payload>
-    extends ProcessedLengthAwareSubscriber<BUFFER> {
+  private static class ControllableSubscriber<P extends Payload>
+    extends ProcessedLengthAwareSubscriber<P> {
 
     private final Policy policy;
     private boolean denied = false;
 
-    public ControllableSubscriber(Policy policy, Subscriber<? super BUFFER> subscriber) {
+    public ControllableSubscriber(Policy policy, Subscriber<? super P> subscriber) {
       super(subscriber);
       this.policy = policy;
     }
@@ -51,8 +51,8 @@ class ControllablePublisher<BUFFER extends Payload> implements Publisher<BUFFER>
     }
 
     @Override
-    public void onNext(BUFFER buffer) {
-      check(buffer.getSize(), policy::duringTransferring, () -> super.onNext(buffer));
+    public void onNext(P payload) {
+      check(payload.getSize(), policy::duringTransferring, () -> super.onNext(payload));
     }
 
     @Override

@@ -2,12 +2,12 @@ package io.lette1394.mediaserver.storage.domain;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface ObjectRepository<BUFFER extends Payload> {
+public interface ObjectRepository<P extends Payload> {
   CompletableFuture<Boolean> exists(Identifier identifier);
 
-  CompletableFuture<Object<BUFFER>> find(Identifier identifier) throws ObjectNotFoundException;
+  CompletableFuture<Object<P>> find(Identifier identifier) throws ObjectNotFoundException;
 
-  CompletableFuture<Object<BUFFER>> save(Object<BUFFER> object);
+  CompletableFuture<Object<P>> save(Object<P> object);
 
   CompletableFuture<Void> delete(Identifier identifier);
 }

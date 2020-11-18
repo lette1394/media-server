@@ -10,11 +10,11 @@ import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class Downloading<BUFFER extends Payload> {
-  private final BinaryRepository<BUFFER> binaryRepository;
-  private final ObjectRepository<BUFFER> objectRepository;
+public class Downloading<P extends Payload> {
+  private final BinaryRepository<P> binaryRepository;
+  private final ObjectRepository<P> objectRepository;
 
-  public CompletableFuture<BinaryPublisher<BUFFER>> download(Identifier identifier) {
+  public CompletableFuture<BinaryPublisher<P>> download(Identifier identifier) {
     return objectRepository
       .find(identifier)
       .thenCompose(Object::download);

@@ -46,15 +46,15 @@ public class ReplicatingHardCopying<B extends Payload> implements CopyStrategy<B
     };
   }
 
-  public static class ReplicaFollowingObjectRepository<BUFFER extends Payload>
-    extends DelegatingObjectRepository<BUFFER> {
+  public static class ReplicaFollowingObjectRepository<P extends Payload>
+    extends DelegatingObjectRepository<P> {
 
-    public ReplicaFollowingObjectRepository(ObjectRepository<BUFFER> delegate) {
+    public ReplicaFollowingObjectRepository(ObjectRepository<P> delegate) {
       super(delegate);
     }
 
     @Override
-    public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
+    public CompletableFuture<Object<P>> find(Identifier identifier)
       throws ObjectNotFoundException {
 
       return delegate
@@ -67,7 +67,7 @@ public class ReplicatingHardCopying<B extends Payload> implements CopyStrategy<B
         });
     }
 
-    private CompletionStage<Object<BUFFER>> followingReplica(Object<BUFFER> maybeReplicatedObject) {
+    private CompletionStage<Object<P>> followingReplica(Object<P> maybeReplicatedObject) {
       final String targetArea = maybeReplicatedObject
         .getTag(TAG_COPYING_REPLICATED_REDIRECT_AREA)
         .asString();

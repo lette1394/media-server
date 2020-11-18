@@ -12,11 +12,11 @@ import org.hamcrest.TypeSafeMatcher;
 
 public class ObjectMatchers {
 
-  public static <T extends Event, BUFFER extends Payload>
-  Matcher<Object<BUFFER>> got(Class<T> expected) {
+  public static <T extends Event, P extends Payload>
+  Matcher<Object<P>> got(Class<T> expected) {
     return new TypeSafeMatcher<>() {
       @Override
-      protected boolean matchesSafely(Object<BUFFER> item) {
+      protected boolean matchesSafely(Object<P> item) {
         return item.getEvents()
           .stream()
           .anyMatch(event -> event.getClass() == expected);
@@ -28,7 +28,7 @@ public class ObjectMatchers {
       }
 
       @Override
-      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+      protected void describeMismatchSafely(Object<P> item, Description mismatchDescription) {
         final List<? extends Class<? extends Event>> collect = item.getEvents()
           .stream()
           .map(Event::getClass)
@@ -38,11 +38,11 @@ public class ObjectMatchers {
     };
   }
 
-  public static <T extends Event, BUFFER extends Payload>
-  Matcher<Object<BUFFER>> got(List<Class<? extends T>> expected) {
+  public static <T extends Event, P extends Payload>
+  Matcher<Object<P>> got(List<Class<? extends T>> expected) {
     return new TypeSafeMatcher<>() {
       @Override
-      protected boolean matchesSafely(Object<BUFFER> item) {
+      protected boolean matchesSafely(Object<P> item) {
         final List<? extends Class<? extends Event>> eventTypes = item.getEvents()
           .stream()
           .map(event -> event.getClass())
@@ -57,7 +57,7 @@ public class ObjectMatchers {
       }
 
       @Override
-      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+      protected void describeMismatchSafely(Object<P> item, Description mismatchDescription) {
         final List<? extends Class<? extends Event>> eventTypes = item.getEvents()
           .stream()
           .map(event -> event.getClass())
@@ -67,11 +67,11 @@ public class ObjectMatchers {
     };
   }
 
-  public static <T extends Event, BUFFER extends Payload>
-  Matcher<Object<BUFFER>> hasType(ObjectType expected) {
+  public static <T extends Event, P extends Payload>
+  Matcher<Object<P>> hasType(ObjectType expected) {
     return new TypeSafeMatcher<>() {
       @Override
-      protected boolean matchesSafely(Object<BUFFER> item) {
+      protected boolean matchesSafely(Object<P> item) {
         return item.getObjectType().is(expected);
       }
 
@@ -81,17 +81,17 @@ public class ObjectMatchers {
       }
 
       @Override
-      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+      protected void describeMismatchSafely(Object<P> item, Description mismatchDescription) {
         mismatchDescription.appendValue(item.getObjectType());
       }
     };
   }
 
-  public static <T extends Event, BUFFER extends Payload>
-  Matcher<Object<BUFFER>> hasSize(long expected) {
+  public static <T extends Event, P extends Payload>
+  Matcher<Object<P>> hasSize(long expected) {
     return new TypeSafeMatcher<>() {
       @Override
-      protected boolean matchesSafely(Object<BUFFER> item) {
+      protected boolean matchesSafely(Object<P> item) {
         return item.getSize() == expected;
       }
 
@@ -101,17 +101,17 @@ public class ObjectMatchers {
       }
 
       @Override
-      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+      protected void describeMismatchSafely(Object<P> item, Description mismatchDescription) {
         mismatchDescription.appendValue(item.getSize());
       }
     };
   }
 
-  public static <T extends Event, BUFFER extends Payload>
-  Matcher<Object<BUFFER>> hasProgressingSize(long expected) {
+  public static <T extends Event, P extends Payload>
+  Matcher<Object<P>> hasProgressingSize(long expected) {
     return new TypeSafeMatcher<>() {
       @Override
-      protected boolean matchesSafely(Object<BUFFER> item) {
+      protected boolean matchesSafely(Object<P> item) {
         return item.getProgressingSize() == expected;
       }
 
@@ -121,7 +121,7 @@ public class ObjectMatchers {
       }
 
       @Override
-      protected void describeMismatchSafely(Object<BUFFER> item, Description mismatchDescription) {
+      protected void describeMismatchSafely(Object<P> item, Description mismatchDescription) {
         mismatchDescription.appendValue(item.getProgressingSize());
       }
     };

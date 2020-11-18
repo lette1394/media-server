@@ -13,12 +13,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.lette1394.mediaserver.storage.ByteInMemoryRepository;
 import io.lette1394.mediaserver.storage.StringInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
-import io.lette1394.mediaserver.storage.infrastructure.BytePayload;
 import io.lette1394.mediaserver.storage.infrastructure.StringPayload;
 import io.vavr.control.Try;
 import java.util.Arrays;
@@ -76,6 +74,9 @@ class ObjectTest {
       @Test
       @DisplayName("Command")
       void it_produces_successful_events() {
+        // FIXME (jaeeun) 2020-11-19:
+        //  bad test. use object.getEvents()
+        //  이벤트가 가지고 있는 command를 가지고 테스트해야함
         final AtomicReference<ObjectSnapshot> ret = new AtomicReference<>();
 
         final ObjectPolicy objectPolicy = snapshot -> {

@@ -65,7 +65,7 @@ public class SpringWebFluxConfiguration {
   Copying<DataBufferPayload> copying() {
     final ObjectFactory<DataBufferPayload> objectFactory = new ObjectFactory<>(filesystem);
 
-    final CopyStrategy<DataBufferPayload> hardCopying = new HardCopying<>(objectFactory, filesystem, filesystem);
+    final CopyStrategy<DataBufferPayload> hardCopying = new HardCopying<>(objectFactory, filesystem);
     final CopyStrategy<DataBufferPayload> softCopying = new SoftCopying<>(objectFactory, filesystem);
     final CopyStrategy<DataBufferPayload> replicatingHardCopying = new ReplicatingHardCopying<>(hardCopying, filesystem);
 

@@ -6,12 +6,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 @RequiredArgsConstructor
-class ListenablePublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
+class ListenablePublisher<P extends Payload> implements Publisher<P> {
   private final Listener listener;
-  private final Publisher<BUFFER> delegate;
+  private final Publisher<P> delegate;
 
   @Override
-  public void subscribe(Subscriber<? super BUFFER> subscriber) {
+  public void subscribe(Subscriber<? super P> subscriber) {
     delegate.subscribe(new ListenableSubscriber<>(listener, subscriber));
   }
 
@@ -30,13 +30,13 @@ class ListenablePublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
     }
   }
 
-  private static class ListenableSubscriber<BUFFER extends Payload>
-    extends ProcessedLengthAwareSubscriber<BUFFER> {
+  private static class ListenableSubscriber<P extends Payload>
+    extends ProcessedLengthAwareSubscriber<P> {
 
     private final Listener listener;
     private boolean abortNotified = false;
 
-    public ListenableSubscriber(Listener listener, Subscriber<? super BUFFER> subscriber) {
+    public ListenableSubscriber(Listener listener, Subscriber<? super P> subscriber) {
       super(subscriber);
       this.listener = listener;
     }
@@ -48,8 +48,8 @@ class ListenablePublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
     }
 
     @Override
-    public void onNext(BUFFER buffer) {
-      super.onNext(buffer);
+    public void onNext(P payload) {
+      super.onNext(payload);
       listener.duringTransferring(getProcessedLength());
     }
 

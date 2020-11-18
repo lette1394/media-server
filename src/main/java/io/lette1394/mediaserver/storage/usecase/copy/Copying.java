@@ -18,14 +18,14 @@ import lombok.Value;
 // TODO: unit test
 @Builder
 @RequiredArgsConstructor
-public class Copying<BUFFER extends Payload> {
-  private final ObjectRepository<BUFFER> objectRepository;
+public class Copying<P extends Payload> {
+  private final ObjectRepository<P> objectRepository;
 
-  private final CopyStrategy<BUFFER> hardCopying;
-  private final CopyStrategy<BUFFER> softCopying;
-  private final CopyStrategy<BUFFER> replicatingHardCopying;
+  private final CopyStrategy<P> hardCopying;
+  private final CopyStrategy<P> softCopying;
+  private final CopyStrategy<P> replicatingHardCopying;
 
-  public CompletableFuture<Object<BUFFER>> copy(Command command) {
+  public CompletableFuture<Object<P>> copy(Command command) {
     return objectRepository
       .find(command.from)
       .thenCompose(sourceObject -> Match(command.mode)
@@ -41,7 +41,7 @@ public class Copying<BUFFER extends Payload> {
         .execute(sourceObject, command.to));
   }
 
-  private boolean needReplicating(Command command, Object<BUFFER> sourceObject) {
+  private boolean needReplicating(Command command, Object<P> sourceObject) {
     return sourceObject
       .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
       .asLongOrDefault(0L) >= command.replicatingThreshold;

@@ -18,6 +18,6 @@ import java.util.concurrent.CompletableFuture;
 //  -- 근데 이건 좀 객체 합성하기가 까다로운데...
 //  테스트 관점에서는 어떤가?
 @FunctionalInterface
-public interface CopyStrategy<BUFFER extends Payload> {
-  CompletableFuture<Object<BUFFER>> execute(Object<BUFFER> sourceObject, Identifier targetIdentifier);
+public interface CopyStrategy<P extends Payload> {
+  CompletableFuture<Object<P>> execute(Object<P> sourceObject, Identifier targetIdentifier);
 }

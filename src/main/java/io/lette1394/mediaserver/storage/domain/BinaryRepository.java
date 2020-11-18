@@ -2,7 +2,7 @@ package io.lette1394.mediaserver.storage.domain;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface BinaryRepository<BUFFER extends Payload> {
+public interface BinaryRepository<P extends Payload> {
 
   default CompletableFuture<Boolean> exists(BinaryPath binaryPath) {
     return find(binaryPath)
@@ -10,11 +10,11 @@ public interface BinaryRepository<BUFFER extends Payload> {
       .exceptionally(__ -> false);
   }
 
-  CompletableFuture<BinaryPublisher<BUFFER>> find(BinaryPath binaryPath);
+  CompletableFuture<BinaryPublisher<P>> find(BinaryPath binaryPath);
 
-  CompletableFuture<Void> append(BinaryPath binaryPath, BinaryPublisher<BUFFER> binaryPublisher);
+  CompletableFuture<Void> append(BinaryPath binaryPath, BinaryPublisher<P> binaryPublisher);
 
   CompletableFuture<Void> delete(BinaryPath binaryPath);
 
-  CompletableFuture<Void> create(BinaryPath binaryPath, BinaryPublisher<BUFFER> binaryPublisher);
+  CompletableFuture<Void> create(BinaryPath binaryPath, BinaryPublisher<P> binaryPublisher);
 }

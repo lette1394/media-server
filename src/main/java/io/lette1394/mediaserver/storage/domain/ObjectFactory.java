@@ -77,7 +77,7 @@ public class ObjectFactory<P extends Payload> {
 //      return this;
 //    }
 //
-//    public <BUFFER extends Payload> Object<BUFFER> build() {
+//    public <P extends Payload> Object<P> build() {
 //      return
 //    }
 //  }

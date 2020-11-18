@@ -9,32 +9,32 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 @RequiredArgsConstructor
-class ValidatingLengthPublisher<BUFFER extends Payload> implements Publisher<BUFFER> {
+class ValidatingLengthPublisher<P extends Payload> implements Publisher<P> {
   private final long expectedTotalLength;
-  private final Publisher<BUFFER> delegate;
+  private final Publisher<P> delegate;
 
   @Override
-  public void subscribe(Subscriber<? super BUFFER> subscriber) {
+  public void subscribe(Subscriber<? super P> subscriber) {
     delegate.subscribe(new ValidatingLengthSubscriber<>(expectedTotalLength, subscriber));
   }
 
-  private static class ValidatingLengthSubscriber<BUFFER extends Payload> extends
-    ProcessedLengthAwareSubscriber<BUFFER> {
+  private static class ValidatingLengthSubscriber<P extends Payload> extends
+    ProcessedLengthAwareSubscriber<P> {
 
     private final long expectedTotalLength;
 
     public ValidatingLengthSubscriber(
       long expectedTotalLength,
-      Subscriber<? super BUFFER> subscriber) {
+      Subscriber<? super P> subscriber) {
 
       super(subscriber);
       this.expectedTotalLength = expectedTotalLength;
     }
 
     @Override
-    public void onNext(BUFFER buffer) {
+    public void onNext(P payload) {
       if (expectedTotalLength >= getProcessedLength()) {
-        super.onNext(buffer);
+        super.onNext(payload);
         return;
       }
       onError(violation(

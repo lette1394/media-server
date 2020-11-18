@@ -115,10 +115,10 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
   }
 
   @RequiredArgsConstructor
-  public static class SoftCopyFollowingObjectRepository<BUFFER extends Payload>
-    implements ObjectRepository<BUFFER> {
+  public static class SoftCopyFollowingObjectRepository<P extends Payload>
+    implements ObjectRepository<P> {
 
-    private final ObjectRepository<BUFFER> delegate;
+    private final ObjectRepository<P> delegate;
 
     @Override
     public CompletableFuture<Boolean> exists(Identifier identifier) {
@@ -126,7 +126,7 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
     }
 
     @Override
-    public CompletableFuture<Object<BUFFER>> find(Identifier identifier)
+    public CompletableFuture<Object<P>> find(Identifier identifier)
       throws ObjectNotFoundException {
 
       // TODO: recursive
@@ -147,7 +147,7 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
     }
 
     @Override
-    public CompletableFuture<Object<BUFFER>> save(Object<BUFFER> object) {
+    public CompletableFuture<Object<P>> save(Object<P> object) {
       return delegate.save(object);
     }
 
