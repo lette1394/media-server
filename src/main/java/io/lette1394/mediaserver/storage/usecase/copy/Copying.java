@@ -14,6 +14,8 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
+
+// TODO: unit test
 @Builder
 @RequiredArgsConstructor
 public class Copying<BUFFER extends Payload> {
@@ -30,6 +32,7 @@ public class Copying<BUFFER extends Payload> {
         .of(
           Case($(CopyMode.HARD), () -> hardCopying),
           Case($(CopyMode.SOFT), () -> {
+            // TODO: refactoring
             if (needReplicating(command, sourceObject)) {
               return replicatingHardCopying;
             }

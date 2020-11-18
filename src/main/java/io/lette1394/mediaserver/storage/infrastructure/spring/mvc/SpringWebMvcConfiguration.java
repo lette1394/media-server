@@ -1,6 +1,7 @@
 package io.lette1394.mediaserver.storage.infrastructure.spring.mvc;
 
 
+import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.infrastructure.DataBufferPayload;
 import io.lette1394.mediaserver.storage.infrastructure.filesystem.DataBufferFileSystemRepository;
 import io.lette1394.mediaserver.storage.usecase.Uploading;
@@ -33,7 +34,7 @@ public class SpringWebMvcConfiguration {
   @Bean
   Uploading<DataBufferPayload> uploading() {
     return new Uploading<>(
-      new DataBufferFileSystemRepository("out/binaries"),
+      new ObjectFactory<>(new DataBufferFileSystemRepository("out/binaries")),
       new DataBufferFileSystemRepository("out/objects")
     );
   }

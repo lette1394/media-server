@@ -7,6 +7,12 @@ import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.TRANSFER_A
 import static io.lette1394.mediaserver.storage.domain.Command.COPY;
 import static io.lette1394.mediaserver.storage.domain.Command.DOWNLOAD;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
+import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
+import static io.lette1394.mediaserver.storage.domain.ObjectType.INITIAL;
+import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
+import static io.vavr.API.$;
+import static io.vavr.API.Case;
+import static io.vavr.API.Match;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.TimeStamp;
@@ -19,6 +25,7 @@ import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.vavr.control.Try;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,7 +51,8 @@ public class Object<P extends Payload> extends AggregateRoot {
 
   @Builder
   public Object(Identifier identifier,
-    BinaryPath binaryPath, ObjectPolicy objectPolicy,
+    BinaryPath binaryPath,
+    ObjectPolicy objectPolicy,
     ObjectSnapshot objectSnapshot,
     Tags tags,
     TimeStamp timeStamp,
@@ -68,12 +76,25 @@ public class Object<P extends Payload> extends AggregateRoot {
   //  download랑 쌍도 안맞고, 이해하기가 어렵다.
   //  지금 usecase를 보면 그대로 바로 그냥 BinaryRepository에 save하는 일만 하고 있으니,
   //  여기서 그냥 다 해주고 CompletableFuture를 반환해 주는게 낫겠다.
-  public BinaryPublisher<P> upload(BinaryPublisher<P> upstream) {
+  public CompletableFuture<Object<P>> upload(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(UPLOAD))
       .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
       .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
       .map(__ -> compose(upstream))
-      .getOrElseThrow(e -> new OperationCanceledException(UPLOAD, e));
+      .toCompletableFuture()
+      .thenCompose(dispatchUpload())
+      .thenApply(__ -> this)
+      .exceptionally(e -> {
+        throw new OperationCanceledException(UPLOAD, e);
+      });
+  }
+
+  private Function<BinaryPublisher<P>, CompletableFuture<Void>> dispatchUpload() {
+    return binaryPublisher -> Match(this)
+      .of(
+        Case($(o -> o.is(FULFILLED)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
+        Case($(o -> o.is(INITIAL)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
+        Case($(o -> o.is(PENDING)), () -> binaryRepository.append(binaryPath, binaryPublisher)));
   }
 
   public CompletableFuture<BinaryPublisher<P>> download() {
@@ -90,12 +111,15 @@ public class Object<P extends Payload> extends AggregateRoot {
   // TODO: 이것도 upload() 메서드랑 같이 이상한데...
   //  이것도 upload() 와 같이 만들려면 SoftCopying 쪽이 문젠데,
   //  SoftCopying 에 있는 objectFactory에 있는 BinaryRepository를 아무것도 안하게 만들면 해결 가능하다.
-  public BinaryPublisher<P> copyFrom(BinaryPublisher<P> upstream) {
+  public CompletableFuture<Object<P>> copyFrom(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(COPY))
       .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
       .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
-      .map(__ -> upload(upstream))
-      .getOrElseThrow(e -> new OperationCanceledException(COPY, e));
+      .toCompletableFuture()
+      .thenCompose(__ -> upload(upstream))
+      .exceptionally(e -> {
+        throw new OperationCanceledException(COPY, e);
+      });
   }
 
   public boolean hasTag(String key) {

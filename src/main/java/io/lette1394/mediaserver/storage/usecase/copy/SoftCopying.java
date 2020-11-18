@@ -4,6 +4,7 @@ import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
+import io.lette1394.mediaserver.storage.domain.BinaryRepository;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.NoOperationSubscriber;
 import io.lette1394.mediaserver.storage.domain.Object;
@@ -16,38 +17,42 @@ import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Mono;
 
-@RequiredArgsConstructor
-public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
+public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
 
   static final String TAG_COPYING_SOFT_COPIED = "copying.soft.copied";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT = "copying.soft.copied.source.referenced.count";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_AREA = "copying.soft.copied.source.area";
   static final String TAG_COPYING_SOFT_COPIED_SOURCE_KEY = "copying.soft.copied.source.key";
 
-  private final ObjectFactory<B> objectFactory;
-  private final ObjectRepository<B> objectRepository;
+  private final ObjectFactory<P> objectFactory;
+  private final ObjectRepository<P> objectRepository;
+
+  public SoftCopying(ObjectFactory<P> objectFactory,
+    ObjectRepository<P> objectRepository) {
+    this.objectFactory = objectFactory.with(new SoftCopyBinaryRepository<>());
+    this.objectRepository = objectRepository;
+  }
 
   @Override
-  public CompletableFuture<Object<B>> execute(
-    Object<B> sourceObject,
+  public CompletableFuture<Object<P>> execute(
+    Object<P> sourceObject,
     Identifier targetIdentifier) {
-
-    final Object<B> targetObject = objectFactory.create(targetIdentifier);
+    final Object<P> targetObject = objectFactory.create(targetIdentifier);
 
     markSoftCopied(sourceObject, targetObject);
-    pretendingToCopy(sourceObject, targetObject);
     increaseReferencedCount(sourceObject);
 
     // TODO: atomic update
     // TODO: transaction
-    return CompletableFuture
-      .allOf(
-        objectRepository.save(sourceObject),
-        objectRepository.save(targetObject))
-      .thenApply(__ -> targetObject);
+    return pretendingToCopy(sourceObject, targetObject)
+      .thenCompose(copiedObject -> CompletableFuture
+        .allOf(
+          objectRepository.save(sourceObject),
+          objectRepository.save(targetObject))
+        .thenApply(__ -> copiedObject));
   }
 
-  private void markSoftCopied(Object<B> sourceObject, Object<B> targetObject) {
+  private void markSoftCopied(Object<P> sourceObject, Object<P> targetObject) {
     final Identifier sourceIdentifier = sourceObject.getIdentifier();
     targetObject.addTag(TAG_COPYING_SOFT_COPIED);
     targetObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_AREA, sourceIdentifier.getArea());
@@ -55,23 +60,58 @@ public class SoftCopying<B extends Payload> implements CopyStrategy<B> {
   }
 
   @SuppressWarnings("unchecked")
-  private void pretendingToCopy(Object<B> sourceObject, Object<B> targetObject) {
+  private CompletableFuture<Object<P>> pretendingToCopy(Object<P> sourceObject,
+    Object<P> targetObject) {
     final Payload notifyPayload = () -> sourceObject.getSize();
-    targetObject
-      .copyFrom(adapt(Mono.just((B) notifyPayload)))
-      .subscribe(new NoOperationSubscriber<>() {
-        @Override
-        public void onSubscribe(Subscription s) {
-          s.request(1L);
-        }
-      });
+    return targetObject.copyFrom(adapt(Mono.just((P) notifyPayload)));
   }
 
-  private void increaseReferencedCount(Object<B> sourceObject) {
+  private void increaseReferencedCount(Object<P> sourceObject) {
     final long softCount = sourceObject
       .getTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT)
       .asLongOrDefault(0L);
     sourceObject.addTag(TAG_COPYING_SOFT_COPIED_SOURCE_REFERENCED_COUNT, softCount + 1);
+  }
+
+  public static class SoftCopyBinaryRepository<P extends Payload> implements BinaryRepository<P> {
+    @Override
+    public CompletableFuture<BinaryPublisher<P>> find(BinaryPath binaryPath) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CompletableFuture<Void> append(BinaryPath binaryPath,
+      BinaryPublisher<P> binaryPublisher) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CompletableFuture<Void> delete(BinaryPath binaryPath) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CompletableFuture<Void> create(BinaryPath binaryPath,
+      BinaryPublisher<P> binaryPublisher) {
+      final CompletableFuture<Void> ret = new CompletableFuture<>();
+      binaryPublisher.subscribe(new NoOperationSubscriber<>() {
+        @Override
+        public void onSubscribe(Subscription s) {
+          s.request(1L);
+        }
+
+        @Override
+        public void onComplete() {
+          ret.complete(null);
+        }
+
+        @Override
+        public void onError(Throwable t) {
+          ret.completeExceptionally(t);
+        }
+      });
+      return ret;
+    }
   }
 
   @RequiredArgsConstructor

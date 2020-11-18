@@ -29,11 +29,14 @@ public class Matchers {
     };
   }
 
-  public static <T extends OperationCanceledException> Matcher<OperationCanceledException> commandIs(Command expected) {
+  public static <T extends Throwable> Matcher<Throwable> commandIs(Command expected) {
     return new TypeSafeMatcher<>() {
       @Override
-      protected boolean matchesSafely(OperationCanceledException item) {
-        return item.getCommand() == expected;
+      protected boolean matchesSafely(Throwable item) {
+        if (item instanceof OperationCanceledException) {
+          return ((OperationCanceledException) item).getCommand() == expected;
+        }
+        return false;
       }
 
       @Override
@@ -42,8 +45,7 @@ public class Matchers {
       }
 
       @Override
-      protected void describeMismatchSafely(OperationCanceledException item, Description mismatchDescription) {
-        mismatchDescription.appendValue(item.getCommand());
+      protected void describeMismatchSafely(Throwable item, Description mismatchDescription) {
       }
     };
   }

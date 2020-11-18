@@ -13,13 +13,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.lette1394.mediaserver.storage.ByteInMemoryRepository;
+import io.lette1394.mediaserver.storage.StringInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
+import io.lette1394.mediaserver.storage.infrastructure.BytePayload;
 import io.lette1394.mediaserver.storage.infrastructure.StringPayload;
 import io.vavr.control.Try;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,21 +33,22 @@ import reactor.core.publisher.Flux;
 
 @DisplayName("Object class")
 class ObjectTest {
-  private <T extends Payload> Object<T> anyObject() {
+  private Object<StringPayload> anyObject() {
     return anyObject(__ -> Try.success(null), __ -> Try.success(null));
   }
 
-  private <T extends Payload> Object<T> anyObject(ObjectPolicy objectPolicy) {
+  private Object<StringPayload> anyObject(ObjectPolicy objectPolicy) {
     return anyObject(objectPolicy, __ -> Try.success(null));
   }
 
-  private <T extends Payload> Object<T> anyObject(BinaryPolicy binaryPolicy) {
+  private Object<StringPayload> anyObject(BinaryPolicy binaryPolicy) {
     return anyObject(__ -> Try.success(null), binaryPolicy);
   }
 
-  private <T extends Payload> Object<T> anyObject(ObjectPolicy objectPolicy,
+  private Object<StringPayload> anyObject(ObjectPolicy objectPolicy,
     BinaryPolicy binaryPolicy) {
-    final ObjectFactory<T> objectFactory = new ObjectFactory<>(objectPolicy, binaryPolicy);
+    final BinaryRepository<StringPayload> binaryRepository = new StringInMemoryRepository();
+    final ObjectFactory<StringPayload> objectFactory = new ObjectFactory<>(objectPolicy, binaryPolicy, binaryRepository);
     return objectFactory.create(anyIdentifier());
   }
 
@@ -115,10 +120,7 @@ class ObjectTest {
 
       private Object<StringPayload> subject(String payload) {
         final Object<StringPayload> object = anyObject();
-        final BinaryPublisher<StringPayload> binaryPublisher = object.upload(adapt(anyStringPublisher(payload)));
-
-        subscribe(binaryPublisher);
-        return object;
+        return object.upload(adapt(anyStringPublisher(payload))).join();
       }
     }
 
@@ -131,11 +133,11 @@ class ObjectTest {
         final ObjectPolicy rejectAll = current -> Try.failure(new RuntimeException("reject"));
         final Object<?> object = anyObject(rejectAll);
 
-        final OperationCanceledException exception = assertThrows(OperationCanceledException.class,
-          () -> object.upload(null));
+        final CompletionException exception = assertThrows(CompletionException.class,
+          () -> object.upload(null).join());
 
-        assertThat(exception, commandIs(UPLOAD));
-        assertThat(exception, causeIs(RuntimeException.class));
+        assertThat(exception, causeIs(OperationCanceledException.class));
+        assertThat(exception.getCause(), commandIs(UPLOAD));
         assertThat(object, got(UploadRejected.class));
       }
     }

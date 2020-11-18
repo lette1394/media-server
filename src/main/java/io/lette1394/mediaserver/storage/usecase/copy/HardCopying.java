@@ -23,10 +23,9 @@ public class HardCopying<BUFFER extends Payload> implements CopyStrategy<BUFFER>
 
     final Object<BUFFER> targetObject = objectFactory.create(targetIdentifier);
     return sourceObject.download()
-      .thenApply(sourceBinary -> targetObject.copyFrom(sourceBinary)) // TODO: source object 를 받기
+      .thenCompose(sourceBinary -> targetObject.copyFrom(sourceBinary)) // TODO: source object 를 받기
       // TODO: 이거 병렬 실행으로 할 수 있을 거 같다
-      .thenCompose(sourceBinary -> binaryRepository.create(BinaryPath.from(targetIdentifier), sourceBinary))
-      .thenCompose(__ -> objectRepository.save(targetObject));
+      .thenCompose(copiedObject -> objectRepository.save(copiedObject));
 
       // TODO: 예외 발생하면 둘 다 삭제
   }

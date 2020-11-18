@@ -20,6 +20,7 @@ import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
+import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
 import io.lette1394.mediaserver.storage.domain.Tags;
@@ -54,7 +55,7 @@ class UploadingTest {
       BinaryPath.from(pendingIdentifier).asString(),
       payload(initialPayload));
 
-    uploading = new Uploading<>(repository, repository);
+    uploading = new Uploading<>(new ObjectFactory<>(repository), repository);
   }
 
   @Test
@@ -96,6 +97,7 @@ class UploadingTest {
   private Object<BytePayload> pendingObject(Identifier identifier) {
     return Object.<BytePayload>builder()
       .identifier(identifier)
+      .binaryPath(BinaryPath.from(identifier))
       .objectSnapshot(ObjectSnapshot.byObjectType(
         ObjectType.PENDING,
         initialPayload.getBytes().length))

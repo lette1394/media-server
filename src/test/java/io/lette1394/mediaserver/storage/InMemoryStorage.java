@@ -64,9 +64,7 @@ public abstract class InMemoryStorage<T extends Payload> implements
     CompletableFuture<Void> ret = new CompletableFuture<>();
     Flux
       .from(binaryPublisher)
-      .doOnSubscribe(__ -> {
-        binaryHolder.put(binaryPath.asString(), new ByteArrayOutputStream());
-      })
+      .doOnSubscribe(__ -> binaryHolder.put(binaryPath.asString(), new ByteArrayOutputStream()))
       .doOnComplete(() -> ret.complete(null))
       .doOnError(e -> ret.completeExceptionally(e))
       .subscribe(payload -> write(binaryPath, payload));

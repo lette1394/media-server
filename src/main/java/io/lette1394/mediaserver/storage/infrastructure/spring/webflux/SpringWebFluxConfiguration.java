@@ -46,7 +46,7 @@ public class SpringWebFluxConfiguration {
 
   @Bean
   Uploading<DataBufferPayload> uploading() {
-    return new Uploading<>(filesystem, filesystem);
+    return new Uploading<>(new ObjectFactory<>(filesystem), filesystem);
   }
 
   @Bean
@@ -63,7 +63,7 @@ public class SpringWebFluxConfiguration {
 
   @Bean
   Copying<DataBufferPayload> copying() {
-    final ObjectFactory<DataBufferPayload> objectFactory = new ObjectFactory<>();
+    final ObjectFactory<DataBufferPayload> objectFactory = new ObjectFactory<>(filesystem);
 
     final CopyStrategy<DataBufferPayload> hardCopying = new HardCopying<>(objectFactory, filesystem, filesystem);
     final CopyStrategy<DataBufferPayload> softCopying = new SoftCopying<>(objectFactory, filesystem);
