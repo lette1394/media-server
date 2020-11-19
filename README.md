@@ -38,7 +38,7 @@
 - [delivery] cache layer
 - [monitoring] up/download statistics 
 - [security] object access objectPolicy  
-
+- [security] content encryption
 ...
 
 
