@@ -82,7 +82,7 @@ class CopyingTest {
     @DisplayName("with hard copy mode")
     class with_hard_copy_mode {
       @Test
-      @DisplayName("")
+      @DisplayName("success blah blah")
       void test1() {
         final Identifier targetId = randomIdentifier();
         final Object<StringPayload> copiedObject = subject().copy(hardMode(targetId)).join();
