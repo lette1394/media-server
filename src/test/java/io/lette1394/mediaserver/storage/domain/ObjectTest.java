@@ -2,40 +2,50 @@ package io.lette1394.mediaserver.storage.domain;
 
 import static io.lette1394.mediaserver.matchers.Matchers.causeIs;
 import static io.lette1394.mediaserver.matchers.Matchers.commandIs;
+import static io.lette1394.mediaserver.matchers.Matchers.typeIs;
+import static io.lette1394.mediaserver.matchers.ObjectMatchers.events;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.got;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
 import static io.lette1394.mediaserver.storage.domain.BinaryPublisher.adapt;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
+import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.lette1394.mediaserver.common.Contracts;
+import io.lette1394.mediaserver.storage.BrokenBinaryPublisher;
+import io.lette1394.mediaserver.storage.BrokenBinaryPublisher.BrokenIOException;
 import io.lette1394.mediaserver.storage.StringInMemoryRepository;
+import io.lette1394.mediaserver.storage.domain.Events.UploadAborted;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.infrastructure.StringPayload;
 import io.vavr.control.Try;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import reactor.core.publisher.Flux;
 
-@DisplayName("Object class")
+@DisplayName("Object")
 class ObjectTest {
+  private static final ObjectPolicy ALLOW = __ -> Try.success(null);
+  private static final ObjectPolicy REJECT = __ -> Try.failure(new AlwaysRejectedTestException());
+
   private Object<StringPayload> anyObject() {
     return anyObject(__ -> Try.success(null), __ -> Try.success(null));
   }
 
-  private Object<StringPayload> anyObject(ObjectPolicy objectPolicy) {
+  private Object<StringPayload> anyObjectWith(ObjectPolicy objectPolicy) {
     return anyObject(objectPolicy, __ -> Try.success(null));
   }
 
@@ -46,7 +56,8 @@ class ObjectTest {
   private Object<StringPayload> anyObject(ObjectPolicy objectPolicy,
     BinaryPolicy binaryPolicy) {
     final BinaryRepository<StringPayload> binaryRepository = new StringInMemoryRepository();
-    final ObjectFactory<StringPayload> objectFactory = new ObjectFactory<>(objectPolicy, binaryPolicy, binaryRepository);
+    final ObjectFactory<StringPayload> objectFactory = new ObjectFactory<>(objectPolicy,
+      binaryPolicy, binaryRepository);
     return objectFactory.create(anyIdentifier());
   }
 
@@ -54,7 +65,7 @@ class ObjectTest {
     return new Identifier(randomAlphanumeric(10), randomAlphanumeric(10));
   }
 
-  private Publisher<StringPayload> anyStringPublisher(String string) {
+  private Publisher<StringPayload> stringPublisher(String string) {
     return Flux.fromStream(Arrays.stream(string.split("")).map(StringPayload::new));
   }
 
@@ -64,82 +75,154 @@ class ObjectTest {
       });
   }
 
+  private BinaryPublisher<StringPayload> anyBinaries() {
+    return adapt(stringPublisher("any string payload"));
+  }
+
+  private BinaryPublisher<StringPayload> anyBinariesWithLength(int length) {
+    return adapt(stringPublisher(randomAlphanumeric(length)));
+  }
+
+  public static class AlwaysRejectedTestException extends RuntimeException {
+
+  }
+
   @Nested
   @DisplayName("upload()")
-  class Upload {
-
+  class Describe_Upload {
     @Nested
-    @DisplayName("연산 중에")
-    class Context_during_operation {
+    @DisplayName("with pending_state")
+    class Context_with_pending_state {
       @Test
-      @DisplayName("Command")
-      void it_produces_successful_events() {
-        // FIXME (jaeeun) 2020-11-19:
-        //  bad test. use object.getEvents()
-        //  이벤트가 가지고 있는 command를 가지고 테스트해야함
-        final AtomicReference<ObjectSnapshot> ret = new AtomicReference<>();
-
-        final ObjectPolicy objectPolicy = snapshot -> {
-          ret.set(snapshot);
-          return Try.success(null);
-        };
-        final Object<StringPayload> object = anyObject(objectPolicy);
-        object.upload(null);
-
-        assertThat(ret.get().getCommand(), is(UPLOAD));
+      @DisplayName("")
+      void pending() {
       }
     }
 
     @Nested
-    @DisplayName("연산에 성공하면")
+    @DisplayName("with legal policy")
     class Context_with_legal_policy {
       @Test
-      @DisplayName("성공 이벤트를 만든다")
-      void it_produces_successful_events() {
-        final Object<StringPayload> object = subject();
-        assertThat(object, got(List.of(UploadingTriggered.class, Uploaded.class)));
+      @DisplayName("It emits successful events")
+      void got_events() {
+        final Object<StringPayload> object = anyObjectWith(ALLOW)
+          .upload(anyBinaries())
+          .join();
+        assertThat(object, got(events(UploadingTriggered.class, Uploaded.class)));
       }
 
       @Test
-      @DisplayName("FULFILLED 타입을 갖는다")
-      void it_has_fulfilled_type() {
-        final Object<StringPayload> object = subject();
+      @DisplayName("It has FULFILLED type")
+      void fulfilled() {
+        final Object<StringPayload> object = anyObjectWith(ALLOW)
+          .upload(anyBinaries())
+          .join();
         assertThat(object, hasType(FULFILLED));
       }
 
       @Test
-      @DisplayName("payload 길이를 갖는다")
-      void it_proper_length() {
-        final int length = 10;
-        final Object<StringPayload> object = subject(randomAlphanumeric(length));
-        assertThat(object, hasSize(length));
-      }
-
-      private Object<StringPayload> subject() {
-        return subject(randomAlphanumeric(10));
-      }
-
-      private Object<StringPayload> subject(String payload) {
-        final Object<StringPayload> object = anyObject();
-        return object.upload(adapt(anyStringPublisher(payload))).join();
+      @DisplayName("Its size is equals to payload length")
+      void length() {
+        final int payloadLength = 10;
+        final Object<StringPayload> object = anyObjectWith(ALLOW)
+          .upload(anyBinariesWithLength(payloadLength))
+          .join();
+        assertThat(object, hasSize(payloadLength));
       }
     }
 
     @Nested
-    @DisplayName("정책을 위반한 경우")
+    @DisplayName("with illegal policy")
     class Context_with_illegal_policy {
       @Test
-      @DisplayName("예외를 던지고 upload rejected 이벤트를 만든다")
-      void it_throws_exception() {
-        final ObjectPolicy rejectAll = current -> Try.failure(new RuntimeException("reject"));
-        final Object<?> object = anyObject(rejectAll);
+      @DisplayName("it throws exception")
+      void exception() {
+        final Object<StringPayload> object = anyObjectWith(REJECT);
+        final CompletionException wrapped = assertThrows(CompletionException.class,
+          () -> object.upload(anyBinaries()).join());
 
-        final CompletionException exception = assertThrows(CompletionException.class,
-          () -> object.upload(null).join());
+        final Throwable exception = wrapped.getCause();
+        assertThat(exception, typeIs(OperationCanceledException.class));
+        assertThat(exception, causeIs(AlwaysRejectedTestException.class));
+        assertThat(exception, commandIs(UPLOAD));
+      }
 
-        assertThat(exception, causeIs(OperationCanceledException.class));
-        assertThat(exception.getCause(), commandIs(UPLOAD));
+      @Test
+      @DisplayName("It emits rejected events")
+      void events() {
+        final Object<StringPayload> object = anyObjectWith(REJECT);
+        assertThrows(CompletionException.class, () -> object.upload(anyBinaries()).join());
         assertThat(object, got(UploadRejected.class));
+      }
+    }
+
+    @Nested
+    @DisplayName("with illegal binaries")
+    class Context_with_illegal_binaries {
+      @Test
+      @DisplayName("it throws exception")
+      void it_throws_exception() {
+        final Object<StringPayload> object = anyObjectWith(ALLOW);
+        final CompletionException wrapped = assertThrows(CompletionException.class,
+          () -> object.upload(brokenBinaries()).join());
+
+        final Throwable exception = wrapped.getCause();
+        assertThat(exception, typeIs(OperationCanceledException.class));
+        assertThat(exception, causeIs(BrokenIOException.class));
+        assertThat(exception, commandIs(UPLOAD));
+      }
+
+      @Test
+      @DisplayName("It emits failure events")
+      void It_emits_failure_events() {
+        final Object<StringPayload> object = anyObjectWith(ALLOW);
+        assertThrows(CompletionException.class, () -> object.upload(brokenBinaries()).join());
+        assertThat(object, got(events(UploadingTriggered.class, UploadAborted.class)));
+      }
+
+      @Test
+      @DisplayName("It has PENDING type")
+      void It_has_PENDING_state() {
+        final Object<StringPayload> object = anyObjectWith(ALLOW);
+        assertThrows(CompletionException.class, () -> object.upload(brokenBinaries()).join());
+        assertThat(object, hasType(PENDING));
+      }
+
+      @Test
+      @DisplayName("Its size is equal to last uploaded length")
+      void Its_size_is_equal_to_last_uploaded_length() {
+        final Object<StringPayload> object = anyObjectWith(ALLOW);
+        final CompletionException wrapped = assertThrows(CompletionException.class,
+          () -> object.upload(brokenBinaries()).join());
+
+        final Throwable exception = wrapped.getCause();
+        assertThat(exception, typeIs(OperationCanceledException.class));
+        assertThat(exception, causeIs(BrokenIOException.class));
+        assertThat(object, hasSize(unwrap(exception).getExceptionAt()));
+      }
+
+      private BrokenIOException unwrap(Throwable throwable) {
+        return ((BrokenIOException) throwable.getCause());
+      }
+
+      private BinaryPublisher<StringPayload> brokenBinaries() {
+        final String payload = "broken binaries payload";
+        final int binaryLength = payload.length();
+        final int exceptionAt = RandomUtils.nextInt(0, binaryLength);
+        Contracts.require(exceptionAt < binaryLength, "exceptionAt < binaryLength");
+
+        final Publisher<StringPayload> publisher = stringPublisher(payload);
+        return adapt(new BrokenBinaryPublisher<>(exceptionAt, new BinaryPublisher<>() {
+          @Override
+          public void subscribe(Subscriber<? super StringPayload> s) {
+            publisher.subscribe(s);
+          }
+
+          @Override
+          public Optional<Long> length() {
+            return Optional.of((long) payload.length());
+          }
+        }));
       }
     }
   }

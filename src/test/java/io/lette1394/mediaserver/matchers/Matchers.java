@@ -7,6 +7,28 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
 public class Matchers {
+  public static <T> Matcher<Throwable> typeIs(Class<T> expected) {
+    return new TypeSafeMatcher<>() {
+      @Override
+      protected boolean matchesSafely(Throwable item) {
+        if (item == null) {
+          return false;
+        }
+        return item.getClass() == expected;
+      }
+
+      @Override
+      public void describeTo(Description description) {
+        description.appendValue(expected);
+      }
+
+      @Override
+      protected void describeMismatchSafely(Throwable item, Description mismatchDescription) {
+        mismatchDescription.appendValue(item.getClass());
+      }
+    };
+  }
+
   public static <T extends Throwable> Matcher<Throwable> causeIs(Class<T> expected) {
     return new TypeSafeMatcher<>() {
       @Override

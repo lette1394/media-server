@@ -7,6 +7,8 @@ import static java.util.Objects.nonNull;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.DelegatingBinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Payload;
+import java.io.IOException;
+import lombok.Getter;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -44,9 +46,8 @@ public class BrokenBinaryPublisher<P extends Payload> extends DelegatingBinaryPu
         if (position >= exceptionAt) {
           triggered = true;
           onError(new BrokenIOException(
-            format("broken read triggered, size:[%s], exceptionAt:[%s]",
-              totalLength,
-              exceptionAt)));
+            format("broken read triggered, size:[%s], exceptionAt:[%s]", totalLength, exceptionAt),
+            exceptionAt));
         } else {
           position += item.getSize();
           subscriber.onNext(item);
@@ -66,5 +67,15 @@ public class BrokenBinaryPublisher<P extends Payload> extends DelegatingBinaryPu
         subscriber.onComplete();
       }
     });
+  }
+
+  @Getter
+  public static class BrokenIOException extends IOException {
+    private final long exceptionAt;
+
+    public BrokenIOException(String message, long exceptionAt) {
+      super(message);
+      this.exceptionAt = exceptionAt;
+    }
   }
 }

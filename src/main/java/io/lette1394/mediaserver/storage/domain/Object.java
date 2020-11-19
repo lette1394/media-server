@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.domain;
 
+import static io.lette1394.mediaserver.common.CompletableFutures.unwrap;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.AFTER_TRANSFERRED;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.BEFORE_TRANSFER;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.DURING_TRANSFERRING;
@@ -30,6 +31,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
+import org.apache.sis.util.Exceptions;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -85,7 +87,7 @@ public class Object<P extends Payload> extends AggregateRoot {
       .thenCompose(dispatchUpload())
       .thenApply(__ -> this)
       .exceptionally(e -> {
-        throw new OperationCanceledException(UPLOAD, e);
+        throw new OperationCanceledException(UPLOAD, unwrap(e));
       });
   }
 
@@ -95,6 +97,7 @@ public class Object<P extends Payload> extends AggregateRoot {
         Case($(o -> o.is(FULFILLED)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
         Case($(o -> o.is(INITIAL)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
         Case($(o -> o.is(PENDING)), () -> binaryRepository.append(binaryPath, binaryPublisher)));
+    // TODO: 매칭 안될 때
   }
 
   public CompletableFuture<BinaryPublisher<P>> download() {

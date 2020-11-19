@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.matchers;
 
+import com.google.common.collect.Lists;
 import io.lette1394.mediaserver.common.Event;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
@@ -125,5 +126,10 @@ public class ObjectMatchers {
         mismatchDescription.appendValue(item.getProgressingSize());
       }
     };
+  }
+
+  @SafeVarargs
+  public static <T extends Class<? extends Event>> List<T> events(T... events) {
+    return Lists.newArrayList(events);
   }
 }
