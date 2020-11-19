@@ -94,7 +94,7 @@ public class StorageController {
         .from(new Identifier(split[0], split[1]))
         .to(new Identifier(toArea, toKey))
         .mode(CopyMode.valueOf(mode.toUpperCase()))
-        .replicatingThreshold(3)
+        .replicatingThreshold(3L)
         .build())
       .handle(translator::translate);
   }

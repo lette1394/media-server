@@ -28,15 +28,24 @@ public interface Events {
   class DownloadingTriggered implements Event {
 
   }
+
   @Value(staticConstructor = "downloadRejected")
   class DownloadRejected implements FailureEvent {
     Throwable throwable;
   }
 
+  @Value(staticConstructor = "downloaded")
+  class Downloaded implements Event {
+  }
+
   @Value(staticConstructor = "copyingTriggered")
   class CopyingTriggered implements Event {
-
   }
+
+  @Value(staticConstructor = "copied")
+  class Copied implements Event {
+  }
+
   @Value(staticConstructor = "copyRejected")
   class CopyRejected implements FailureEvent {
     Throwable throwable;

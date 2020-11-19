@@ -1,19 +1,31 @@
 package io.lette1394.mediaserver.storage.domain;
 
-@FunctionalInterface
-public interface BinaryPath {
+import io.lette1394.mediaserver.common.Contracts;
+import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
-  static BinaryPath from(Identifier identifier) {
-    return () -> String.format("%s/%s", identifier.getArea(), identifier.getKey());
+@EqualsAndHashCode
+public class BinaryPath {
+  private final String value;
+
+  public BinaryPath(String value) {
+    Contracts.require(StringUtils.isNotBlank(value), "isNotBlank(value)");
+    this.value = value;
   }
 
-  static BinaryPath from(String area, String key) {
+  public static BinaryPath from(Identifier identifier) {
+    return new BinaryPath(String.format("%s/%s", identifier.getArea(), identifier.getKey()));
+  }
+
+  public static BinaryPath from(String area, String key) {
     return from(new Identifier(area, key));
   }
 
-  static BinaryPath from(String key) {
-    return () -> key;
+  public static BinaryPath from(String key) {
+    return new BinaryPath(key);
   }
 
-  String asString();
+  public String asString() {
+    return value;
+  }
 }

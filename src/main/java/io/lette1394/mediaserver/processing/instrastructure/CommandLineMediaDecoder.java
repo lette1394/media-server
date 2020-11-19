@@ -50,8 +50,7 @@ public class CommandLineMediaDecoder<P extends Payload> implements MediaDecoder<
   }
 
   private BinaryPath randomPath() {
-    final String randomString = RandomStringUtils.randomAlphanumeric(100);
-    return () -> randomString;
+    return new BinaryPath(RandomStringUtils.randomAlphanumeric(100));
   }
 
   private CompletableFuture<DecodedMetadata> decode(BinaryPath binaryPath) {

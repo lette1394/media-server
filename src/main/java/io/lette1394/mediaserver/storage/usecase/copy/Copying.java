@@ -60,6 +60,6 @@ public class Copying<P extends Payload> {
 
     // TODO: fix it. HARD_COPY는 이 정보가 필요하지 않다.
     //  그냥 optional 로 주고 땡인가?
-    long replicatingThreshold;
+    Long replicatingThreshold;
   }
 }

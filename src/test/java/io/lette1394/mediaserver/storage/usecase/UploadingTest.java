@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import io.lette1394.mediaserver.storage.BrokenBinaryPublisher;
 import io.lette1394.mediaserver.storage.ByteInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
-import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
+import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Identifier;
@@ -27,7 +27,6 @@ import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.infrastructure.BytePayload;
 import io.lette1394.mediaserver.storage.usecase.Uploading.Command;
 import io.vavr.control.Try;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -48,12 +47,8 @@ class UploadingTest {
 
   @BeforeEach
   void beforeEach() {
-    repository.objectHolder.put(
-      pendingIdentifier,
-      pendingObject(pendingIdentifier));
-    repository.binaryHolder.put(
-      BinaryPath.from(pendingIdentifier).asString(),
-      payload(initialPayload));
+    repository.addObject(pendingObject(pendingIdentifier));
+    repository.addBinary(BinaryPath.from(pendingIdentifier), initialPayload.getBytes());
 
     uploading = new Uploading<>(new ObjectFactory<>(repository), repository);
   }
@@ -109,12 +104,6 @@ class UploadingTest {
       .build();
   }
 
-  private ByteArrayOutputStream payload(String payload) {
-    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    outputStream.writeBytes(payload.getBytes());
-    return outputStream;
-  }
-
   private Publisher<BytePayload> publisher(String payload) {
     return Flux.fromStream(payload.chars().mapToObj(ch -> new BytePayload(ch)));
   }
@@ -137,14 +126,11 @@ class UploadingTest {
   }
 
   private String getPayload(Identifier identifier) {
-    final ByteArrayOutputStream outputStream = repository.binaryHolder
-      .get(BinaryPath.from(identifier).asString());
-
-    return new String(outputStream.toByteArray());
+    return new String(repository.getBinary(BinaryPath.from(identifier)));
   }
 
   private Object<BytePayload> getObject(Identifier identifier) {
-    return repository.objectHolder.get(identifier);
+    return repository.getObject(identifier);
   }
 
   private long fullSize() {

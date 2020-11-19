@@ -16,10 +16,13 @@ import static io.vavr.API.Case;
 import static io.vavr.API.Match;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
+import io.lette1394.mediaserver.common.Event;
 import io.lette1394.mediaserver.common.TimeStamp;
+import io.lette1394.mediaserver.storage.domain.Events.Copied;
 import io.lette1394.mediaserver.storage.domain.Events.CopyRejected;
 import io.lette1394.mediaserver.storage.domain.Events.CopyingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadRejected;
+import io.lette1394.mediaserver.storage.domain.Events.Downloaded;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.UploadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
@@ -31,7 +34,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
-import org.apache.sis.util.Exceptions;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -93,6 +95,8 @@ public class Object<P extends Payload> extends AggregateRoot {
 
   private Function<BinaryPublisher<P>, CompletableFuture<Void>> dispatchUpload() {
     return binaryPublisher -> Match(this)
+      // FIXME (jaeeun) 2020-11-20:
+      //  object == null 일 때 handling
       .of(
         Case($(o -> o.is(FULFILLED)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
         Case($(o -> o.is(INITIAL)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
@@ -106,6 +110,7 @@ public class Object<P extends Payload> extends AggregateRoot {
       .onFailure(e -> addEvent(DownloadRejected.downloadRejected(e)))
       .toCompletableFuture()
       .thenCompose(__ -> binaryRepository.find(binaryPath))
+      .thenApply(addEventStep(Downloaded.downloaded()))
       .exceptionally(e -> {
         throw new OperationCanceledException(DOWNLOAD, e);
       });
@@ -120,9 +125,17 @@ public class Object<P extends Payload> extends AggregateRoot {
       .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
       .toCompletableFuture()
       .thenCompose(__ -> upload(upstream))
+      .thenApply(addEventStep(Copied.copied()))
       .exceptionally(e -> {
         throw new OperationCanceledException(COPY, e);
       });
+  }
+
+  private <T> Function<T, T> addEventStep(Event event) {
+    return object -> {
+      addEvent(event);
+      return object;
+    };
   }
 
   public boolean hasTag(String key) {
