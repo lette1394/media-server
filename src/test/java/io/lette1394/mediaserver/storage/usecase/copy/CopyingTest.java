@@ -6,13 +6,13 @@ import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasType;
 import static io.lette1394.mediaserver.utils.TestUtils.ALLOW_BINARY_POLICY;
 import static io.lette1394.mediaserver.utils.TestUtils.ALLOW_OBJECT_POLICY;
-import static io.lette1394.mediaserver.utils.TestUtils.anyBinaryPath;
 import static io.lette1394.mediaserver.utils.TestUtils.anyIdentifier;
 import static io.lette1394.mediaserver.utils.TestUtils.anyTimeStamp;
 import static io.lette1394.mediaserver.utils.TestUtils.randomIdentifier;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.lette1394.mediaserver.matchers.ObjectMatchers;
+import io.lette1394.mediaserver.matchers.Matchers;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.StringInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
@@ -26,10 +26,12 @@ import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
+import io.lette1394.mediaserver.storage.domain.OperationCanceledException;
 import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.infrastructure.StringPayload;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying.Command;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying.CopyMode;
+import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -72,11 +74,30 @@ class CopyingTest {
       .build();
   }
 
+  private Identifier notFoundIdentifier() {
+    final Identifier identifier = sourceObject.getIdentifier();
+    return new Identifier("not-found-id-" + identifier.getArea(), "not-found-id-" + identifier.getKey());
+  }
+
   @Nested
   @DisplayName("copy()")
   class Copy {
 
     // TODO: source object를 찾을 수 없을 때
+    @Nested
+    @DisplayName("with not found identifier")
+    class with_not_found_identifier {
+      @Test
+      @DisplayName("it throws not found exception")
+      void test1() {
+        final Identifier targetId = notFoundIdentifier(); // TODO: source 로 해야댐
+        final CompletionException wrapped = assertThrows(CompletionException.class,
+          () -> subject().copy(hardMode(targetId)).join());
+        final Throwable throwable = wrapped.getCause();
+
+        assertThat(throwable, Matchers.causeIs(OperationCanceledException.class));
+      }
+    }
 
     @Nested
     @DisplayName("with hard copy mode")
@@ -89,21 +110,19 @@ class CopyingTest {
 
         assertThat(copiedObject, hasType(ObjectType.FULFILLED));
         assertThat(copiedObject, hasSize(sourceObject.getSize()));
-        assertThat(copiedObject, got(events(CopyingTriggered.class, UploadingTriggered.class, Uploaded.class, Copied.class)));
+        assertThat(copiedObject, got(
+          events(CopyingTriggered.class, UploadingTriggered.class, Uploaded.class, Copied.class)));
       }
 
-
-      private Copying<StringPayload> subject() {
-        final CopyStrategy<StringPayload> hardCopying = new HardCopying<>(objectFactory, memory);
-        final CopyStrategy<StringPayload> softCopying = new SoftCopying<>(objectFactory, memory);
-        final CopyStrategy<StringPayload> replicatingHardCopying = new ReplicatingHardCopying<>(
-          hardCopying, memory);
-
-        return new Copying<StringPayload>(memory, hardCopying, softCopying, replicatingHardCopying);
-      }
     }
-
-
   }
 
+  private Copying<StringPayload> subject() {
+    final CopyStrategy<StringPayload> hardCopying = new HardCopying<>(objectFactory, memory);
+    final CopyStrategy<StringPayload> softCopying = new SoftCopying<>(objectFactory, memory);
+    final CopyStrategy<StringPayload> replicatingHardCopying = new ReplicatingHardCopying<>(
+      hardCopying, memory);
+
+    return new Copying<StringPayload>(memory, hardCopying, softCopying, replicatingHardCopying);
+  }
 }

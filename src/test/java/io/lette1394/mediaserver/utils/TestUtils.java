@@ -11,7 +11,11 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public class TestUtils {
   public static Identifier anyIdentifier() {
-    return new Identifier(RandomStringUtils.randomAlphanumeric(10), RandomStringUtils.randomAlphanumeric(10));
+    return anyIdentifier(10);
+  }
+
+  public static Identifier anyIdentifier(int length) {
+    return new Identifier(RandomStringUtils.randomAlphanumeric(length), RandomStringUtils.randomAlphanumeric(length));
   }
 
   public static Identifier randomIdentifier() {
