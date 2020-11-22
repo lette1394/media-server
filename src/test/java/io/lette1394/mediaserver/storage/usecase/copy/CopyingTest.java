@@ -1,5 +1,6 @@
 package io.lette1394.mediaserver.storage.usecase.copy;
 
+import static io.lette1394.mediaserver.matchers.Matchers.typeIs;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.events;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.got;
 import static io.lette1394.mediaserver.matchers.ObjectMatchers.hasSize;
@@ -12,7 +13,6 @@ import static io.lette1394.mediaserver.utils.TestUtils.randomIdentifier;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.lette1394.mediaserver.matchers.Matchers;
 import io.lette1394.mediaserver.storage.InMemoryStorage;
 import io.lette1394.mediaserver.storage.StringInMemoryRepository;
 import io.lette1394.mediaserver.storage.domain.BinaryPath;
@@ -24,9 +24,9 @@ import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
+import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectSnapshot;
 import io.lette1394.mediaserver.storage.domain.ObjectType;
-import io.lette1394.mediaserver.storage.domain.OperationCanceledException;
 import io.lette1394.mediaserver.storage.domain.Tags;
 import io.lette1394.mediaserver.storage.infrastructure.StringPayload;
 import io.lette1394.mediaserver.storage.usecase.copy.Copying.Command;
@@ -66,17 +66,27 @@ class CopyingTest {
     memory.addBinary(BinaryPath.from(sourceObject.getIdentifier()), payload.getBytes());
   }
 
-  private Command hardMode(Identifier identifier) {
+  private Command hardMode(Identifier source, Identifier target) {
     return Command.builder()
       .mode(CopyMode.HARD)
-      .from(sourceObject.getIdentifier())
-      .to(identifier)
+      .from(source)
+      .to(target)
       .build();
   }
 
   private Identifier notFoundIdentifier() {
     final Identifier identifier = sourceObject.getIdentifier();
-    return new Identifier("not-found-id-" + identifier.getArea(), "not-found-id-" + identifier.getKey());
+    return new Identifier("not-found-id-" + identifier.getArea(),
+      "not-found-id-" + identifier.getKey());
+  }
+
+  private Copying<StringPayload> subject() {
+    final CopyStrategy<StringPayload> hardCopying = new HardCopying<>(objectFactory, memory);
+    final CopyStrategy<StringPayload> softCopying = new SoftCopying<>(objectFactory, memory);
+    final CopyStrategy<StringPayload> replicatingHardCopying = new ReplicatingHardCopying<>(
+      hardCopying, memory);
+
+    return new Copying<StringPayload>(memory, hardCopying, softCopying, replicatingHardCopying);
   }
 
   @Nested
@@ -90,12 +100,13 @@ class CopyingTest {
       @Test
       @DisplayName("it throws not found exception")
       void test1() {
-        final Identifier targetId = notFoundIdentifier(); // TODO: source 로 해야댐
+        final Identifier sourceId = notFoundIdentifier();
+        final Identifier targetId = anyIdentifier();
         final CompletionException wrapped = assertThrows(CompletionException.class,
-          () -> subject().copy(hardMode(targetId)).join());
+          () -> subject().copy(hardMode(sourceId, targetId)).join());
         final Throwable throwable = wrapped.getCause();
 
-        assertThat(throwable, Matchers.causeIs(OperationCanceledException.class));
+        assertThat(throwable, typeIs(ObjectNotFoundException.class));
       }
     }
 
@@ -105,8 +116,10 @@ class CopyingTest {
       @Test
       @DisplayName("success blah blah")
       void test1() {
+        final Identifier sourceId = sourceObject.getIdentifier();
         final Identifier targetId = randomIdentifier();
-        final Object<StringPayload> copiedObject = subject().copy(hardMode(targetId)).join();
+        final Object<StringPayload> copiedObject = subject().copy(hardMode(sourceId, targetId))
+          .join();
 
         assertThat(copiedObject, hasType(ObjectType.FULFILLED));
         assertThat(copiedObject, hasSize(sourceObject.getSize()));
@@ -115,14 +128,5 @@ class CopyingTest {
       }
 
     }
-  }
-
-  private Copying<StringPayload> subject() {
-    final CopyStrategy<StringPayload> hardCopying = new HardCopying<>(objectFactory, memory);
-    final CopyStrategy<StringPayload> softCopying = new SoftCopying<>(objectFactory, memory);
-    final CopyStrategy<StringPayload> replicatingHardCopying = new ReplicatingHardCopying<>(
-      hardCopying, memory);
-
-    return new Copying<StringPayload>(memory, hardCopying, softCopying, replicatingHardCopying);
   }
 }
