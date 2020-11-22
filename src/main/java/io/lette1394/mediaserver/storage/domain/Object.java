@@ -112,6 +112,16 @@ public class Object<P extends Payload> extends AggregateRoot {
   //  PENDING state 라고 해서 항상 append() 하는 게 아니야.
   //  어떤 경우(이어올리기를 사용하지 않는 경우)는 PENDING state 일 때 upload를 할 수도 있어. 이거 valid 해
   //  UPLOADING 에 dispatch logic을 다시 옮겨야겠다.
+  //  .
+  //  그러면... upload() 단일 메서드가 아니라,
+  //  create() / uploadNew() /
+  //  append() / uploadContinuouly() /
+  //  overwrite() / upload...
+  //  등으로 public method로 노출되어야 한다
+  //  .
+  //  upload() 단일 메서드 유지하고, UploadMode 등을 줘도 괜찮겠다. // see StandardOpenOption
+  //  잠깐만, 그러면 copyFrom은 어떻게 되는거냐...?
+  //  -> 사실 copy는 없다!
   private Function<BinaryPublisher<P>, CompletableFuture<Void>> dispatchUpload() {
     return binaryPublisher -> Match(this)
       // FIXME (jaeeun) 2020-11-20:
@@ -138,6 +148,15 @@ public class Object<P extends Payload> extends AggregateRoot {
   // TODO: 이것도 upload() 메서드랑 같이 이상한데...
   //  이것도 upload() 와 같이 만들려면 SoftCopying 쪽이 문젠데,
   //  SoftCopying 에 있는 objectFactory에 있는 BinaryRepository를 아무것도 안하게 만들면 해결 가능하다.
+  //  .
+  //  .
+  //  .
+  //  사실 copy는 없다!
+  //  copy는 upload() + download()를 활용한 usecase이지,
+  //  그 자체로 뭐가 있는게 아님.
+  //  이벤트는 usecase들이 publish 하고,
+  //  objectPolicy는 upload/download만 check,
+  //  copy에 대한 추가적인 policy는 usecase에 종속적인 인터페이스로 해결해야한다
   public CompletableFuture<Object<P>> copyFrom(BinaryPublisher<P> upstream) {
     return objectPolicy.test(objectSnapshot.update(COPY))
       .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))

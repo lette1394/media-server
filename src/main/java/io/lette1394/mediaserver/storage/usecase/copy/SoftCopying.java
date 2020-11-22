@@ -29,6 +29,9 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
 
   public SoftCopying(ObjectFactory<P> objectFactory,
     ObjectRepository<P> objectRepository) {
+    // TODO: 외부에서 아예 생성해서 주자.... 인데
+    //  어짜피 SoftCopyBinaryRepository 이것만 써야하는데 이 경우에서도 밖에서 주입해주는 형태가 맞나?
+    //  그러면 불변식이 깨질 수가 있는데...
     this.objectFactory = objectFactory.with(new SoftCopyBinaryRepository<>());
     this.objectRepository = objectRepository;
   }

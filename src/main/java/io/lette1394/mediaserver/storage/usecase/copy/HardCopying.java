@@ -20,7 +20,7 @@ public class HardCopying<P extends Payload> implements CopyStrategy<P> {
 
     final Object<P> targetObject = objectFactory.create(targetIdentifier);
     return sourceObject.download()
-      .thenCompose(sourceBinary -> targetObject.copyFrom(sourceBinary)) // TODO: source object 를 받기
+      .thenCompose(sourceBinary -> targetObject.copyFrom(sourceBinary)) // TODO: source object 를 받기. tag 들도 복사하려면...
       // TODO: 이거 병렬 실행으로 할 수 있을 거 같다
       .thenCompose(copiedObject -> objectRepository.save(copiedObject));
 

@@ -5,6 +5,7 @@ import static io.vavr.API.Case;
 import static io.vavr.API.Match;
 import static io.vavr.Predicates.instanceOf;
 
+import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -50,12 +52,21 @@ public class Uploading<P extends Payload> {
     final Identifier identifier = command.identifier;
     final BinaryPublisher<P> upstream = command.upstream;
 
-    return (object, e) -> Match(e)
-      .of(
-        Case($(this::objectExists), () -> object.upload(upstream)),
-        Case($(instanceOf(ObjectNotFoundException.class)),
-          () -> createNewObject(identifier, upstream)),
-        Case($(), () -> abortUpload(e)));
+
+
+    return (object, e) -> {
+      final CompletableFuture<Object<P>> of = Match(e)
+        .of(
+          Case($(instanceOf(ObjectNotFoundException.class)),
+            () -> createNewObject(command.identifier, command.upstream)),
+          Case($(), () -> abortUpload(e)));
+
+
+
+      Match(object)
+        .of(
+          Case($(objectExists()) , () -> object.upload(upstream))
+    }
   }
 
   private BiFunction<Object<P>, Tags, Object<P>> addAllTags() {
@@ -69,8 +80,35 @@ public class Uploading<P extends Payload> {
     return object -> objectRepository.save(object);
   }
 
-  private CompletableFuture<Object<P>> createNewObject(Identifier identifier,
+  private CompletableFuture<Object<P>> append(Object<P> object,
     BinaryPublisher<P> upstream) {
+    final BinaryPublisher<P> binary = object.upload(upstream);
+    final BinaryPath binaryPath = binaryPath(object.getIdentifier());
+
+    return binaryRepository.append(binaryPath, binary)
+      .thenApply(__ -> object);
+  }
+
+  private CompletableFuture<Object<P>> create(Identifier identifier,
+    BinaryPublisher<P> upstream) {
+    final Object<P> object = objectFactory.create(identifier);
+    final BinaryPublisher<P> binaryPublisher = object.upload(upstream);
+    final BinaryPath binaryPath = binaryPath(identifier);
+
+    return binaryRepository.create(binaryPath, binaryPublisher)
+      .thenApply(__ -> object);
+  }
+
+  private CompletableFuture<Object<P>> overwrite(Object<P> object,
+    BinaryPublisher<P> upstream) {
+    final BinaryPublisher<P> binaryPublisher = object.upload(upstream);
+    final BinaryPath binaryPath = binaryPath(object.getIdentifier());
+
+    return binaryRepository.create(binaryPath, binaryPublisher)
+      .thenApply(__ -> object);
+  }
+
+  private CompletableFuture<Object<P>> createNewObject(Identifier identifier, BinaryPublisher<P> upstream) {
     return objectFactory
       .create(identifier)
       .upload(upstream);
@@ -80,8 +118,8 @@ public class Uploading<P extends Payload> {
     return CompletableFuture.failedFuture(e);
   }
 
-  private boolean objectExists(Throwable throwable) {
-    return throwable == null;
+  private Predicate<Throwable> objectExists() {
+    return throwable -> throwable == null;
   }
 
   private Function<CompletableFuture<Object<P>>, CompletionStage<Object<P>>> unwrap() {
