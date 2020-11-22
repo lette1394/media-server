@@ -93,6 +93,25 @@ public class Object<P extends Payload> extends AggregateRoot {
       });
   }
 
+  // TODO: 이거 어... 여기서 하는 게 맞나?
+  //  copy랑은 또 안맞잖아... 그러면 어떻게 되는거야ㅜㅜ 젠장
+  //  .
+  //  .
+  //  .
+  //  자. 생각해보자.
+  //  COPY strategy(hard, soft, replicating hard)는 확실히 usecase가 맞아.
+  //  왜? invariants 가 각각 달라지니까!!
+  //  .
+  //  .
+  //  .
+  //  근데 upload는 좀 다르다.
+  //  이건 usecase가 아니야.
+  //  어떤 경우에는 PENDING state 일 때 upload 하는 경우가..... valid 하네?
+  //  젠장. 이것도 usecase 따라 달라지는 거네.
+  //  invariant가 있는데 usecase level에 있는거였다...
+  //  PENDING state 라고 해서 항상 append() 하는 게 아니야.
+  //  어떤 경우(이어올리기를 사용하지 않는 경우)는 PENDING state 일 때 upload를 할 수도 있어. 이거 valid 해
+  //  UPLOADING 에 dispatch logic을 다시 옮겨야겠다.
   private Function<BinaryPublisher<P>, CompletableFuture<Void>> dispatchUpload() {
     return binaryPublisher -> Match(this)
       // FIXME (jaeeun) 2020-11-20:
