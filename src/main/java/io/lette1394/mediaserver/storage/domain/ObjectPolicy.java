@@ -4,8 +4,7 @@ import static io.lette1394.mediaserver.common.Tries.SUCCESS;
 import static io.lette1394.mediaserver.common.Violations.Code.INVALID_OBJECT_STATE;
 import static io.lette1394.mediaserver.common.Violations.violation;
 import static io.lette1394.mediaserver.storage.domain.Command.DOWNLOAD;
-import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
-import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
+import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD_APPEND;
 import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
 import static io.vavr.control.Try.failure;
 
@@ -17,7 +16,7 @@ import java.util.Set;
 public interface ObjectPolicy extends Testable<ObjectSnapshot> {
 
   ObjectPolicy REJECT_RESUME_UPLOAD = snapshot -> {
-    if (snapshot.is(UPLOAD) && snapshot.is(PENDING)) {
+    if (snapshot.is(UPLOAD_APPEND) && snapshot.is(PENDING)) {
       return failure(violation(INVALID_OBJECT_STATE, "reject resume upload"));
     }
     return SUCCESS;

@@ -123,8 +123,7 @@ class CopyingTest {
 
         assertThat(copiedObject, hasType(ObjectType.FULFILLED));
         assertThat(copiedObject, hasSize(sourceObject.getSize()));
-        assertThat(copiedObject, got(
-          events(CopyingTriggered.class, UploadingTriggered.class, Uploaded.class, Copied.class)));
+        assertThat(copiedObject, got(events(UploadingTriggered.class, Uploaded.class)));
       }
 
     }

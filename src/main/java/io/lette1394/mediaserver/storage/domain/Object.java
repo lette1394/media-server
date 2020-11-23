@@ -5,22 +5,13 @@ import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.AFTER_TRAN
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.BEFORE_TRANSFER;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.DURING_TRANSFERRING;
 import static io.lette1394.mediaserver.storage.domain.BinaryLifecycle.TRANSFER_ABORTED;
-import static io.lette1394.mediaserver.storage.domain.Command.COPY;
 import static io.lette1394.mediaserver.storage.domain.Command.DOWNLOAD;
 import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD;
-import static io.lette1394.mediaserver.storage.domain.ObjectType.FULFILLED;
-import static io.lette1394.mediaserver.storage.domain.ObjectType.INITIAL;
-import static io.lette1394.mediaserver.storage.domain.ObjectType.PENDING;
-import static io.vavr.API.$;
-import static io.vavr.API.Case;
-import static io.vavr.API.Match;
+import static io.lette1394.mediaserver.storage.domain.Command.UPLOAD_APPEND;
 
 import io.lette1394.mediaserver.common.AggregateRoot;
 import io.lette1394.mediaserver.common.Event;
 import io.lette1394.mediaserver.common.TimeStamp;
-import io.lette1394.mediaserver.storage.domain.Events.Copied;
-import io.lette1394.mediaserver.storage.domain.Events.CopyRejected;
-import io.lette1394.mediaserver.storage.domain.Events.CopyingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadRejected;
 import io.lette1394.mediaserver.storage.domain.Events.Downloaded;
 import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
@@ -75,62 +66,30 @@ public class Object<P extends Payload> extends AggregateRoot {
     this.binaryRepository = binaryRepository;
   }
 
-  // TODO: 인터페이스가 너무 이상하다... 나는 upload()를 했는데
-  //  왜 return 값이 parameter랑 같아?
-  //  download랑 쌍도 안맞고, 이해하기가 어렵다.
-  //  지금 usecase를 보면 그대로 바로 그냥 BinaryRepository에 save하는 일만 하고 있으니,
-  //  여기서 그냥 다 해주고 CompletableFuture를 반환해 주는게 낫겠다.
   public CompletableFuture<Object<P>> upload(BinaryPublisher<P> upstream) {
-    return objectPolicy.test(objectSnapshot.update(UPLOAD))
-      .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
-      .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
-      .map(__ -> compose(upstream))
-      .toCompletableFuture()
-      .thenCompose(dispatchUpload())
+    return upload(upstream, UPLOAD)
+      .thenCompose(composed -> binaryRepository.create(binaryPath, composed))
       .thenApply(__ -> this)
       .exceptionally(e -> {
         throw new OperationCanceledException(UPLOAD, unwrap(e));
       });
   }
 
-  // TODO: 이거 어... 여기서 하는 게 맞나?
-  //  copy랑은 또 안맞잖아... 그러면 어떻게 되는거야ㅜㅜ 젠장
-  //  .
-  //  .
-  //  .
-  //  자. 생각해보자.
-  //  COPY strategy(hard, soft, replicating hard)는 확실히 usecase가 맞아.
-  //  왜? invariants 가 각각 달라지니까!!
-  //  .
-  //  .
-  //  .
-  //  근데 upload는 좀 다르다.
-  //  이건 usecase가 아니야.
-  //  어떤 경우에는 PENDING state 일 때 upload 하는 경우가..... valid 하네?
-  //  젠장. 이것도 usecase 따라 달라지는 거네.
-  //  invariant가 있는데 usecase level에 있는거였다...
-  //  PENDING state 라고 해서 항상 append() 하는 게 아니야.
-  //  어떤 경우(이어올리기를 사용하지 않는 경우)는 PENDING state 일 때 upload를 할 수도 있어. 이거 valid 해
-  //  UPLOADING 에 dispatch logic을 다시 옮겨야겠다.
-  //  .
-  //  그러면... upload() 단일 메서드가 아니라,
-  //  create() / uploadNew() /
-  //  append() / uploadContinuouly() /
-  //  overwrite() / upload...
-  //  등으로 public method로 노출되어야 한다
-  //  .
-  //  upload() 단일 메서드 유지하고, UploadMode 등을 줘도 괜찮겠다. // see StandardOpenOption
-  //  잠깐만, 그러면 copyFrom은 어떻게 되는거냐...?
-  //  -> 사실 copy는 없다!
-  private Function<BinaryPublisher<P>, CompletableFuture<Void>> dispatchUpload() {
-    return binaryPublisher -> Match(this)
-      // FIXME (jaeeun) 2020-11-20:
-      //  object == null 일 때 handling
-      .of(
-        Case($(o -> o.is(FULFILLED)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
-        Case($(o -> o.is(INITIAL)), () -> binaryRepository.create(binaryPath, binaryPublisher)),
-        Case($(o -> o.is(PENDING)), () -> binaryRepository.append(binaryPath, binaryPublisher)));
-    // TODO: 매칭 안될 때
+  public CompletableFuture<Object<P>> append(BinaryPublisher<P> upstream) {
+    return upload(upstream, UPLOAD_APPEND)
+      .thenCompose(composed -> binaryRepository.append(binaryPath, composed))
+      .thenApply(__ -> this)
+      .exceptionally(e -> {
+        throw new OperationCanceledException(UPLOAD_APPEND, unwrap(e));
+      });
+  }
+
+  private CompletableFuture<BinaryPublisher<P>> upload(BinaryPublisher<P> upstream, Command command) {
+    return objectPolicy.test(objectSnapshot.update(command))
+      .onSuccess(__ -> addEvent(UploadingTriggered.uploadingTriggered()))
+      .onFailure(e -> addEvent(UploadRejected.uploadRejected(e)))
+      .map(__ -> compose(upstream))
+      .toCompletableFuture();
   }
 
   public CompletableFuture<BinaryPublisher<P>> download() {
@@ -142,30 +101,6 @@ public class Object<P extends Payload> extends AggregateRoot {
       .thenApply(addEventStep(Downloaded.downloaded()))
       .exceptionally(e -> {
         throw new OperationCanceledException(DOWNLOAD, e);
-      });
-  }
-
-  // TODO: 이것도 upload() 메서드랑 같이 이상한데...
-  //  이것도 upload() 와 같이 만들려면 SoftCopying 쪽이 문젠데,
-  //  SoftCopying 에 있는 objectFactory에 있는 BinaryRepository를 아무것도 안하게 만들면 해결 가능하다.
-  //  .
-  //  .
-  //  .
-  //  사실 copy는 없다!
-  //  copy는 upload() + download()를 활용한 usecase이지,
-  //  그 자체로 뭐가 있는게 아님.
-  //  이벤트는 usecase들이 publish 하고,
-  //  objectPolicy는 upload/download만 check,
-  //  copy에 대한 추가적인 policy는 usecase에 종속적인 인터페이스로 해결해야한다
-  public CompletableFuture<Object<P>> copyFrom(BinaryPublisher<P> upstream) {
-    return objectPolicy.test(objectSnapshot.update(COPY))
-      .onSuccess(__ -> addEvent(CopyingTriggered.copyingTriggered()))
-      .onFailure(e -> addEvent(CopyRejected.copyRejected(e)))
-      .toCompletableFuture()
-      .thenCompose(__ -> upload(upstream))
-      .thenApply(addEventStep(Copied.copied()))
-      .exceptionally(e -> {
-        throw new OperationCanceledException(COPY, e);
       });
   }
 

@@ -66,7 +66,7 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
   private CompletableFuture<Object<P>> pretendingToCopy(Object<P> sourceObject,
     Object<P> targetObject) {
     final Payload notifyPayload = () -> sourceObject.getSize();
-    return targetObject.copyFrom(adapt(Mono.just((P) notifyPayload)));
+    return targetObject.upload(adapt(Mono.just((P) notifyPayload)));
   }
 
   private void increaseReferencedCount(Object<P> sourceObject) {

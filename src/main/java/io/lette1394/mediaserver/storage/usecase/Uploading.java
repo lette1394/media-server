@@ -4,21 +4,21 @@ import static io.vavr.API.$;
 import static io.vavr.API.Case;
 import static io.vavr.API.Match;
 import static io.vavr.Predicates.instanceOf;
+import static java.util.Objects.isNull;
 
-import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinaryPublisher;
 import io.lette1394.mediaserver.storage.domain.Identifier;
 import io.lette1394.mediaserver.storage.domain.Object;
 import io.lette1394.mediaserver.storage.domain.ObjectFactory;
 import io.lette1394.mediaserver.storage.domain.ObjectNotFoundException;
 import io.lette1394.mediaserver.storage.domain.ObjectRepository;
+import io.lette1394.mediaserver.storage.domain.ObjectType;
 import io.lette1394.mediaserver.storage.domain.Payload;
 import io.lette1394.mediaserver.storage.domain.Tags;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -47,26 +47,28 @@ public class Uploading<P extends Payload> {
       .thenCompose(saveObject());
   }
 
-  private BiFunction<Object<P>, Throwable, CompletableFuture<Object<P>>> dispatch(
-    Command<P> command) {
+  private BiFunction<Object<P>, Throwable, CompletableFuture<Object<P>>> dispatch(Command<P> command) {
     final Identifier identifier = command.identifier;
     final BinaryPublisher<P> upstream = command.upstream;
 
-
-
     return (object, e) -> {
-      final CompletableFuture<Object<P>> of = Match(e)
-        .of(
-          Case($(instanceOf(ObjectNotFoundException.class)),
-            () -> createNewObject(command.identifier, command.upstream)),
-          Case($(), () -> abortUpload(e)));
+      if (isObjectExist(e)) {
+        return Match(object).of(
+          // FIXME (jaeeun) 2020-11-23:
+          //  여기서... 엄... 서비스 별 정책이 달라진다는거지?
+          //  어떤 애는 이어올리기를 지원 안하니까 여기가 무조건 object.create() 일꺼고?
+          Case($(o -> o.is(ObjectType.PENDING)), () -> object.append(upstream)),
+          Case($(o -> o.is(ObjectType.FULFILLED)), () -> object.upload(upstream)),
+          Case($(), () -> abortUpload(new IllegalStateException("illegal state"))));
+      }
+      return Match(e).of(
+        Case($(instanceOf(ObjectNotFoundException.class)), () -> createNewObject(identifier, upstream)),
+        Case($(), () -> abortUpload(e)));
+    };
+  }
 
-
-
-      Match(object)
-        .of(
-          Case($(objectExists()) , () -> object.upload(upstream))
-    }
+  private boolean isObjectExist(Throwable throwable) {
+    return isNull(throwable);
   }
 
   private BiFunction<Object<P>, Tags, Object<P>> addAllTags() {
@@ -80,46 +82,13 @@ public class Uploading<P extends Payload> {
     return object -> objectRepository.save(object);
   }
 
-  private CompletableFuture<Object<P>> append(Object<P> object,
+  private CompletableFuture<Object<P>> createNewObject(Identifier identifier,
     BinaryPublisher<P> upstream) {
-    final BinaryPublisher<P> binary = object.upload(upstream);
-    final BinaryPath binaryPath = binaryPath(object.getIdentifier());
-
-    return binaryRepository.append(binaryPath, binary)
-      .thenApply(__ -> object);
-  }
-
-  private CompletableFuture<Object<P>> create(Identifier identifier,
-    BinaryPublisher<P> upstream) {
-    final Object<P> object = objectFactory.create(identifier);
-    final BinaryPublisher<P> binaryPublisher = object.upload(upstream);
-    final BinaryPath binaryPath = binaryPath(identifier);
-
-    return binaryRepository.create(binaryPath, binaryPublisher)
-      .thenApply(__ -> object);
-  }
-
-  private CompletableFuture<Object<P>> overwrite(Object<P> object,
-    BinaryPublisher<P> upstream) {
-    final BinaryPublisher<P> binaryPublisher = object.upload(upstream);
-    final BinaryPath binaryPath = binaryPath(object.getIdentifier());
-
-    return binaryRepository.create(binaryPath, binaryPublisher)
-      .thenApply(__ -> object);
-  }
-
-  private CompletableFuture<Object<P>> createNewObject(Identifier identifier, BinaryPublisher<P> upstream) {
-    return objectFactory
-      .create(identifier)
-      .upload(upstream);
+    return objectFactory.create(identifier).upload(upstream);
   }
 
   private CompletableFuture<Object<P>> abortUpload(Throwable e) {
     return CompletableFuture.failedFuture(e);
-  }
-
-  private Predicate<Throwable> objectExists() {
-    return throwable -> throwable == null;
   }
 
   private Function<CompletableFuture<Object<P>>, CompletionStage<Object<P>>> unwrap() {
@@ -132,7 +101,7 @@ public class Uploading<P extends Payload> {
 
     Identifier identifier;
     @Builder.Default // TODO: fix naive impl
-    CompletableFuture<Tags> tags = CompletableFuture.completedFuture(Tags.empty());
+      CompletableFuture<Tags> tags = CompletableFuture.completedFuture(Tags.empty());
     BinaryPublisher<P> upstream;
 
     public Command<P> with(BinaryPublisher<P> upstream) {
