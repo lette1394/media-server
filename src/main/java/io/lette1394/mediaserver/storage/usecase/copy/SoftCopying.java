@@ -47,12 +47,32 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
 
     // TODO: atomic update
     // TODO: transaction
-    return pretendingToCopy(sourceObject, targetObject)
+    // TODO: handle failure
+    return pretendingUpload(sourceObject, targetObject)
       .thenCompose(copiedObject -> CompletableFuture
         .allOf(
           objectRepository.save(sourceObject),
           objectRepository.save(targetObject))
         .thenApply(__ -> copiedObject));
+
+    // COPY INVARIANTS: source/target 은 서로 atomic하게 업데이트 되어야한다
+    //  copy는 그 자체로 usecase 이므로 이는 domain model이 아닌 usecase에 있는다...?
+    //  .
+    //  .
+    //  .
+    //  아닌 거 같다. usecase가 애초에 무엇이지?
+    //  usecase는 domain 객체끼리의 흐름과 조합을 나타내는 건데...
+    //  음...
+    //  그러면 맞는 말 같은데?
+    //  upload() / download() 간의 흐름과 조합을 나타내고 있잖아 지금
+    //  어렵다 어려워
+    //  .
+    //  .
+    //  .
+    //  아... 이게 sub-domain 이구나....!!!!!
+    //  와우.
+    //  와우.
+    //  와우.
   }
 
   private void markSoftCopied(Object<P> sourceObject, Object<P> targetObject) {
@@ -63,7 +83,7 @@ public class SoftCopying<P extends Payload> implements CopyStrategy<P> {
   }
 
   @SuppressWarnings("unchecked")
-  private CompletableFuture<Object<P>> pretendingToCopy(Object<P> sourceObject,
+  private CompletableFuture<Object<P>> pretendingUpload(Object<P> sourceObject,
     Object<P> targetObject) {
     final Payload notifyPayload = () -> sourceObject.getSize();
     return targetObject.upload(adapt(Mono.just((P) notifyPayload)));

@@ -128,6 +128,19 @@ class CopyingTest {
         assertThat(copiedObject, hasSize(sourceObject.getSize()));
         assertThat(sourceObject, got(events(DownloadingTriggered.class, Downloaded.class)));
         assertThat(copiedObject, got(events(UploadingTriggered.class, Uploaded.class)));
+
+        // TODO: 엄...
+        //  이거 이러면 어떻게 되는거지
+        //  object 에 copy event가 없다라...
+        //  그러면 음...
+        //  .
+        //  .
+        //  .
+        //  1. 애초에 event로 뭘 할 수 있는지를 생각해보자
+        //  2. 다른 aggregate이 존재하는건가?
+        //  3. !!!invariants 를 기준으로 생각하자!!!
+        //    storage object invariants 는 뭐가 있지...?
+        //
       }
     }
   }
