@@ -42,6 +42,8 @@ public class Object<P extends Payload> extends AggregateRoot {
   private final TimeStamp timeStamp;
   private final BinaryPolicy binaryPolicy;
   private final BinarySnapshot binarySnapshot;
+
+  // FIXME (jaeeun) 2020-11-24: 이거 aggregate 에서 들고있어야 하는거 맞아?
   private final BinaryRepository<P> binaryRepository;
 
   @Builder

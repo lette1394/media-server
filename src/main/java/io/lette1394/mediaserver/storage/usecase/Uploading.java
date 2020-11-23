@@ -23,6 +23,19 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
+// TODO: ObjectService 클래스 만들고
+//  objectService.upload();
+//  objectService.overwrite();
+//  objectService.append();
+//  objectService.hardCopy();
+//  objectService.softCopy();
+//  objectService.replicatingHardCopy();
+//  이렇게 하는건가?
+//  .
+//  .
+//  .
+//  그러면 이런 usecase class는 어떻게 쓸 수 있을까?
+//  => 아마도 "진짜" usecase를 나타내야 할 것이다.
 @RequiredArgsConstructor
 public class Uploading<P extends Payload> {
 
