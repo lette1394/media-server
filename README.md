@@ -84,6 +84,8 @@ java.base/java.io=ALL-UNNAMED
 - copy, link는 up/download의 usecase 이므로, LinkAwareBinaryRepository 등을 생성하여 구현한다 
 - 효율적인 copy는 어떻게 달성하는가? -> 하위 인터페이스 구현을 통해 (FileSystemBinarySupplier -> instance check)
 
+- 일단 ubiquitous language를 먼저 완성해보자.
+
 ### notes
 
 mvc
