@@ -19,6 +19,8 @@ import io.lette1394.mediaserver.storage.domain.BinaryPath;
 import io.lette1394.mediaserver.storage.domain.BinarySnapshot;
 import io.lette1394.mediaserver.storage.domain.Events.Copied;
 import io.lette1394.mediaserver.storage.domain.Events.CopyingTriggered;
+import io.lette1394.mediaserver.storage.domain.Events.Downloaded;
+import io.lette1394.mediaserver.storage.domain.Events.DownloadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Events.Uploaded;
 import io.lette1394.mediaserver.storage.domain.Events.UploadingTriggered;
 import io.lette1394.mediaserver.storage.domain.Identifier;
@@ -118,14 +120,15 @@ class CopyingTest {
       void test1() {
         final Identifier sourceId = sourceObject.getIdentifier();
         final Identifier targetId = randomIdentifier();
-        final Object<StringPayload> copiedObject = subject().copy(hardMode(sourceId, targetId))
+        final Object<StringPayload> copiedObject = subject()
+          .copy(hardMode(sourceId, targetId))
           .join();
 
         assertThat(copiedObject, hasType(ObjectType.FULFILLED));
         assertThat(copiedObject, hasSize(sourceObject.getSize()));
+        assertThat(sourceObject, got(events(DownloadingTriggered.class, Downloaded.class)));
         assertThat(copiedObject, got(events(UploadingTriggered.class, Uploaded.class)));
       }
-
     }
   }
 }
